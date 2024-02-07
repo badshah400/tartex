@@ -268,7 +268,7 @@ class TarTeX:
 
         os.chdir(self.cwd)
         if self.args.summary:
-            self.summary_msg(full_tar_name.relative_to(self.cwd), len(flist))
+            self.summary_msg(full_tar_name.resolve().relative_to(self.cwd), len(flist))
 
     def _tar_name_conflict(self, tpath, ext):
         owr = input(
