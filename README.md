@@ -1,13 +1,15 @@
 # tartex
 
-[![PyPI - Version](https://img.shields.io/pypi/v/tartex.svg)](https://pypi.org/project/tartex)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/tartex.svg)](https://pypi.org/project/tartex)
+[comment]: # [![PyPI - Version](https://img.shields.io/pypi/v/tartex.svg)](https://pypi.org/project/tartex)
+
+[comment]: # [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/tartex.svg)](https://pypi.org/project/tartex)
+
 [![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
 
 -----
 
-TarTeX is a command-line utility to generate a tarball including all source
-files needed to compile your LaTeX project.
+TarTeX is a command-line utility to generate a tarball including all
+(non-system) source files needed to compile your LaTeX project.
 
 **Table of Contents**
 
@@ -17,11 +19,21 @@ files needed to compile your LaTeX project.
 
 ## Installation
 
+In the (hopefully near!) future, when it is ready for release, installing
+tartex will be one `pip(x)` call away.  For now, the source code may be
+compiled using [hatch](https://hatch.pypa.io/latest/) to generate a wheel,
+which may be installed using `pipx` as follows:
+
 ```console
-pip install tartex
+git clone https://github.com/badshah400/tartex.git
+cd tartex
+hatch build
+pipx install ./dist/*.whl
 ```
 
-__Note__: You must have `latexmk` and `pdflatex` installed.
+__Note__: You must have `latexmk` and `pdflatex`, as well as a full LaTeX env
+installed. `tartex` will not include any system-wide files, such as TeX style
+files, classes, etc. in the tar file.
 
 ## Usage
 
