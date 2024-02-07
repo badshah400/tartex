@@ -1,5 +1,5 @@
 # vim: set ai et ts=4 sw=4 tw=80:
-"""tartex DocString"""
+"""tartex module"""
 
 import argparse
 import math
@@ -9,8 +9,11 @@ import shutil
 import subprocess
 import sys
 import tarfile as tar
+import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
+from io import BytesIO
 
 from . import __about__
 
@@ -21,14 +24,15 @@ INPUT_RE = re.compile(r"^INPUT")
 AUXFILES = [".aux", ".toc", ".out", ".fls", ".fdb_latexmk", ".log", ".blg", ".idx"]
 
 # Get version
-VERSION  = __about__.__version__
+VERSION = __about__.__version__
+
 
 def parse_args(args):
     """Set up argparse options and parse input args accordingly"""
     parser = argparse.ArgumentParser(
-        description="Build a tarball including all source"
-        " files needed to compile your LaTeX project"
-        f" (version {VERSION})."
+        description="Build a tarball including all"
+        " source files needed to compile your"
+        f" LaTeX project (version {VERSION})."
     )
 
     parser.add_argument(
@@ -103,6 +107,7 @@ class TarTeX:
             if self.args.output
             else Path(self.main_file.stem).with_suffix(".tar")
         )
+        self.bbl = None
         self.tar_file = self.cwd / tar_base
         self.add_files = self.args.add.split(",") if len(self.args.add) > 0 else []
         excludes = self.args.excl.split(",") if len(self.args.excl) > 0 else []
@@ -201,6 +206,15 @@ class TarTeX:
                         ):
                             deps.append(p.as_posix())
 
+                bbl_file = self.main_file.with_suffix(".bbl")
+                # Handle missing bbl file from orig dir, if present in fls_path
+                if (
+                    bbl_file not in deps  # bbl file not in source dir
+                    and
+                    (Path(compile_dir) / bbl_file.name).exists() # Implies it's req
+                ):
+                    self.bbl = (Path(compile_dir) / bbl_file.name).read_bytes()
+
         if self.args.bib:
             deps.append(self.bib_file().as_posix())
 
@@ -229,27 +243,10 @@ class TarTeX:
         """
         self.check_main_file_exists()
         full_tar_name = Path(f"{self.tar_file}.{ext}")
+
         if full_tar_name.exists() and not self.args.list:
-            owr = input(
-                "Warning: A tar file with the same already exists.\n"
-                "What would you like to do "
-                "([o]verwrite/[c]hoose new name/[Q]uit)? "
-            )
-            if owr.lower() in ["", "q"]:
-                sys.exit("Not overwriting existing tar file; quitting.")
-            elif owr.lower() == "c":
-                new_name = input("Enter new name for tar file: ")
-                if Path(new_name).with_suffix(f".tar.{ext}").resolve() == full_tar_name:
-                    sys.exit(
-                        "New name entered is also the same as existing tar file"
-                        " name; quitting."
-                    )
-                else:
-                    full_tar_name = Path(new_name).with_suffix(f".tar.{ext}")
-            elif owr.lower() == "o":
-                pass
-            else:
-                sys.exit("Invalid response; quitting.")
+            if(p := self._tar_name_conflict(full_tar_name, ext)):
+                full_tar_name = p
 
         wdir = self.main_file.resolve().parent
         os.chdir(wdir)
@@ -263,9 +260,42 @@ class TarTeX:
                     if self.args.verbose:
                         print(dep)
                     f.add(dep)
+                if self.bbl:
+                    tinfo = f.tarinfo(self.main_file.with_suffix(".bbl").name)
+                    tinfo.size = len(self.bbl)
+                    tinfo.mtime = int(time.time())
+                    f.addfile(tinfo, BytesIO(self.bbl))
+
         os.chdir(self.cwd)
         if self.args.summary:
             self.summary_msg(full_tar_name.relative_to(self.cwd), len(flist))
+
+    def _tar_name_conflict(self, tpath, ext):
+        owr = input(
+                "Warning: A tar file with the same already exists.\n"
+                "What would you like to do "
+                "([o]verwrite/[c]hoose new name/[Q]uit)? "
+            )
+        if owr.lower() in ["", "q"]:
+            sys.exit("Not overwriting existing tar file; quitting.")
+        elif owr.lower() == "c":
+            new_name = input("Enter new name for tar file: ")
+            new_path = Path(new_name).with_suffix(f".tar.{ext}").resolve()
+            if new_path == tpath:
+                sys.exit(
+                    "New name entered is also the same as existing tar file"
+                    " name.\nQuitting."
+                )
+            elif new_path.exists():
+                sys.exit("Another file with the same name also"
+                         " exists.\nQuitting.")
+            else:
+                full_name = Path(new_name).with_suffix(f".tar.{ext}")
+                return full_name
+        elif owr.lower() == "o":
+            return None
+        else:
+            sys.exit("Invalid response; quitting.")
 
     def check_main_file_exists(self):
         """Check for the existence of the main tex/fls file."""
