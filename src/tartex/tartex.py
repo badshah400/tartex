@@ -257,13 +257,12 @@ class TarTeX:
         if self.args.list:
             for i, f in enumerate(flist):
                 print(f"{i+1:{int(math.log10(len(flist)))+1}}. {f}")
-                os.chdir(self.cwd)
-            return
-        with tar.open(full_tar_name, mode=f"w:{ext}") as f:
-            for dep in flist:
-                if self.args.verbose:
-                    print(dep)
-                f.add(dep)
+        else:
+            with tar.open(full_tar_name, mode=f"w:{ext}") as f:
+                for dep in flist:
+                    if self.args.verbose:
+                        print(dep)
+                    f.add(dep)
         os.chdir(self.cwd)
         if self.args.summary:
             self.summary_msg(full_tar_name.relative_to(self.cwd), len(flist))
