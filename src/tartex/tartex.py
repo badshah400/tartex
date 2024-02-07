@@ -274,14 +274,14 @@ class TarTeX:
         else:
             with tar.open(full_tar_name, mode=f"w:{ext}") as f:
                 for dep in flist:
-                    if self.args.verbose:
-                        print(dep)
                     f.add(dep)
                 if self.bbl:
                     tinfo = f.tarinfo(self.main_file.with_suffix(".bbl").name)
                     tinfo.size = len(self.bbl)
                     tinfo.mtime = int(time.time())
                     f.addfile(tinfo, BytesIO(self.bbl))
+                if self.args.verbose:
+                    print('\n'.join(f.getnames()))
 
         os.chdir(self.cwd)
         if self.args.summary:
