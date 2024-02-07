@@ -36,6 +36,8 @@ files, classes, etc. in the tar file.
 
 ## Usage
 
+Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
+
 ```console
 usage: tartex [-h] [-a ADD] [-b] [-l] [-o OUTPUT] [-s] [-v] [-x EXCL] fname
 
