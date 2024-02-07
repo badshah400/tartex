@@ -232,10 +232,11 @@ class TarTeX:
 
     def summary_msg(self, tarname, nfiles):
         """Return summary msg to print at end of run"""
+        num_files = nfiles + (1 if self.bbl else  0)
         if self.args.list:
-            print(f"Summary: {nfiles} files to include.")
+            print(f"Summary: {num_files} files to include.")
         else:
-            print(f"Summary: {tarname} generated with {nfiles} files.")
+            print(f"Summary: {tarname} generated with {num_files} files.")
 
     def tar_files(self, ext="gz"):
         """Generates a tarball consisting of non-system input files needed to
@@ -252,8 +253,11 @@ class TarTeX:
         os.chdir(wdir)
         flist = self.input_files()
         if self.args.list:
+            idx_width = int(math.log10(len(flist))) + 1
             for i, f in enumerate(flist):
-                print(f"{i+1:{int(math.log10(len(flist)))+1}}. {f}")
+                print(f"{i+1:{idx_width}}. {f}")
+            if self.bbl:
+                print(f"{'*':>{idx_width}}  {self.main_file.with_suffix('.bbl')}")
         else:
             with tar.open(full_tar_name, mode=f"w:{ext}") as f:
                 for dep in flist:
