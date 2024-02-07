@@ -14,6 +14,7 @@ TarTeX is a command-line utility to generate a tarball including all
 - [Installation](#installation)
 - [Usage](#usage)
 - [License](#license)
+- [Similar utilities](#similar-utilities)
 
 ## Installation
 
@@ -68,3 +69,7 @@ options:
 ## License
 
 `tartex` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+
+## Similar utilities
+
+* [bundledoc](https://ctan.org/tex-archive/support/bundledoc) is a post-processor for the `snapshot` package that bundles together all the classes, packages and files needed to build a given LaTeX document.
