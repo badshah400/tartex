@@ -91,6 +91,30 @@ def parse_args(args):
         "(loc relative to main TeX file)",
     )
 
+    # Tar recompress options
+    tar_opts = parser.add_mutually_exclusive_group()
+
+    tar_opts.add_argument(
+        "-j",
+        "--bzip2",
+        action="store_true",
+        help="Compress tar with bzip2, generating .tar.bz2 file"
+    )
+
+    tar_opts.add_argument(
+        "-J",
+        "--xz",
+        action="store_true",
+        help="Compress tar with xz, generating .tar.xz file"
+    )
+
+    tar_opts.add_argument(
+        "-z",
+        "--gzip",
+        action="store_true",
+        help="Compress tar with gzip, generating .tar.gz file"
+    )
+
     return parser.parse_args(args)
 
 
@@ -109,8 +133,17 @@ class TarTeX:
             if self.args.output
             else Path(self.main_file.stem).with_suffix(".tar")
         )
-        self.bbl = None
         self.tar_file = self.cwd / tar_base
+        self.tar_ext  = "gz"
+
+        if self.args.bzip2:
+            self.tar_ext = "bz2"
+        if self.args.gzip:
+            self.tar_ext = "gz"
+        if self.args.xz:
+            self.tar_ext = "xz"
+
+        self.bbl = None
         self.add_files = self.args.add.split(",") if len(self.args.add) > 0 else []
         excludes = self.args.excl.split(",") if len(self.args.excl) > 0 else []
         excl_lists = (self.main_file.parent.glob(f"{L}") for L in excludes)
@@ -252,15 +285,15 @@ class TarTeX:
         else:
             print(f"Summary: {tarname} generated with {num_files} files.")
 
-    def tar_files(self, ext="gz"):
+    def tar_files(self):
         """Generates a tarball consisting of non-system input files needed to
         recompile your latex project.
         """
         self.check_main_file_exists()
-        full_tar_name = Path(f"{self.tar_file}.{ext}")
+        full_tar_name = Path(f"{self.tar_file}.{self.tar_ext}")
 
         if full_tar_name.exists() and not self.args.list:
-            if(p := self._tar_name_conflict(full_tar_name, ext)):
+            if(p := self._tar_name_conflict(full_tar_name, self.tar_ext)):
                 full_tar_name = p
 
         wdir = self.main_file.resolve().parent
@@ -273,7 +306,7 @@ class TarTeX:
             if self.bbl:
                 print(f"{'*':>{idx_width}}  {self.main_file.with_suffix('.bbl')}")
         else:
-            with tar.open(full_tar_name, mode=f"w:{ext}") as f:
+            with tar.open(full_tar_name, mode=f"w:{self.tar_ext}") as f:
                 for dep in flist:
                     f.add(dep)
                 if self.bbl:
@@ -322,10 +355,10 @@ class TarTeX:
             sys.exit(-1)
 
 
-def make_tar(ext="gz"):
+def make_tar():
     """Build tarball with command line arguments processed by argparse"""
     t = TarTeX(sys.argv[1:])
-    t.tar_files(ext)
+    t.tar_files()
 
 
 if __name__ == "__main__":
