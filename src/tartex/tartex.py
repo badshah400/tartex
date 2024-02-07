@@ -2,6 +2,7 @@
 """tartex module"""
 
 import argparse
+import fnmatch
 import math
 import os
 import re
@@ -94,7 +95,8 @@ def parse_args(args):
 
 
 class TarTeX:
-    """Class to help build  a tarball including all source files needed to
+    """
+    Class to help build  a tarball including all source files needed to
     re-compile your LaTeX project."
     """
 
@@ -119,8 +121,16 @@ class TarTeX:
             for f in L
         ]
 
+        # If .bbl is missing in source dir, then it is not in self.excl_files
+        # even if the user passes a matching wildcard to exclude it with "-x".
+        # Handle this case
+        for glb in excludes:
+            if fnmatch.fnmatch(self.main_file.with_suffix(".bbl"), glb):
+                self.excl_files.append(self.main_file.with_suffix(".bbl"))
+
     def add_user_files(self):
-        """Return list of additional user specified/globbed file paths,
+        """
+        Return list of additional user specified/globbed file paths,
         if they exist
         """
         lof = []
@@ -157,7 +167,8 @@ class TarTeX:
         return Path(bibstr)
 
     def input_files(self):
-        """Returns non-system input files needed to compile the main tex file.
+        """
+        Returns non-system input files needed to compile the main tex file.
         Note that this will try to compile the main tex file using `latexmk` if
         it cannot find the fls file in the same dir.
         """
@@ -212,6 +223,8 @@ class TarTeX:
                     bbl_file not in deps  # bbl file not in source dir
                     and
                     (Path(compile_dir) / bbl_file.name).exists() # Implies it's req
+                    and
+                    bbl_file not in self.excl_files # Not explicitly excluded
                 ):
                     self.bbl = (Path(compile_dir) / bbl_file.name).read_bytes()
 
@@ -309,7 +322,7 @@ class TarTeX:
 
 
 def make_tar(ext="gz"):
-    """Build the tarball with command line arguments processed by argparse"""
+    """Build tarball with command line arguments processed by argparse"""
     t = TarTeX(sys.argv[1:])
     t.tar_files(ext)
 
