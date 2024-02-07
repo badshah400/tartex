@@ -30,9 +30,9 @@ dependencies = []
 tartex = "tartex.tartex:make_tar"
 
 [project.urls]
-Documentation = "https://github.com/unknown/tartex#readme"
-Issues = "https://github.com/unknown/tartex/issues"
-Source = "https://github.com/unknown/tartex"
+Documentation = "https://github.com/badshah400/tartex#readme"
+Issues = "https://github.com/badshah400/tartex/issues"
+Source = "https://github.com/badshah400/tartex"
 
 [tool.hatch.version]
 path = "src/tartex/__about__.py"
