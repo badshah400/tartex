@@ -125,8 +125,9 @@ class TarTeX:
         # even if the user passes a matching wildcard to exclude it with "-x".
         # Handle this case
         for glb in excludes:
-            if fnmatch.fnmatch(self.main_file.with_suffix(".bbl"), glb):
-                self.excl_files.append(self.main_file.with_suffix(".bbl"))
+            main_bbl = self.main_file.with_suffix(".bbl")
+            if fnmatch.fnmatch(main_bbl.name, glb):
+                self.excl_files.append(main_bbl)
 
     def add_user_files(self):
         """
