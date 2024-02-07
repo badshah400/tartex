@@ -1,8 +1,7 @@
 # tartex
 
-<!--- [![PyPI - Version](https://img.shields.io/pypi/v/tartex.svg)](https://pypi.org/project/tartex) --->
-<!---[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/tartex.svg)](https://pypi.org/project/tartex) --->
-
+[![PyPI - Version](https://img.shields.io/pypi/v/tartex.svg)](https://pypi.org/project/tartex)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/tartex.svg)](https://pypi.org/project/tartex)
 [![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
 
 -----
@@ -18,10 +17,22 @@ TarTeX is a command-line utility to generate a tarball including all
 
 ## Installation
 
-In the (hopefully near!) future, when it is ready for release, installing
-tartex will be one `pip(x)` call away.  For now, the source code may be
-compiled using [hatch](https://hatch.pypa.io/latest/) to generate a wheel,
-which may be installed using `pipx` as follows:
+__Note__: You must have `latexmk` and `pdflatex`, as well as a full LaTeX env
+installed. `tartex` will not include any system-wide files, such as TeX style
+files, classes, etc. in the tar file.
+
+### Using pipx
+
+This is the easy way to install tagged releases.
+
+```console
+pipx install tartex
+```
+
+### From GitHub sources:
+
+Compile using [hatch](https://hatch.pypa.io/latest/) to generate a wheel,
+which may be then installed using `pipx` as follows:
 
 ```console
 git clone https://github.com/badshah400/tartex.git
@@ -29,10 +40,6 @@ cd tartex
 hatch build
 pipx install ./dist/*.whl
 ```
-
-__Note__: You must have `latexmk` and `pdflatex`, as well as a full LaTeX env
-installed. `tartex` will not include any system-wide files, such as TeX style
-files, classes, etc. in the tar file.
 
 ## Usage
 
