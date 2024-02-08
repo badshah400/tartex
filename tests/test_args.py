@@ -8,7 +8,7 @@
 import pytest
 
 from tartex.__about__ import __version__
-from tartex.tartex import TarTeX, make_tar
+from tartex.tartex import TAR_DEFAULT_COMP, TarTeX, make_tar
 
 
 class TestArgs:
@@ -45,3 +45,30 @@ class TestArgs:
         assert exc.value.code == 2
         output = capsys.readouterr().err
         assert "not allowed with" in output
+
+
+class TestTarExt:
+    """
+    Class of tests checking automatic tar compression detection based on user
+    specified outout tarfile name
+    """
+    def test_default(self):
+        """"Test default tarball extension"""
+        t = TarTeX(["some_file.tex"])
+        assert t.tar_ext == TAR_DEFAULT_COMP
+
+    def test_output_bzip2(self):
+        """Test user output file as .tar.bz2"""
+        t = TarTeX(["-o", "dest.tar.bz2", "some_file.tex"])
+        assert t.tar_ext == "bz2"
+        t = TarTeX(["-o", "dest.tar.bz2", "-J", "some_file.tex"])
+        assert t.tar_ext == "xz"
+        assert t.tar_file.name == "dest.tar"
+
+    def test_output_xz(self):
+        """Test user output file as .tar.xz"""
+        t = TarTeX(["-o", "dest.tar.xz", "some_file.tex"])
+        assert t.tar_ext == "xz"
+        t = TarTeX(["-o", "dest.tar.xz", "-j", "some_file.tex"])
+        assert t.tar_ext == "bz2"
+        assert t.tar_file.name == "dest.tar"

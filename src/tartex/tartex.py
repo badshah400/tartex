@@ -26,6 +26,9 @@ AUXFILES = [".aux", ".toc", ".out", ".fls", ".fdb_latexmk", ".log", ".blg", ".id
 # Get version
 VERSION = __about__.__version__
 
+# Allowed tar extensions
+TAR_EXT = ["bz2", "gz", "xz"]
+
 # Default compression
 TAR_DEFAULT_COMP = "gz"
 
@@ -129,6 +132,15 @@ def parse_args(args):
 
     return parser.parse_args(args)
 
+def strip_tarext(filename):
+    """Strip '.tar(.EXT)' from filename"""
+    basename = Path(filename)
+    if basename.suffix.lstrip('.') in TAR_EXT:
+        basename = basename.with_suffix('')
+    if basename.suffix == ".tar":
+        basename = basename.with_suffix('')
+    return basename
+
 
 class TarTeX:
     """
@@ -141,14 +153,22 @@ class TarTeX:
         self.cwd = Path(os.getcwd())
         self.args = parse_args(args)
         self.main_file = Path(self.args.fname)
+        if self.main_file.suffix not in [".fls", ".tex"]:
+            sys.exit("Error: Source filename must be .tex or .fls\nQuitting")
+
         tar_base = (
-            Path(self.args.output).with_suffix(".tar").expanduser()
+            strip_tarext(self.args.output).with_suffix(".tar").expanduser()
             if self.args.output
             else Path(self.main_file.stem).with_suffix(".tar")
         )
         self.tar_file = self.cwd / tar_base
         self.tar_ext  = TAR_DEFAULT_COMP
 
+        # If specified output file has TAR_EXT extension, use that by default...
+        if (out := self.args.output) and ((oex := out.split('.')[-1]) in TAR_EXT):
+            self.tar_ext = oex
+
+        #...but overwrite if specific option passed
         if self.args.bzip2:
             self.tar_ext = "bz2"
         if self.args.gzip:
@@ -308,7 +328,7 @@ class TarTeX:
         if (
             full_tar_name.exists()
             and not self.args.list
-            and (p := self._tar_name_conflict(full_tar_name, self.tar_ext))
+            and (p := self._tar_name_conflict(full_tar_name))
         ):
             full_tar_name = p
 
@@ -337,7 +357,7 @@ class TarTeX:
         if self.args.summary:
             self.summary_msg(full_tar_name.resolve().relative_to(self.cwd), len(flist))
 
-    def _tar_name_conflict(self, tpath, ext):
+    def _tar_name_conflict(self, tpath):
         owr = input(
                 "Warning: A tar file with the same already exists.\n"
                 "What would you like to do "
@@ -347,18 +367,20 @@ class TarTeX:
             sys.exit("Not overwriting existing tar file; quitting.")
         elif owr.lower() == "c":
             new_name = input("Enter new name for tar file: ")
-            new_path = (Path(new_name)
-                        .with_suffix(f".tar.{ext}")
+            if (new_ext := new_name.split('.')[-1]) in TAR_EXT:
+                self.tar_ext = new_ext
+            new_path = (strip_tarext(new_name)
+                        .with_suffix(f".tar.{self.tar_ext}")
                         .expanduser()
                         .resolve())
             if new_path == tpath:
                 sys.exit(
-                    "New name entered is also the same as existing tar file"
-                    " name.\nQuitting."
+                    "Error: New name entered is also the same as existing tar"
+                    " file name\nQuitting"
                 )
             elif new_path.exists():
-                sys.exit("Another file with the same name also"
-                         " exists.\nQuitting.")
+                sys.exit("Error: A tar file with the same name also"
+                         " exists\nQuitting")
             else:
                 return new_path
         elif owr.lower() == "o":
