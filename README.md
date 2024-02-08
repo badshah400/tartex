@@ -52,7 +52,7 @@ usage: tartex [-h] [-a ADD] [-b] [-l] [-o OUTPUT] [-s] [-v] [-x EXCL] [-j | -J |
 Build a tarball including all source files needed to compile your LaTeX project (version 0.1.0).
 
 positional arguments:
-  filename              Input file name (.tex or .fls)
+  filename              Input file name (with .tex or .fls suffix)
 
 options:
   -h, --help            show this help message and exit
@@ -60,13 +60,13 @@ options:
   -b, --bib             find and add bib file to tarball
   -l, --list            Print a list of files to include and quit (no tarball generated)
   -o OUTPUT, --output OUTPUT
-                        Name of output tar.gz file (w/o the .tar.gz extension)
+                        Name of output tar file (suffix potentially sets tar compression)
   -s, --summary         Print a summary at the end
   -v, --verbose         Print file names added to tarball
   -x EXCL, --excl EXCL  Comma separated list of files (wildcards allowed!) to exclude (loc relative to main TeX file)
-  -j, --bzip2           Compress tar with bzip2, generating .tar.bz2 file
-  -J, --xz              Compress tar with xz, generating .tar.xz file
-  -z, --gzip            Compress tar with gzip, generating .tar.gz file (default)
+  -j, --bzip2           bzip2 (.tar.bz2) compression, (overrides OUTPUT ext if needed)
+  -J, --xz              xz (.tar.xz) compression, (overrides OUTPUT ext if needed)
+  -z, --gzip            gz (.tar.gz) compression, (overrides OUTPUT ext if needed)
   -V, --version         Print tartex version
 ```
 

@@ -44,7 +44,7 @@ def parse_args(args):
         "fname",
         metavar="filename",
         type=str,
-        help="Input file name (.tex or .fls)"
+        help="Input file name (with .tex or .fls suffix)"
     )
 
     parser.add_argument(
@@ -52,8 +52,8 @@ def parse_args(args):
         "--add",
         type=str,
         default=[],
-        help="Comma separated list of additional files (wildcards allowed!) "
-        "to include (loc relative to main TeX file)",
+        help="Comma separated list of additional files (wildcards allowed!)"
+             " to include (loc relative to main TeX file)"
     )
 
     parser.add_argument(
@@ -64,7 +64,7 @@ def parse_args(args):
         "-l",
         "--list",
         action="store_true",
-        help="Print a list of files to include and quit (no tarball generated)",
+        help="Print a list of files to include and quit (no tarball generated)"
     )
 
     parser.add_argument(
@@ -72,21 +72,21 @@ def parse_args(args):
         "--output",
         type=str,
         default=None,
-        help="Name of output tar.gz file (w/o the .tar.gz extension)",
+        help="Name of output tar file (suffix potentially sets tar compression)"
     )
 
     parser.add_argument(
         "-s",
         "--summary",
         action="store_true",
-        help="Print a summary at the end",
+        help="Print a summary at the end"
     )
 
     parser.add_argument(
         "-v",
         "--verbose",
         help="Print file names added to tarball",
-        action="store_true",
+        action="store_true"
     )
 
     parser.add_argument(
@@ -94,8 +94,8 @@ def parse_args(args):
         "--excl",
         type=str,
         default=[],
-        help="Comma separated list of files (wildcards allowed!) to exclude "
-        "(loc relative to main TeX file)"
+        help="Comma separated list of files (wildcards allowed!) to exclude"
+             " (loc relative to main TeX file)"
     )
 
     # Tar recompress options
@@ -105,21 +105,21 @@ def parse_args(args):
         "-j",
         "--bzip2",
         action="store_true",
-        help="Compress tar with bzip2, generating .tar.bz2 file"
+        help="bzip2 (.tar.bz2) compression, (overrides OUTPUT ext if needed)"
     )
 
     tar_opts.add_argument(
         "-J",
         "--xz",
         action="store_true",
-        help="Compress tar with xz, generating .tar.xz file"
+        help="xz (.tar.xz) compression, (overrides OUTPUT ext if needed)"
     )
 
     tar_opts.add_argument(
         "-z",
         "--gzip",
         action="store_true",
-        help="Compress tar with gzip, generating .tar.gz file (default)"
+        help="gz (.tar.gz) compression, (overrides OUTPUT ext if needed)"
     )
 
     parser.add_argument(
