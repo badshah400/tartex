@@ -35,3 +35,12 @@ class TestArgs:
         output = capsys.readouterr().out
         assert f"{__version__}" in output
         assert exc.value.code == 0
+
+    def test_taropts_conflict(self, capsys):
+        """Test exit status when both --bzip2 and --gzip are passed"""
+        with pytest.raises(SystemExit) as exc:
+            TarTeX(["--bzip2", "--gzip"])
+
+        assert exc.value.code == 2
+        output = capsys.readouterr().err
+        assert "not allowed with" in output
