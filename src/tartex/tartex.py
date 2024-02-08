@@ -118,6 +118,14 @@ def parse_args(args):
         help="Compress tar with gzip, generating .tar.gz file (default)"
     )
 
+    parser.add_argument(
+        "-V",
+        "--version",
+        help="Print version",
+        action="version",
+        version=f"%(prog)s {VERSION}"
+    )
+
     return parser.parse_args(args)
 
 
