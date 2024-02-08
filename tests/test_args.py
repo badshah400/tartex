@@ -6,8 +6,9 @@
 """Tests for argument parsing"""
 
 import pytest
-from tartex.tartex import TarTeX, make_tar
+
 from tartex.__about__ import __version__
+from tartex.tartex import TarTeX, make_tar
 
 
 class TestArgs:

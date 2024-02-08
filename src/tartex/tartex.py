@@ -11,12 +11,11 @@ import subprocess
 import sys
 import tarfile as tar
 import time
+from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from io import BytesIO
-
-from . import __about__
+from tartex import __about__
 
 # Match only lines beginning with INPUT
 INPUT_RE = re.compile(r"^INPUT")
@@ -304,9 +303,12 @@ class TarTeX:
         self.check_main_file_exists()
         full_tar_name = Path(f"{self.tar_file}.{self.tar_ext}")
 
-        if full_tar_name.exists() and not self.args.list:
-            if(p := self._tar_name_conflict(full_tar_name, self.tar_ext)):
-                full_tar_name = p
+        if (
+            full_tar_name.exists()
+            and not self.args.list
+            and (p := self._tar_name_conflict(full_tar_name, self.tar_ext))
+        ):
+            full_tar_name = p
 
         wdir = self.main_file.resolve().parent
         os.chdir(wdir)
@@ -353,8 +355,7 @@ class TarTeX:
                 sys.exit("Another file with the same name also"
                          " exists.\nQuitting.")
             else:
-                full_name = Path(new_name).with_suffix(f".tar.{ext}")
-                return full_name
+                return Path(new_name).with_suffix(f".tar.{ext}")
         elif owr.lower() == "o":
             return None
         else:
