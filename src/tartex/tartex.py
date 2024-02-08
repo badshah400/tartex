@@ -359,7 +359,9 @@ class TarTeX:
 
     def _tar_name_conflict(self, tpath):
         owr = input(
-                "Warning: A tar file with the same already exists.\n"
+                "Warning: A tar file with the same name"
+                f" [{Path(tpath).resolve().relative_to(self.cwd)}] already"
+                " exists.\n"
                 "What would you like to do "
                 "([o]verwrite/[c]hoose new name/[Q]uit)? "
             )
