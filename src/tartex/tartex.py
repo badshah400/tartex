@@ -366,7 +366,7 @@ class TarTeX:
                 "([o]verwrite/[c]hoose new name/[Q]uit)? "
             )
         if owr.lower() in ["", "q"]:
-            sys.exit("Not overwriting existing tar file; quitting.")
+            sys.exit("Not overwriting existing tar file\nQuitting")
         elif owr.lower() == "c":
             new_name = input("Enter new name for tar file: ")
             if (new_ext := new_name.split('.')[-1]) in TAR_EXT:
@@ -388,13 +388,13 @@ class TarTeX:
         elif owr.lower() == "o":
             return None
         else:
-            sys.exit("Invalid response; quitting.")
+            sys.exit("Error: Invalid response\nQuitting.")
 
     def check_main_file_exists(self):
         """Check for the existence of the main tex/fls file."""
         if not Path(self.main_file).exists():
             print(f"Error: File not found - {self.main_file}")
-            sys.exit(-1)
+            sys.exit(1)
 
 
 def make_tar():
