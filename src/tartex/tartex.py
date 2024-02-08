@@ -140,7 +140,7 @@ class TarTeX:
         self.args = parse_args(args)
         self.main_file = Path(self.args.fname)
         tar_base = (
-            Path(self.args.output).with_suffix(".tar")
+            Path(self.args.output).with_suffix(".tar").expanduser()
             if self.args.output
             else Path(self.main_file.stem).with_suffix(".tar")
         )
@@ -345,7 +345,10 @@ class TarTeX:
             sys.exit("Not overwriting existing tar file; quitting.")
         elif owr.lower() == "c":
             new_name = input("Enter new name for tar file: ")
-            new_path = Path(new_name).with_suffix(f".tar.{ext}").resolve()
+            new_path = (Path(new_name)
+                        .with_suffix(f".tar.{ext}")
+                        .expanduser()
+                        .resolve())
             if new_path == tpath:
                 sys.exit(
                     "New name entered is also the same as existing tar file"
