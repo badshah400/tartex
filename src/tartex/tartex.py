@@ -37,7 +37,10 @@ def parse_args(args):
     )
 
     parser.add_argument(
-        "fname", type=str, help="Input file name (.tex or .fls) (mandatory)"
+        "fname",
+        metavar="filename",
+        type=str,
+        help="Input file name (.tex or .fls)"
     )
 
     parser.add_argument(
@@ -78,7 +81,7 @@ def parse_args(args):
     parser.add_argument(
         "-v",
         "--verbose",
-        help="Display file names added to tarball",
+        help="Print file names added to tarball",
         action="store_true",
     )
 
@@ -88,7 +91,7 @@ def parse_args(args):
         type=str,
         default=[],
         help="Comma separated list of files (wildcards allowed!) to exclude "
-        "(loc relative to main TeX file)",
+        "(loc relative to main TeX file)"
     )
 
     # Tar recompress options
@@ -112,7 +115,7 @@ def parse_args(args):
         "-z",
         "--gzip",
         action="store_true",
-        help="Compress tar with gzip, generating .tar.gz file"
+        help="Compress tar with gzip, generating .tar.gz file (default)"
     )
 
     return parser.parse_args(args)
@@ -123,6 +126,7 @@ class TarTeX:
     Class to help build  a tarball including all source files needed to
     re-compile your LaTeX project."
     """
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, args):
         self.cwd = Path(os.getcwd())
