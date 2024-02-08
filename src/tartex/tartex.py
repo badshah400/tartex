@@ -72,7 +72,7 @@ def parse_args(args):
         "--output",
         type=str,
         default=None,
-        help="Name of output tar file (suffix potentially sets tar compression)"
+        help="Name of output tar file (suffix can determine tar compression)"
     )
 
     parser.add_argument(
@@ -100,26 +100,29 @@ def parse_args(args):
 
     # Tar recompress options
     tar_opts = parser.add_mutually_exclusive_group()
+    def cmp_str(cmp, ext):
+        return(f"{cmp} (.tar.{ext}) compression"
+               " (overrides OUTPUT ext if needed)")
 
     tar_opts.add_argument(
         "-j",
         "--bzip2",
         action="store_true",
-        help="bzip2 (.tar.bz2) compression, (overrides OUTPUT ext if needed)"
+        help=cmp_str("bzip2", "bz2")
     )
 
     tar_opts.add_argument(
         "-J",
         "--xz",
         action="store_true",
-        help="xz (.tar.xz) compression, (overrides OUTPUT ext if needed)"
+        help=cmp_str("lzma", "xz")
     )
 
     tar_opts.add_argument(
         "-z",
         "--gzip",
         action="store_true",
-        help="gz (.tar.gz) compression, (overrides OUTPUT ext if needed)"
+        help=cmp_str("gzip", "gz")
     )
 
     parser.add_argument(

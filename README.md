@@ -64,9 +64,9 @@ options:
   -s, --summary         Print a summary at the end
   -v, --verbose         Print file names added to tarball
   -x EXCL, --excl EXCL  Comma separated list of files (wildcards allowed!) to exclude (loc relative to main TeX file)
-  -j, --bzip2           bzip2 (.tar.bz2) compression, (overrides OUTPUT ext if needed)
-  -J, --xz              xz (.tar.xz) compression, (overrides OUTPUT ext if needed)
-  -z, --gzip            gz (.tar.gz) compression, (overrides OUTPUT ext if needed)
+  -j, --bzip2           bzip2 (.tar.bz2) compression (overrides OUTPUT ext if needed)
+  -J, --xz              lzma (.tar.xz) compression (overrides OUTPUT ext if needed)
+  -z, --gzip            gzip (.tar.gz) compression (overrides OUTPUT ext if needed)
   -V, --version         Print tartex version
 ```
 
