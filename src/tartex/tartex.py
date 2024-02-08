@@ -26,6 +26,8 @@ AUXFILES = [".aux", ".toc", ".out", ".fls", ".fdb_latexmk", ".log", ".blg", ".id
 # Get version
 VERSION = __about__.__version__
 
+# Default compression
+TAR_DEFAULT_COMP = "gz"
 
 def parse_args(args):
     """Set up argparse options and parse input args accordingly"""
@@ -145,7 +147,7 @@ class TarTeX:
             else Path(self.main_file.stem).with_suffix(".tar")
         )
         self.tar_file = self.cwd / tar_base
-        self.tar_ext  = "gz"
+        self.tar_ext  = TAR_DEFAULT_COMP
 
         if self.args.bzip2:
             self.tar_ext = "bz2"
