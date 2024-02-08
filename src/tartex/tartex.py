@@ -355,7 +355,7 @@ class TarTeX:
                 sys.exit("Another file with the same name also"
                          " exists.\nQuitting.")
             else:
-                return Path(new_name).with_suffix(f".tar.{ext}")
+                return new_path
         elif owr.lower() == "o":
             return None
         else:
