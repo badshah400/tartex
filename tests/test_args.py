@@ -5,9 +5,9 @@
 
 """Tests for argument parsing"""
 
-import argparse
 import pytest
 from tartex.tartex import TarTeX, make_tar
+from tartex.__about__ import __version__
 
 
 class TestArgs:
@@ -25,3 +25,13 @@ class TestArgs:
         t = TarTeX(["some_file.tex"])
         assert t.main_file.stem == "some_file"
         assert t.tar_file.name == "some_file.tar"
+
+    def test_version(self, capsys):
+        """Test version string against version from __about.py__"""
+        # argparse will call SystemExit(0) for -h and -v, and print to stdout
+        with pytest.raises(SystemExit) as exc:
+            TarTeX(["--version"])
+
+        output = capsys.readouterr().out
+        assert f"{__version__}" in output
+        assert exc.value.code == 0
