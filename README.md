@@ -49,7 +49,7 @@ Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 ```console
 usage: tartex [-h] [-a ADD] [-b] [-l] [-o OUTPUT] [-s] [-v] [-x EXCL] [-j | -J | -z] [-V] filename
 
-Build a tarball including all source files needed to compile your LaTeX project (version 0.1.0).
+Build a tarball including all source files needed to compile your LaTeX project (version 0.2.0a1).
 
 positional arguments:
   filename              Input file name (with .tex or .fls suffix)
