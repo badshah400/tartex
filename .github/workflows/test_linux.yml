@@ -39,6 +39,6 @@ jobs:
     - name: Test with hatch run pytest
       run: |
         # TEMPDIR is needed tor tex compilation based tests
-        export TEMPDIR=$(mktemp -d -p .)
+        export TMPDIR=$(mktemp -d -p .)
         hatch run pytest -v
-        rm -fr ${TEMPDIR}
+        rm -fr ${TMPDIR}
