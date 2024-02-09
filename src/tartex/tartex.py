@@ -343,7 +343,8 @@ class TarTeX:
             for i, f in enumerate(flist):
                 print(f"{i+1:{idx_width}}. {f}")
             if self.bbl:
-                print(f"{'*':>{idx_width}}  {self.main_file.with_suffix('.bbl')}")
+                print(f"{'*':>{idx_width}}"
+                      f"  {self.main_file.with_suffix('.bbl').name}")
         else:
             with tar.open(full_tar_name, mode=f"w:{self.tar_ext}") as f:
                 for dep in flist:
