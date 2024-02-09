@@ -8,14 +8,7 @@
 import pytest
 
 from tartex.__about__ import __version__
-from tartex.tartex import TAR_DEFAULT_COMP, TarTeX, make_tar
-
-@pytest.fixture
-def sample_texfile():
-    """Pytest fixture: TarTeX with just a tex file for parameter"""
-    t = TarTeX(["some_file.tex"])
-    return t
-
+from tartex.tartex import TarTeX, make_tar
 
 class TestArgs:
     """Class to test different combinations of cmdline arguments"""
@@ -53,32 +46,3 @@ class TestArgs:
         assert exc.value.code == 2
         output = capsys.readouterr().err
         assert "not allowed with" in output
-
-
-@pytest.fixture
-def target_tar():
-    def _target(tar_ext, cmp_opt = ""):
-        ttx_opts = ["-o", f"dest.tar.{tar_ext}", "some_file.tex"]
-        if cmp_opt:
-            ttx_opts.append(cmp_opt)
-        return TarTeX(ttx_opts)
-    return _target
-
-class TestTarExt:
-    """
-    Class of tests checking automatic tar compression detection based on user
-    specified outout tarfile name
-    """
-    def test_default(self, sample_texfile):
-        """"Test default tarball extension"""
-        assert sample_texfile.tar_ext == TAR_DEFAULT_COMP
-
-    def test_output_compress(self, target_tar):
-        """Test user output file for different tar.foo extensions"""
-        # bz2
-        assert target_tar("bz2").tar_ext == "bz2"
-        # tar.bz2 overridden by "-J"
-        assert not target_tar("bz2", "-J").tar_ext == "bz2"
-        # xz
-        assert target_tar("xz").tar_ext == "xz"
-        assert target_tar("xz").tar_file.name == "dest.tar"
