@@ -5,7 +5,7 @@ name: Python package
 
 on:
   push:
-    branches: [ "main", "feature-github-actions" ]
+    branches: [ "main", "test-tar-from-tex" ]
   pull_request:
     branches: [ "main" ]
 
@@ -38,4 +38,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with hatch run pytest
       run: |
+        # TEMPDIR is needed tor tex compilation based tests
+        export TEMPDIR=$(mktemp -d -p .)
         hatch run pytest -v
+        rm -fr ${TEMPDIR}
