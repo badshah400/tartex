@@ -148,7 +148,8 @@ def strip_tarext(filename):
 def _full_if_not_rel_path(src, dest):
     p = Path(src).resolve()
     with suppress(ValueError):
-        return p.relative_to(dest)
+        p = p.relative_to(dest)
+    return p
 
 class TarTeX:
     """
