@@ -1,29 +1,6 @@
 \documentclass{article}
 
-\usepackage{fancyhdr}
-\usepackage{lipsum}% just to generate text for the example
-% https://tex.stackexchange.com/questions/13387/how-to-get-part-name-in-latex
-\let\Oldpart\part
-\newcommand{\parttitle}{}
-\renewcommand{\part}[1]{\Oldpart{#1}\renewcommand{\parttitle}{#1}}
-\pagestyle{fancy}
-\fancyhf{}
-% Set \parttitle for top left corner of each page
-\fancyhead[L]{\parttitle}
-% Right top corner for page number
-\fancyhead[R]{\thepage}
-\renewcommand{\headrulewidth}{0pt}
-
 \begin{document}
-\part{2024}
-\section{Dec}
-
-\lipsum[1-10]
-
-\part{2023}
-\section{Dec}
-\lipsum[1-10]
-
+\section{Test document section}
+This is a test document.
 \end{document}
-
-
