@@ -51,7 +51,7 @@ class TestTarConflict:
         t_con.tar_files()
 
         # Monkeypatch empty response for input
-        monkeypatch.setattr("builtins.input", lambda resolve: "")
+        monkeypatch.setattr("builtins.input", lambda _: "")
 
         # Trying to create tar file again will lead to conflic res dialog
         # Blank user input (from monkeypatch) will raise SystemExit
@@ -66,7 +66,7 @@ class TestTarConflict:
         t_con.tar_files()
 
         # Monkeypatch empty response for input
-        monkeypatch.setattr("builtins.input", lambda resolve: "q")
+        monkeypatch.setattr("builtins.input", lambda _: "q")
 
         # Trying to create tar file again will lead to conflic res dialog
         # Blank user input (from monkeypatch) will raise SystemExit
@@ -81,7 +81,7 @@ class TestTarConflict:
         t_con.tar_files()
 
         # Monkeypatch empty response for input
-        monkeypatch.setattr("builtins.input", lambda resolve: "o")
+        monkeypatch.setattr("builtins.input", lambda _: "o")
         t_con.tar_files()
         output = t_con.tar_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}")
         assert output.exists() is True
@@ -96,7 +96,7 @@ class TestTarConflict:
         output = str(tmpdir / "new.tar.gz")
         # Monkeypatch responses for choosing a new file name
         user_inputs = iter(['c', output])
-        monkeypatch.setattr("builtins.input", lambda resolve: next(user_inputs))
+        monkeypatch.setattr("builtins.input", lambda _: next(user_inputs))
         t_con.tar_files()
         assert Path(output).exists() is True
         with tar.open(output) as rat:
@@ -112,7 +112,7 @@ class TestTarConflict:
 
         # Monkeypatch responses for choosing file name same as original
         user_inputs = iter(['c', output])
-        monkeypatch.setattr("builtins.input", lambda resolve: next(user_inputs))
+        monkeypatch.setattr("builtins.input", lambda _: next(user_inputs))
         with pytest.raises(SystemExit) as exc:
             t_con.tar_files()
 
@@ -129,7 +129,7 @@ class TestTarConflict:
         output = output.replace(".gz", ".xz")
         # Monkeypatch responses for choosing file name same as original
         user_inputs = iter(['c', output])
-        monkeypatch.setattr("builtins.input", lambda resolve: next(user_inputs))
+        monkeypatch.setattr("builtins.input", lambda _: next(user_inputs))
         t_con.tar_files()
         assert Path(output).exists() is True
         assert t_con.tar_ext == "xz"
