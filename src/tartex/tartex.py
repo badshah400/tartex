@@ -144,6 +144,14 @@ def strip_tarext(filename):
         basename = basename.with_suffix('')
     return basename
 
+def _full_if_not_rel_path(src, dest):
+    p = Path(src).resolve()
+    try:
+        p = p.relative_to(dest)
+    except ValueError:
+        pass
+    return p
+
 
 class TarTeX:
     """
@@ -165,6 +173,7 @@ class TarTeX:
             else Path(self.main_file.stem).with_suffix(".tar")
         )
         self.tar_file = self.cwd / tar_base
+        #self.tar_file = _full_if_not_rel_path(tar_base, self.cwd)
         self.tar_ext  = TAR_DEFAULT_COMP
 
         # If specified output file has TAR_EXT extension, use that by default...
@@ -359,12 +368,13 @@ class TarTeX:
 
         os.chdir(self.cwd)
         if self.args.summary:
-            self.summary_msg(full_tar_name.resolve().relative_to(self.cwd), len(flist))
+            self.summary_msg(_full_if_not_rel_path(full_tar_name, self.cwd),
+                             len(flist))
 
     def _tar_name_conflict(self, tpath):
         owr = input(
                 "Warning: A tar file with the same name"
-                f" [{Path(tpath).resolve().relative_to(self.cwd)}] already"
+                f" [{_full_if_not_rel_path(tpath,self.cwd)}] already"
                 " exists.\n"
                 "What would you like to do "
                 "([o]verwrite/[c]hoose new name/[Q]uit)? "
