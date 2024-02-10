@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tarfile as tar
 import time
+from contextlib import suppress
 from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -146,12 +147,8 @@ def strip_tarext(filename):
 
 def _full_if_not_rel_path(src, dest):
     p = Path(src).resolve()
-    try:
-        p = p.relative_to(dest)
-    except ValueError:
-        pass
-    return p
-
+    with suppress(ValueError):
+        return p.relative_to(dest)
 
 class TarTeX:
     """
