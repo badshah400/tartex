@@ -57,3 +57,11 @@ class TestMultiDir:
         with tar.open(output, "r") as rat:
             # Check if files in tarball have the same dir structure as src_files
             assert src_files == sorted(rat.getnames())
+
+    def test_list(self, datadir, src_files, capsys):
+        """Test printing list of files"""
+        t = TarTeX([(Path(datadir) / "main.tex").as_posix(), "-l", "-s"])
+        t.tar_files()
+
+        # Tar file must not be created with "-l"
+        assert not t.tar_file.with_suffix(".tar.{TAR_DEFAULT_COMP}").exists()
