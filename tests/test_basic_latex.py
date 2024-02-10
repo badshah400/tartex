@@ -43,7 +43,7 @@ class TestBasicLaTeX:
 class TestTarConflict:
     """Tests checking resolutions for tar file name conflicts"""
 
-    def test_resolve_default(self, default_tartex_obj, monkeypatch):
+    def test_sol_default(self, default_tartex_obj, monkeypatch):
         """Test when user response is not workable"""
         t_con = default_tartex_obj
         t_con.tar_files()
@@ -58,7 +58,7 @@ class TestTarConflict:
 
         assert "Not overwriting existing tar file" in exc.value.code
 
-    def test_resolve_quit(self, default_tartex_obj, monkeypatch):
+    def test_sol_quit(self, default_tartex_obj, monkeypatch):
         """Test when user response is not workable"""
         t_con = default_tartex_obj
         t_con.tar_files()
@@ -73,7 +73,7 @@ class TestTarConflict:
 
         assert "Not overwriting existing tar file" in exc.value.code
 
-    def test_resolve_overwrite(self, default_tartex_obj, monkeypatch):
+    def test_sol_overwrite(self, default_tartex_obj, monkeypatch):
         """Test overwrite resolution"""
         t_con = default_tartex_obj
         t_con.tar_files()
@@ -86,7 +86,7 @@ class TestTarConflict:
         with tar.open(output) as rat:
             assert len(rat.getnames()) == 1
 
-    def test_resolve_newname_good(self, default_tartex_obj, tmpdir, monkeypatch):
+    def test_sol_newname_ok(self, default_tartex_obj, tmpdir, monkeypatch):
         """Test entering new name that works"""
         t_con = default_tartex_obj
         t_con.tar_files()
@@ -100,8 +100,8 @@ class TestTarConflict:
         with tar.open(output) as rat:
             assert len(rat.getnames()) == 1
 
-    def test_resolve_newname_bad(self, default_tartex_obj, tmpdir, monkeypatch):
-        """Test overwrite resolution"""
+    def test_sol_newname_old(self, default_tartex_obj, tmpdir, monkeypatch):
+        """Test error when entering new name that is same as the old name"""
         t_con = default_tartex_obj
         t_con.tar_files()
 
