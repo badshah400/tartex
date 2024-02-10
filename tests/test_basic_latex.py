@@ -5,8 +5,10 @@
 """Tests for tarball generation from basic latex files"""
 import tarfile as tar
 from pathlib import Path
+
 import pytest
-from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
+
+from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
 
 
 @pytest.fixture
@@ -28,7 +30,7 @@ def default_tartex_obj(datadir, default_target):
 class TestBasicLaTeX:
     """Tests checking tar file generation from a basic latex file"""
 
-    def test_gen_tar(self, default_target, default_tartex_obj, capsys):
+    def test_gen_tar(self, default_target, default_tartex_obj):
         """Should include a single file in tarball"""
         output = default_target.with_suffix(".tar.gz")
         t = default_tartex_obj

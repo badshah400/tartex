@@ -10,6 +10,7 @@ import pytest
 from tartex.__about__ import __version__
 from tartex.tartex import TarTeX, make_tar
 
+
 class TestArgs:
     """Class to test different combinations of cmdline arguments"""
 
@@ -35,9 +36,8 @@ class TestArgs:
         assert f"{__version__}" in output
         assert exc.value.code == 0
 
-    @pytest.mark.parametrize("tar_opt1, tar_opt2", [("-J", "-z"),
-                                                    ("-j", "-J"),
-                                                    ("-z", "-J")])
+    @pytest.mark.parametrize(("tar_opt1", "tar_opt2"),
+                             [("-J", "-z"), ("-j", "-J"), ("-z", "-J")])
     def test_taropts_conflict(self, capsys, tar_opt1, tar_opt2):
         """Test exit status when two conflicting tar options are passed"""
         with pytest.raises(SystemExit) as exc:

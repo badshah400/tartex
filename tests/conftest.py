@@ -7,14 +7,16 @@
 
 import os
 import shutil
+
 import pytest
+
 from tartex.tartex import TarTeX
+
 
 @pytest.fixture
 def sample_texfile():
     """Pytest fixture: TarTeX with just a tex file for parameter"""
-    t = TarTeX(["some_file.tex"])
-    return t
+    return TarTeX(["some_file.tex"])
 
 
 # Data copying to tmpdir to allow using with pytest

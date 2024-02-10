@@ -9,6 +9,7 @@ import pytest
 
 from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
 
+
 @pytest.fixture
 def target_tar():
     def _target(tar_ext, cmp_opt = ""):
@@ -32,7 +33,7 @@ class TestTarExt:
         # bz2
         assert target_tar("bz2").tar_ext == "bz2"
         # tar.bz2 overridden by "-J"
-        assert not target_tar("bz2", "-J").tar_ext == "bz2"
+        assert target_tar("bz2", "-J").tar_ext != "bz2"
         # xz
         assert target_tar("xz").tar_ext == "xz"
         assert target_tar("xz").tar_file.name == "dest.tar"
