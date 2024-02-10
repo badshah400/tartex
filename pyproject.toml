@@ -87,3 +87,7 @@ exclude_lines = [
 addopts = [
     "--import-mode=importlib",
 ]
+
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
