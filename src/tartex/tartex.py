@@ -149,7 +149,8 @@ def _full_if_not_rel_path(src, dest):
     p = Path(src).resolve()
     with suppress(ValueError):
         p = p.relative_to(dest)
-    return p
+    # The assignment and return are both necessary in this case
+    return p # noqa: RET504
 
 class TarTeX:
     """
