@@ -115,3 +115,21 @@ class TestTarConflict:
             t_con.tar_files()
 
         assert "New name entered is also the same" in exc.value.code
+
+    def test_sol_newext(self, default_tartex_obj, tmpdir, monkeypatch):
+        """Test new name with just the file ext changed"""
+        t_con = default_tartex_obj
+        t_con.tar_files()
+
+        output = str(tmpdir / "test.tar.gz")
+        assert Path(output).exists() is True
+
+        output = output.replace(".gz", ".xz")
+        # Monkeypatch responses for choosing file name same as original
+        user_inputs = iter(['c', output])
+        monkeypatch.setattr("builtins.input", lambda resolve: next(user_inputs))
+        t_con.tar_files()
+        assert Path(output).exists() is True
+        assert t_con.tar_ext == "xz"
+        with tar.open(output) as rat:
+            assert len(rat.getnames()) == 1
