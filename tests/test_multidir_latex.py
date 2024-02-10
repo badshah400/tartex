@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
+from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
 
 
 @pytest.fixture
@@ -32,19 +32,23 @@ def multidir_tartex_obj(datadir, multidir_target):
     )
 
 
+@pytest.fixture
+def src_files(datadir):
+    """Return sorted list of files in source dir """
+    src_files = [str(Path(dname).relative_to(datadir) / f)
+                 for dname, _, files in os.walk(datadir)
+                 for f in files]
+
+    src_files.sort()  # Sort for comparison with tar output
+    return src_files
+
+
 class TestMultiDir:
     """Tests for LaTeX projects with files spread across multiple dirs"""
 
-    def test_tar(self, datadir, multidir_tartex_obj):
+    def test_tar(self, datadir, src_files, multidir_tartex_obj):
         """Test tar file creation"""
         t = multidir_tartex_obj
-        src_files = []
-
-        src_files = [str(Path(dname).relative_to(datadir) / f)
-                     for dname, _, files in os.walk(datadir)
-                     for f in files]
-
-        src_files.sort()  # Sort for comparison with tar output
 
         t.tar_files()
         output = t.tar_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}")
