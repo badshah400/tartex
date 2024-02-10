@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MIT
 #
 """Tests for tarball generation from basic latex files"""
+import os
 import tarfile as tar
 from pathlib import Path
 
@@ -38,6 +39,19 @@ class TestBasicLaTeX:
         assert output.exists() is True
         with tar.open(output) as rat:
             assert len(rat.getnames()) == 1
+
+    def test_diff_target_dir(self, tmpdir, datadir):
+        # Make a new dir inside tmpdir
+        destdir = tmpdir / "dest"
+        os.mkdir(destdir)
+        t = TarTeX([(Path(datadir) / "basic_latex.tex").as_posix(),
+                    "-s",
+                    "-o",
+                    str(destdir / "output.tar.gz")])
+        t.tar_files()
+        dest = t.tar_file.with_suffix(f".tar.{t.tar_ext}")
+        print(dest)
+        assert t.tar_file.with_suffix(f".tar.{t.tar_ext}").exists()
 
 
 # These tests involve repeatedly compiling LaTeX files, thus can be slow
