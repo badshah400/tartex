@@ -22,6 +22,8 @@ def default_tartex_obj(datadir, default_target):
     return TarTeX(
         [
             (Path(datadir) / "basic_latex.tex").as_posix(),
+            "-v",
+            "-s",
             "-o",
             default_target.as_posix(),
         ]
@@ -45,6 +47,7 @@ class TestBasicLaTeX:
         destdir = tmpdir / "dest"
         os.mkdir(destdir)
         t = TarTeX([(Path(datadir) / "basic_latex.tex").as_posix(),
+                    "-v",
                     "-s",
                     "-o",
                     str(destdir / "output.tar.gz")])

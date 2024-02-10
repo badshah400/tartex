@@ -24,6 +24,8 @@ def multidir_tartex_obj(datadir, multidir_target):
     return TarTeX(
         [
             (Path(datadir) / "main.tex").as_posix(),
+            "-v",
+            "-s",
             "-o",
             multidir_target.as_posix(),
         ]
