@@ -6,12 +6,12 @@
 """Tests for LaTeX project consisting of multiple dirs"""
 
 import os
-from pathlib import Path
 import tarfile as tar
+from pathlib import Path
 
 import pytest
 
-from tartex.tartex import TarTeX
+from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
 
 
 @pytest.fixture
@@ -38,14 +38,14 @@ class TestMultiDir:
         t = multidir_tartex_obj
         src_files = []
 
-        for dname, _, files in os.walk(datadir):
-            for f in files:
-                src_files.append(str(Path(dname).relative_to(datadir) / f))
+        src_files = [str(Path(dname).relative_to(datadir) / f)
+                     for dname, _, files in os.walk(datadir)
+                     for f in files]
 
         src_files.sort()  # Sort for comparison with tar output
 
         t.tar_files()
-        output = t.tar_file.with_suffix(".tar.gz")
+        output = t.tar_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}")
         assert output.exists()
 
         with tar.open(output, "r") as rat:
