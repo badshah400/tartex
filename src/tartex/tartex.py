@@ -201,8 +201,8 @@ class TarTeX:
             self.tar_ext = "xz"
 
         self.bbl = None
-        self.add_files = self.args.add.split(",") if len(self.args.add) > 0 else []
-        excludes = self.args.excl.split(",") if len(self.args.excl) > 0 else []
+        self.add_files = self.args.add.split(",") if self.args.add else []
+        excludes = self.args.excl.split(",") if self.args.excl else []
         excl_lists = (self.main_file.parent.glob(f"{L}") for L in excludes)
 
         self.excl_files = [
