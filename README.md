@@ -58,7 +58,7 @@ pipx install ./dist/*.whl
 Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 
 ```console
-sage: tartex [options] filename
+Usage: tartex [options] filename
 
 Build a tarball including all source files needed to compile your LaTeX project (version 0.2.0).
 
