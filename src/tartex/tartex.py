@@ -29,7 +29,6 @@ AUXFILES = [
     ".bcf",
     ".fls",
     ".idx",
-    ".ind",
     ".lof",
     ".lot",
     ".out",
