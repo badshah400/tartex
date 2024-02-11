@@ -287,7 +287,7 @@ class TarTeX:
             bibstr = re.sub(r"^\\bibliography\{", "", bibstr).rstrip("}")
             bibstr += ".bib" if bibstr.split(".")[-1] != ".bib" else ""
 
-        return Path(bibstr)
+        return Path(bibstr) if bibstr else None
 
     def input_files(self):
         """
@@ -352,8 +352,8 @@ class TarTeX:
                 ):
                     self.bbl = (Path(compile_dir) / bbl_file.name).read_bytes()
 
-        if self.args.bib:
-            deps.append(self.bib_file().as_posix())
+        if self.args.bib and (bib := self.bib_file()):
+            deps.append(bib.as_posix())
 
         if self.add_files:
             for f in self.add_user_files():
