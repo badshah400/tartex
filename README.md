@@ -60,7 +60,7 @@ Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 ```console
 sage: tartex [options] filename
 
-Build a tarball including all source files needed to compile your LaTeX project (version 0.2.0a1).
+Build a tarball including all source files needed to compile your LaTeX project (version 0.2.0).
 
 positional arguments:
   filename              Input file name (with .tex or .fls suffix)
