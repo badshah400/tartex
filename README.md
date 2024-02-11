@@ -11,16 +11,27 @@ TarTeX is a command-line utility to generate a tarball including all
 
 **Table of Contents**
 
+- [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
 - [License](#license)
 - [Similar utilities](#similar-utilities)
 
+## Features
+
+* Defaults to including the least number of files needed to recompile your LaTeX project in the output tar file.
+* Creates tarballs compatible with arXiv (and most journal) requirements.
+* Automatically determines pdf or ps processing based on source dir contents.
+* Supports different compression methods for output tarball.
+* Preserves directory structure in generated tarball, i.e. no flattening.
+* Handy options to allow edge cases.
+
 ## Installation
 
-__Note__: You must have `latexmk` and `pdflatex`, as well as a full LaTeX env
-installed. `tartex` will not include any system-wide files, such as TeX style
-files, classes, etc. in the tar file.
+__Note__: Unless you provide a prepared ".fls" file as `filename` input, you
+must have `latexmk` and `pdflatex`, as well as a full LaTeX env installed to
+allow compilation of your LaTeX project. `tartex` does not include any
+system-wide files, such as TeX style files, classes, etc. in the tar file.
 
 ### Using pipx
 
@@ -47,7 +58,7 @@ pipx install ./dist/*.whl
 Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 
 ```console
-usage: tartex [-h] [-a ADD] [-b] [-l] [-o OUTPUT] [-s] [-v] [-x EXCL] [-j | -J | -z] [-V] filename
+sage: tartex [options] filename
 
 Build a tarball including all source files needed to compile your LaTeX project (version 0.2.0a1).
 
@@ -60,7 +71,7 @@ options:
   -b, --bib             find and add bib file to tarball
   -l, --list            Print a list of files to include and quit (no tarball generated)
   -o OUTPUT, --output OUTPUT
-                        Name of output tar file (suffix potentially sets tar compression)
+                        Name of output tar file (suffix can determine tar compression)
   -s, --summary         Print a summary at the end
   -v, --verbose         Print file names added to tarball
   -x EXCL, --excl EXCL  Comma separated list of files (wildcards allowed!) to exclude (loc relative to main TeX file)
@@ -68,6 +79,12 @@ options:
   -J, --xz              lzma (.tar.xz) compression (overrides OUTPUT ext if needed)
   -z, --gzip            gzip (.tar.gz) compression (overrides OUTPUT ext if needed)
   -V, --version         Print tartex version
+
+Options for latexmk processing:
+  --latexmk_tex {dvi,luatex,lualatex,pdf,pdflua,ps,xdv,xelatex}
+                        Force TeX processing mode used by latexmk
+  -F, --force_recompile
+                        Force recompilation even if .fls exists
 ```
 
 __Note__: If the source dir of your LaTeX project already contains the `.fls`
@@ -76,7 +93,14 @@ will directly use that file to determine which input files to include in the
 tarball. Otherwise, `tartex` will recompile your project using `latexmk` in a
 temp dir and use the `.fls` file generated there. To be precise, recompilation
 will invoke:
-`latexmk -f -pdf -cd -outdir=<tmpdir> -interaction=nonstopmode filename`.
+
+```console
+latexmk -f -<texmode> -cd -outdir=<tmpdir> -interaction=nonstopmode filename
+```
+
+`texmode` is one of `pdf` or `ps` by default, as detemined from the contents of
+the source dir. It may be overridden by the `--latexmk_tex` option.
+
 
 ## License
 
