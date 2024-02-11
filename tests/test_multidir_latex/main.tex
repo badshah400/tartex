@@ -1,0 +1,19 @@
+\documentclass{article}
+\usepackage{graphicx}
+
+\begin{document}
+This is a test document with multiple sections included from different
+directories.
+
+% Section 1
+\input{section_1/text}
+% Section 2
+\input{section_2/text}
+%A Figure
+\begin{figure}[htb]
+	\centering
+	\includegraphics[width=0.5\textwidth]{figures/peppers}
+	\caption{Peppers from USC SIPI database.}
+\end{figure}
+
+\end{document}

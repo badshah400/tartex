@@ -5,7 +5,7 @@ name: Python package
 
 on:
   push:
-    branches: [ "main", "feature-github-actions" ]
+    branches: [ "main", "test-tar-from-tex" ]
   pull_request:
     branches: [ "main" ]
 
@@ -30,6 +30,11 @@ jobs:
         python -m pip install flake8 pytest
         python -m pip install hatch
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Install TeX Live
+      uses: zauguin/install-texlive@v3
+      with:
+        packages: >
+          latex-bin latexmk scheme-basic
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -38,4 +43,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with hatch run pytest
       run: |
+        # TEMPDIR is needed tor tex compilation based tests
+        export TMPDIR=$(mktemp -d -p .)
         hatch run pytest -v
+        rm -fr ${TMPDIR}
