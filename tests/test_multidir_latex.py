@@ -46,7 +46,7 @@ def src_files(datadir):
 class TestMultiDir:
     """Tests for LaTeX projects with files spread across multiple dirs"""
 
-    def test_tar(self, datadir, src_files, multidir_tartex_obj):
+    def test_tar(self, src_files, multidir_tartex_obj):
         """Test tar file creation"""
         t = multidir_tartex_obj
 
@@ -58,7 +58,7 @@ class TestMultiDir:
             # Check if files in tarball have the same dir structure as src_files
             assert src_files == sorted(rat.getnames())
 
-    def test_list(self, datadir, src_files, capsys):
+    def test_list(self, datadir):
         """Test printing list of files"""
         t = TarTeX([(Path(datadir) / "main.tex").as_posix(), "-l", "-s"])
         t.tar_files()

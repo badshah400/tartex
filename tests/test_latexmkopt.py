@@ -5,14 +5,15 @@ Tests for passing various TeX processors to latexmk
 
 import pytest
 
-from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
+from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
+
 
 @pytest.fixture
 def latex_file(datadir):
     return datadir/"latexmk_opts.tex"
 
 @pytest.fixture
-def basic_opts(latex_file, datadir, tmpdir):
+def basic_opts(latex_file, tmpdir):
     return [str(latex_file),
             "-s",
             "-v",

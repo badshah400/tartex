@@ -38,7 +38,7 @@ AUXFILES = [
     ".ilg",
     ".log",
     ".xdv",
-    ".fdb_latexmk"
+    ".fdb_latexmk",
 ]
 
 # Latexmk allowed compilers
@@ -60,14 +60,14 @@ def parse_args(args):
         description="Build a tarball including all"
         " source files needed to compile your"
         f" LaTeX project (version {VERSION}).",
-        usage="%(prog)s [options] filename"
+        usage="%(prog)s [options] filename",
     )
 
     parser.add_argument(
         "fname",
         metavar="filename",
         type=str,
-        help="Input file name (with .tex or .fls suffix)"
+        help="Input file name (with .tex or .fls suffix)",
     )
 
     parser.add_argument(
@@ -75,7 +75,7 @@ def parse_args(args):
         "--add",
         type=str,
         help="Comma separated list of additional files (wildcards allowed!)"
-             " to include (loc relative to main TeX file)"
+             " to include (loc relative to main TeX file)",
     )
 
     parser.add_argument(
@@ -134,7 +134,7 @@ def parse_args(args):
         "-F",
         "--force_recompile",
         action="store_true",
-        help="Force recompilation even if .fls exists"
+        help="Force recompilation even if .fls exists",
     )
 
     # Tar recompress options
@@ -142,27 +142,28 @@ def parse_args(args):
 
     def cmp_str(cmp, ext):
         return(f"{cmp} (.tar.{ext}) compression"
-               " (overrides OUTPUT ext if needed)")
+               " (overrides OUTPUT ext if needed)"
+              )
 
     tar_opts.add_argument(
         "-j",
         "--bzip2",
         action="store_true",
-        help=cmp_str("bzip2", "bz2")
+        help=cmp_str("bzip2", "bz2"),
     )
 
     tar_opts.add_argument(
         "-J",
         "--xz",
         action="store_true",
-        help=cmp_str("lzma", "xz")
+        help=cmp_str("lzma", "xz"),
     )
 
     tar_opts.add_argument(
         "-z",
         "--gzip",
         action="store_true",
-        help=cmp_str("gzip", "gz")
+        help=cmp_str("gzip", "gz"),
     )
 
     parser.add_argument(
@@ -170,7 +171,7 @@ def parse_args(args):
         "--version",
         help="Print %(prog)s version",
         action="version",
-        version=f"%(prog)s {VERSION}"
+        version=f"%(prog)s {VERSION}",
     )
 
     return parser.parse_args(args)
@@ -319,7 +320,7 @@ class TarTeX:
                     "-cd",
                     f"-outdir={compile_dir}",
                     "-interaction=nonstopmode",
-                    self.main_file.stem
+                    self.main_file.stem,
                 ]
                 try:
                     subprocess.run(
@@ -354,10 +355,8 @@ class TarTeX:
                 # Handle missing bbl file from orig dir, if present in fls_path
                 if (
                     bbl_file not in deps  # bbl file not in source dir
-                    and
-                    (Path(compile_dir) / bbl_file.name).exists() # Implies it's req
-                    and
-                    bbl_file not in self.excl_files # Not explicitly excluded
+                    and (Path(compile_dir) / bbl_file.name).exists()  # Implies it's req
+                    and bbl_file not in self.excl_files  # Not explicitly excluded
                 ):
                     self.bbl = (Path(compile_dir) / bbl_file.name).read_bytes()
 

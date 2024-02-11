@@ -4,7 +4,8 @@ Test inclusion and exclusion of .bib files
 """
 
 import tarfile as tar
-from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
+
+from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
 
 
 def test_bib(datadir, tmpdir):
@@ -16,7 +17,7 @@ def test_bib(datadir, tmpdir):
             "-s",
             "-v",
             "-o",
-            f"{str(tmpdir)}/main_bib",
+            f"{tmpdir!s}/main_bib",
         ]
     )
     t.tar_files()
