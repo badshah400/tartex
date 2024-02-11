@@ -130,6 +130,13 @@ def parse_args(args):
         help="Force TeX processing mode used by latexmk",
     )
 
+    latexmk_opts.add_argument(
+        "-F",
+        "--force_recompile",
+        action="store_true",
+        help="Force recompilation even if .fls exists"
+    )
+
     # Tar recompress options
     tar_opts = parser.add_mutually_exclusive_group()
 
@@ -251,6 +258,8 @@ class TarTeX:
                       for p in self.main_file.parent.glob(f"**/*.{ext}")]
             self.force_tex = "ps" if src_ps else "pdf"
 
+        self.recompile = self.args.force_recompile
+
     def add_user_files(self):
         """
         Return list of additional user specified/globbed file paths,
@@ -299,7 +308,7 @@ class TarTeX:
         with TemporaryDirectory() as compile_dir:
             fls_name = self.main_file.with_suffix(".fls")
             fls_path = Path(".") / fls_name
-            if not Path(fls_name).exists():
+            if not Path(fls_name).exists() or self.recompile:
                 # Generate flx file from tex file by running latexmk
                 latexmk_bin = shutil.which("latexmk")
 
