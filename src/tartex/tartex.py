@@ -22,8 +22,6 @@ from tartex import __about__
 INPUT_RE = re.compile(r"^INPUT")
 
 # Auxilliary file extensions to ignore
-# Get version
-VERSION = __about__.__version__
 # taken from latexmk manual:
 # https://www.cantab.net/users/johncollins/latexmk/latexmk-480.txt
 AUXFILES = [
@@ -43,18 +41,26 @@ AUXFILES = [
     ".fdb_latexmk"
 ]
 
+# Latexmk allowed compilers
+LATEXMK_TEX = ["dvi", "luatex", "lualatex", "pdf", "pdflua", "ps", "xdv", "xelatex"]
+
 # Allowed tar extensions
 TAR_EXT = ["bz2", "gz", "xz"]
 
 # Default compression
 TAR_DEFAULT_COMP = "gz"
 
+# Get version
+VERSION = __about__.__version__
+
+
 def parse_args(args):
     """Set up argparse options and parse input args accordingly"""
     parser = argparse.ArgumentParser(
         description="Build a tarball including all"
         " source files needed to compile your"
-        f" LaTeX project (version {VERSION})."
+        f" LaTeX project (version {VERSION}).",
+        usage="%(prog)s [options] filename"
     )
 
     parser.add_argument(
@@ -68,13 +74,15 @@ def parse_args(args):
         "-a",
         "--add",
         type=str,
-        default=[],
         help="Comma separated list of additional files (wildcards allowed!)"
              " to include (loc relative to main TeX file)"
     )
 
     parser.add_argument(
-        "-b", "--bib", help="find and add bib file to tarball ", action="store_true"
+        "-b",
+        "--bib",
+        action="store_true",
+        help="find and add bib file to tarball"
     )
 
     parser.add_argument(
@@ -88,7 +96,6 @@ def parse_args(args):
         "-o",
         "--output",
         type=str,
-        default=None,
         help="Name of output tar file (suffix can determine tar compression)"
     )
 
@@ -110,13 +117,29 @@ def parse_args(args):
         "-x",
         "--excl",
         type=str,
-        default=[],
         help="Comma separated list of files (wildcards allowed!) to exclude"
              " (loc relative to main TeX file)"
     )
 
+    # Latexmk options
+    latexmk_opts = parser.add_argument_group("Options for latexmk processing")
+    latexmk_opts.add_argument(
+        "--latexmk_tex",
+        choices=LATEXMK_TEX,
+        default=None,
+        help="Force TeX processing mode used by latexmk",
+    )
+
+    latexmk_opts.add_argument(
+        "-F",
+        "--force_recompile",
+        action="store_true",
+        help="Force recompilation even if .fls exists"
+    )
+
     # Tar recompress options
     tar_opts = parser.add_mutually_exclusive_group()
+
     def cmp_str(cmp, ext):
         return(f"{cmp} (.tar.{ext}) compression"
                " (overrides OUTPUT ext if needed)")
@@ -152,27 +175,31 @@ def parse_args(args):
 
     return parser.parse_args(args)
 
+
 def strip_tarext(filename):
     """Strip '.tar(.EXT)' from filename"""
     basename = Path(filename)
-    if basename.suffix.lstrip('.') in TAR_EXT:
-        basename = basename.with_suffix('')
+    if basename.suffix.lstrip(".") in TAR_EXT:
+        basename = basename.with_suffix("")
     if basename.suffix == ".tar":
-        basename = basename.with_suffix('')
+        basename = basename.with_suffix("")
     return basename
+
 
 def _full_if_not_rel_path(src, dest):
     p = Path(src).resolve()
     with suppress(ValueError):
         p = p.relative_to(dest)
     # The assignment and return are both necessary in this case
-    return p # noqa: RET504
+    return p  # noqa: RET504
+
 
 class TarTeX:
     """
     Class to help build  a tarball including all source files needed to
     re-compile your LaTeX project."
     """
+
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, args):
@@ -188,14 +215,13 @@ class TarTeX:
             else Path(self.main_file.stem).with_suffix(".tar")
         )
         self.tar_file = self.cwd / tar_base
-        #self.tar_file = _full_if_not_rel_path(tar_base, self.cwd)
-        self.tar_ext  = TAR_DEFAULT_COMP
+        self.tar_ext = TAR_DEFAULT_COMP
 
         # If specified output file has TAR_EXT extension, use that by default...
-        if (out := self.args.output) and ((oex := out.split('.')[-1]) in TAR_EXT):
+        if (out := self.args.output) and ((oex := out.split(".")[-1]) in TAR_EXT):
             self.tar_ext = oex
 
-        #...but overwrite if specific option passed
+        # ...but overwrite if specific option passed
         if self.args.bzip2:
             self.tar_ext = "bz2"
         if self.args.gzip:
@@ -204,8 +230,8 @@ class TarTeX:
             self.tar_ext = "xz"
 
         self.bbl = None
-        self.add_files = self.args.add.split(",") if len(self.args.add) > 0 else []
-        excludes = self.args.excl.split(",") if len(self.args.excl) > 0 else []
+        self.add_files = self.args.add.split(",") if self.args.add else []
+        excludes = self.args.excl.split(",") if self.args.excl else []
         excl_lists = (self.main_file.parent.glob(f"{L}") for L in excludes)
 
         self.excl_files = [
@@ -221,6 +247,18 @@ class TarTeX:
             main_bbl = self.main_file.with_suffix(".bbl")
             if fnmatch.fnmatch(main_bbl.name, glb):
                 self.excl_files.append(main_bbl)
+
+        self.force_tex = self.args.latexmk_tex
+        if not self.force_tex:
+            # If force_tex is not set by user options,
+            # set to ps if source dir contains ps/eps files
+            # or to pdf otherwise
+            src_ps = [str(p)
+                      for ext in ["eps", "ps"]
+                      for p in self.main_file.parent.glob(f"**/*.{ext}")]
+            self.force_tex = "ps" if src_ps else "pdf"
+
+        self.recompile = self.args.force_recompile
 
     def add_user_files(self):
         """
@@ -270,21 +308,22 @@ class TarTeX:
         with TemporaryDirectory() as compile_dir:
             fls_name = self.main_file.with_suffix(".fls")
             fls_path = Path(".") / fls_name
-            if not Path(fls_name).exists():
+            if not Path(fls_name).exists() or self.recompile:
                 # Generate flx file from tex file by running latexmk
                 latexmk_bin = shutil.which("latexmk")
 
+                latexmk_cmd = [
+                    latexmk_bin,
+                    f"-{self.force_tex}",
+                    "-f",
+                    "-cd",
+                    f"-outdir={compile_dir}",
+                    "-interaction=nonstopmode",
+                    self.main_file.stem
+                ]
                 try:
                     subprocess.run(
-                        [
-                            latexmk_bin,
-                            "-f",
-                            "-pdf",
-                            "-cd",
-                            f"-outdir={compile_dir}",
-                            "-interaction=nonstopmode",
-                            self.main_file.stem,
-                        ],
+                        latexmk_cmd,
                         capture_output=True,
                         encoding="utf-8",
                         check=True,
@@ -339,7 +378,7 @@ class TarTeX:
 
     def summary_msg(self, tarname, nfiles):
         """Return summary msg to print at end of run"""
-        num_files = nfiles + (1 if self.bbl else  0)
+        num_files = nfiles + (1 if self.bbl else 0)
         if self.args.list:
             print(f"Summary: {num_files} files to include.")
         else:
@@ -379,39 +418,40 @@ class TarTeX:
                     tinfo.mtime = int(time.time())
                     f.addfile(tinfo, BytesIO(self.bbl))
                 if self.args.verbose:
-                    print('\n'.join(f.getnames()))
+                    print("\n".join(f.getnames()))
 
         os.chdir(self.cwd)
         if self.args.summary:
-            self.summary_msg(_full_if_not_rel_path(full_tar_name, self.cwd),
-                             len(flist))
+            self.summary_msg(_full_if_not_rel_path(full_tar_name, self.cwd), len(flist))
 
     def _tar_name_conflict(self, tpath):
-        owr = input(
-                "Warning: A tar file with the same name"
-                f" [{_full_if_not_rel_path(tpath,self.cwd)}] already"
-                " exists.\n"
-                "What would you like to do "
-                "([o]verwrite/[c]hoose new name/[Q]uit)? "
-            )
+        owr = input("Warning: A tar file with the same name"
+                    f" [{_full_if_not_rel_path(tpath,self.cwd)}] already"
+                    " exists.\n"
+                    "What would you like to do "
+                    "([o]verwrite/[c]hoose new name/[Q]uit)? "
+                   )
         if owr.lower() in ["", "q"]:
             sys.exit("Not overwriting existing tar file\nQuitting")
         elif owr.lower() == "c":
             new_name = input("Enter new name for tar file: ")
-            if (new_ext := new_name.split('.')[-1]) in TAR_EXT:
+            if (new_ext := new_name.split(".")[-1]) in TAR_EXT:
                 self.tar_ext = new_ext
-            new_path = (strip_tarext(new_name)
-                        .with_suffix(f".tar.{self.tar_ext}")
-                        .expanduser()
-                        .resolve())
+            new_path = (
+                strip_tarext(new_name)
+                .with_suffix(f".tar.{self.tar_ext}")
+                .expanduser()
+                .resolve()
+            )
             if new_path == tpath:
                 sys.exit(
                     "Error: New name entered is also the same as existing tar"
                     " file name\nQuitting"
                 )
             elif new_path.exists():
-                sys.exit("Error: A tar file with the same name also"
-                         " exists\nQuitting")
+                sys.exit(
+                    "Error: A tar file with the same name also" " exists\nQuitting"
+                )
             else:
                 return new_path
         elif owr.lower() == "o":
