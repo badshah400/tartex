@@ -22,8 +22,6 @@ from tartex import __about__
 INPUT_RE = re.compile(r"^INPUT")
 
 # Auxilliary file extensions to ignore
-# Get version
-VERSION = __about__.__version__
 # taken from latexmk manual:
 # https://www.cantab.net/users/johncollins/latexmk/latexmk-480.txt
 AUXFILES = [
@@ -43,18 +41,26 @@ AUXFILES = [
     ".fdb_latexmk"
 ]
 
+# Latexmk allowed compilers
+LATEXMK_TEX = ["dvi", "luatex", "lualatex", "pdf", "pdflua", "ps", "xdv", "xelatex"]
+
 # Allowed tar extensions
 TAR_EXT = ["bz2", "gz", "xz"]
 
 # Default compression
 TAR_DEFAULT_COMP = "gz"
 
+# Get version
+VERSION = __about__.__version__
+
+
 def parse_args(args):
     """Set up argparse options and parse input args accordingly"""
     parser = argparse.ArgumentParser(
         description="Build a tarball including all"
         " source files needed to compile your"
-        f" LaTeX project (version {VERSION})."
+        f" LaTeX project (version {VERSION}).",
+        usage="%(prog)s [options] filename"
     )
 
     parser.add_argument(
@@ -112,8 +118,18 @@ def parse_args(args):
              " (loc relative to main TeX file)"
     )
 
+    # Latexmk options
+    latexmk_opts = parser.add_argument_group("Options for latexmk processing")
+    latexmk_opts.add_argument(
+        "--latexmk_tex",
+        choices=LATEXMK_TEX,
+        default=None,
+        help="Force TeX processing mode used by latexmk",
+    )
+
     # Tar recompress options
     tar_opts = parser.add_mutually_exclusive_group()
+
     def cmp_str(cmp, ext):
         return(f"{cmp} (.tar.{ext}) compression"
                " (overrides OUTPUT ext if needed)")
@@ -219,6 +235,16 @@ class TarTeX:
             if fnmatch.fnmatch(main_bbl.name, glb):
                 self.excl_files.append(main_bbl)
 
+        self.force_tex = self.args.latexmk_tex
+        if not self.force_tex:
+            # If force_tex is not set by user options,
+            # set to ps if source dir contains ps/eps files
+            # or to pdf otherwise
+            self.force_tex = ("ps"
+                              if list(Path(self.main_file.parent)
+                                      .glob("**/*.{e,}ps"))
+                              else "pdf")
+
     def add_user_files(self):
         """
         Return list of additional user specified/globbed file paths,
@@ -271,17 +297,18 @@ class TarTeX:
                 # Generate flx file from tex file by running latexmk
                 latexmk_bin = shutil.which("latexmk")
 
+                latexmk_cmd = [
+                    latexmk_bin,
+                    f"-{self.force_tex}",
+                    "-f",
+                    "-cd",
+                    f"-outdir={compile_dir}",
+                    "-interaction=nonstopmode",
+                    self.main_file.stem
+                ]
                 try:
                     subprocess.run(
-                        [
-                            latexmk_bin,
-                            "-f",
-                            "-pdf",
-                            "-cd",
-                            f"-outdir={compile_dir}",
-                            "-interaction=nonstopmode",
-                            self.main_file.stem,
-                        ],
+                        latexmk_cmd,
                         capture_output=True,
                         encoding="utf-8",
                         check=True,
