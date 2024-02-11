@@ -52,7 +52,6 @@ def parse_args(args):
         "-a",
         "--add",
         type=str,
-        default=[],
         help="Comma separated list of additional files (wildcards allowed!)"
              " to include (loc relative to main TeX file)"
     )
@@ -72,7 +71,6 @@ def parse_args(args):
         "-o",
         "--output",
         type=str,
-        default=None,
         help="Name of output tar file (suffix can determine tar compression)"
     )
 
@@ -94,7 +92,6 @@ def parse_args(args):
         "-x",
         "--excl",
         type=str,
-        default=[],
         help="Comma separated list of files (wildcards allowed!) to exclude"
              " (loc relative to main TeX file)"
     )
