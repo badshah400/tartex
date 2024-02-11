@@ -22,10 +22,26 @@ from tartex import __about__
 INPUT_RE = re.compile(r"^INPUT")
 
 # Auxilliary file extensions to ignore
-AUXFILES = [".aux", ".toc", ".out", ".fls", ".fdb_latexmk", ".log", ".blg", ".idx"]
-
 # Get version
 VERSION = __about__.__version__
+# taken from latexmk manual:
+# https://www.cantab.net/users/johncollins/latexmk/latexmk-480.txt
+AUXFILES = [
+    ".aux",
+    ".bcf",
+    ".fls",
+    ".idx",
+    ".ind",
+    ".lof",
+    ".lot",
+    ".out",
+    ".toc",
+    ".blg",
+    ".ilg",
+    ".log",
+    ".xdv",
+    ".fdb_latexmk"
+]
 
 # Allowed tar extensions
 TAR_EXT = ["bz2", "gz", "xz"]
