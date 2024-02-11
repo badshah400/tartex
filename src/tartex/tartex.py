@@ -246,10 +246,10 @@ class TarTeX:
             # If force_tex is not set by user options,
             # set to ps if source dir contains ps/eps files
             # or to pdf otherwise
-            self.force_tex = ("ps"
-                              if list(Path(self.main_file.parent)
-                                      .glob("**/*.{e,}ps"))
-                              else "pdf")
+            src_ps = [str(p)
+                      for ext in ["eps", "ps"]
+                      for p in self.main_file.parent.glob(f"**/*.{ext}")]
+            self.force_tex = "ps" if src_ps else "pdf"
 
     def add_user_files(self):
         """
