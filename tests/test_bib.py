@@ -1,4 +1,8 @@
 # vim:set et sw=4 ts=4 tw=80:
+# SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <A.Bhattacharya@uliege.be>
+#
+# SPDX-License-Identifier: MIT
+#
 """
 Test inclusion and exclusion of .bib files
 """
