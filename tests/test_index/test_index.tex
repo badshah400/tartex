@@ -1,0 +1,14 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage{imakeidx}
+\makeindex
+\title{Test for index inclusion/exclusion}
+\begin{document}
+This file\index{file} should have a section\index{section} called
+Index\index{Index}.
+
+\verb+tartex+\index{\verb+tartex+} will test the inclusion and exclusion of the
+generated index file which \emph{should be initially missing} from the \LaTeX\
+project directory.
+
+\printindex
+\end{document}

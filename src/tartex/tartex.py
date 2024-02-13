@@ -47,6 +47,9 @@ AUXFILES = [
 # Latexmk allowed compilers
 LATEXMK_TEX = ["dvi", "luatex", "lualatex", "pdf", "pdflua", "ps", "xdv", "xelatex"]
 
+# Supplementary files that are usually required as part of tarball
+SUPP_REQ = ["bbl", "ind"]
+
 # Allowed tar extensions
 TAR_EXT = ["bz2", "gz", "xz"]
 
@@ -233,7 +236,7 @@ class TarTeX:
         if self.args.xz:
             self.tar_ext = "xz"
 
-        self.bbl = None
+        self.req_supfiles = {}
         self.add_files = self.args.add.split(",") if self.args.add else []
         excludes = self.args.excl.split(",") if self.args.excl else []
         excl_lists = (self.main_file.parent.glob(f"{L}") for L in excludes)
@@ -244,13 +247,19 @@ class TarTeX:
             for f in L
         ]
 
-        # If .bbl is missing in source dir, then it is not in self.excl_files
-        # even if the user passes a matching wildcard to exclude it with "-x".
-        # Handle this case
+        # If .bbl/.ind is missing in source dir, then it is not in
+        # self.excl_files (result of globbing files in srcdir) even if the user
+        # passes a matching wildcard to exclude it with "-x".
+        # Extend self.excl_files specifically in these cases
         for glb in excludes:
-            main_bbl = self.main_file.with_suffix(".bbl")
-            if fnmatch.fnmatch(main_bbl.name, glb):
-                self.excl_files.append(main_bbl)
+            self.excl_files.extend(
+                [
+                    f
+                    for f in [self.main_file.with_suffix(f".{g}")
+                              for g in SUPP_REQ]
+                    if fnmatch.fnmatch(f.name, glb)
+                ]
+            )
 
         self.force_tex = self.args.latexmk_tex
         if not self.force_tex:
@@ -354,14 +363,25 @@ class TarTeX:
                         ):
                             deps.append(p.as_posix())
 
-                bbl_file = self.main_file.with_suffix(".bbl")
-                # Handle missing bbl file from orig dir, if present in fls_path
-                if (
-                    bbl_file not in deps  # bbl file not in source dir
-                    and (Path(compile_dir) / bbl_file.name).exists()  # Implies it's req
-                    and bbl_file not in self.excl_files  # Not explicitly excluded
-                ):
-                    self.bbl = (Path(compile_dir) / bbl_file.name).read_bytes()
+                def _missing_supp(fpath):
+                    """ Handle missing supplemetary file from orig dir, if req
+
+                    :fpath: may be one of .bib or .ind file paths
+                    :returns: path of corresponding file from compile_dir
+
+                    """
+                    if (
+                        fpath not in deps  # bbl file not in source dir
+                        and (Path(compile_dir) / fpath.name).exists()  # Implies it's req
+                        and fpath not in self.excl_files  # Not explicitly excluded
+                    ):
+                        return (Path(compile_dir) / fpath.name).read_bytes()
+
+                    return None
+
+                for ext in SUPP_REQ:
+                    if (app :=_missing_supp(self.main_file.with_suffix(f".{ext}"))):
+                        self.req_supfiles[self.main_file.with_suffix(f".{ext}")] = app
 
         if self.args.bib and (bib := self.bib_file()):
             deps.append(bib.as_posix())
@@ -380,7 +400,7 @@ class TarTeX:
 
     def summary_msg(self, tarname, nfiles):
         """Return summary msg to print at end of run"""
-        num_files = nfiles + (1 if self.bbl else 0)
+        num_files = nfiles + len(self.req_supfiles)
         if self.args.list:
             print(f"Summary: {num_files} files to include.")
         else:
@@ -407,18 +427,18 @@ class TarTeX:
             idx_width = int(math.log10(len(flist))) + 1
             for i, f in enumerate(flist):
                 print(f"{i+1:{idx_width}}. {f}")
-            if self.bbl:
+            for r in self.req_supfiles:
                 print(f"{'*':>{idx_width + 1}}"
-                      f" {self.main_file.with_suffix('.bbl').name}")
+                      f" {r.name}")
         else:
             with tar.open(full_tar_name, mode=f"w:{self.tar_ext}") as f:
                 for dep in flist:
                     f.add(dep)
-                if self.bbl:
-                    tinfo = f.tarinfo(self.main_file.with_suffix(".bbl").name)
-                    tinfo.size = len(self.bbl)
+                for fpath, byt in self.req_supfiles.items():
+                    tinfo = f.tarinfo(fpath.name)
+                    tinfo.size = len(byt)
                     tinfo.mtime = int(time.time())
-                    f.addfile(tinfo, BytesIO(self.bbl))
+                    f.addfile(tinfo, BytesIO(byt))
                 if self.args.verbose:
                     print("\n".join(f.getnames()))
 
@@ -452,7 +472,8 @@ class TarTeX:
                 )
             elif new_path.exists():
                 sys.exit(
-                    "Error: A tar file with the same name also" " exists\nQuitting"
+                    "Error: A tar file with the same name also"
+                    " exists\nQuitting"
                 )
             else:
                 return new_path
