@@ -401,10 +401,11 @@ class TarTeX:
     def summary_msg(self, tarname, nfiles):
         """Return summary msg to print at end of run"""
         num_files = nfiles + len(self.req_supfiles)
+        num_tag   = f"{num_files} file" + ("s" if num_files > 1 else "")
         if self.args.list:
-            print(f"Summary: {num_files} files to include.")
+            print(f"Summary: {num_tag} to include.")
         else:
-            print(f"Summary: {tarname} generated with {num_files} files.")
+            print(f"Summary: {tarname} generated with {num_tag}.")
 
     def tar_files(self):
         """Generates a tarball consisting of non-system input files needed to
