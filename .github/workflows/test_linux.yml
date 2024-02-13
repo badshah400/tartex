@@ -36,6 +36,7 @@ jobs:
         packages: >
           latex-bin latexmk scheme-recommended
         cache_version: 1
+          latex-bin latexmk scheme-basic makeindex-bin imakeidx
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
