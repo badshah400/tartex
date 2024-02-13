@@ -29,3 +29,7 @@ def test_bib(datadir, tmpdir):
         assert "refs.bib" in f.getnames()  # Check: .bib file is in tarball
         # Check main_bib.bbl file is in tarball even though not in srcdir
         assert "main_bib.bbl" in f.getnames()
+        # Check user/group name attributes
+        for attr in ["gname", "uname"]:
+            assert (f.getmember("main_bib.bbl").get_info()[attr]
+                    == f.getmember(t.main_file.name).get_info()[attr])

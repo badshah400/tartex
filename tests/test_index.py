@@ -36,6 +36,10 @@ class TestIndex:
         with tar.open(t.tar_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}")) as f:
             # Check test_index.ind file is in tarball even though not in srcdir
             assert "test_index.ind" in f.getnames()
+            # Check user/group name attributes
+            for attr in ["gname", "uname"]:
+                assert (f.getmember("test_index.ind").get_info()[attr]
+                        == f.getmember(t.main_file.name).get_info()[attr])
 
     def test_ind_excl(self, default_args):
         """

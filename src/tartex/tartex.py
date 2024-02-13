@@ -434,11 +434,17 @@ class TarTeX:
             with tar.open(full_tar_name, mode=f"w:{self.tar_ext}") as f:
                 for dep in flist:
                     f.add(dep)
+
                 for fpath, byt in self.req_supfiles.items():
                     tinfo = f.tarinfo(fpath.name)
                     tinfo.size = len(byt)
                     tinfo.mtime = int(time.time())
+                    # Copy user/group names from main.tex file
+                    tinfo.uname = f.getmember(self.main_file.name).uname
+                    tinfo.gname = f.getmember(self.main_file.name).gname
+
                     f.addfile(tinfo, BytesIO(byt))
+
                 if self.args.verbose:
                     print("\n".join(f.getnames()))
 
