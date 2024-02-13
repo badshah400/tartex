@@ -34,7 +34,7 @@ jobs:
       uses: zauguin/install-texlive@v3
       with:
         packages: >
-          latex-bin latexmk scheme-basic makeindex-bin imakeidx
+          latex-bin latexmk scheme-basic makeindex imakeidx
         cache_version: 1
     - name: Lint with flake8
       run: |
