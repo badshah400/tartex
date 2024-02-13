@@ -212,7 +212,7 @@ class TarTeX:
     def __init__(self, args):
         self.cwd = Path(os.getcwd())
         self.args = parse_args(args)
-        self.main_file = Path(self.args.fname)
+        self.main_file = Path(self.args.fname).resolve()
         if self.main_file.suffix not in [".fls", ".tex"]:
             sys.exit("Error: Source filename must be .tex or .fls\nQuitting")
 
