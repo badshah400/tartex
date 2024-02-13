@@ -58,26 +58,34 @@ pipx install ./dist/*.whl
 Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 
 ```console
-Usage: tartex [options] filename
+usage: tartex [options] filename
 
-Build a tarball including all source files needed to compile your LaTeX project (version 0.2.0).
+Build a tarball including all source files needed to compile your LaTeX
+project (version 0.2.1).
 
 positional arguments:
   filename              Input file name (with .tex or .fls suffix)
 
 options:
   -h, --help            show this help message and exit
-  -a ADD, --add ADD     Comma separated list of additional files (wildcards allowed!) to include (loc relative to main TeX file)
+  -a ADD, --add ADD     Comma separated list of additional files (wildcards
+                        allowed!) to include (loc relative to main TeX file)
   -b, --bib             find and add bib file to tarball
-  -l, --list            Print a list of files to include and quit (no tarball generated)
+  -l, --list            Print a list of files to include and quit (no tarball
+                        generated)
   -o OUTPUT, --output OUTPUT
-                        Name of output tar file (suffix can determine tar compression)
+                        Name of output tar file (suffix can determine tar
+                        compression)
   -s, --summary         Print a summary at the end
   -v, --verbose         Print file names added to tarball
-  -x EXCL, --excl EXCL  Comma separated list of files (wildcards allowed!) to exclude (loc relative to main TeX file)
-  -j, --bzip2           bzip2 (.tar.bz2) compression (overrides OUTPUT ext if needed)
-  -J, --xz              lzma (.tar.xz) compression (overrides OUTPUT ext if needed)
-  -z, --gzip            gzip (.tar.gz) compression (overrides OUTPUT ext if needed)
+  -x EXCL, --excl EXCL  Comma separated list of files (wildcards allowed!) to
+                        exclude (loc relative to main TeX file)
+  -j, --bzip2           bzip2 (.tar.bz2) compression (overrides OUTPUT ext if
+                        needed)
+  -J, --xz              lzma (.tar.xz) compression (overrides OUTPUT ext if
+                        needed)
+  -z, --gzip            gzip (.tar.gz) compression (overrides OUTPUT ext if
+                        needed)
   -V, --version         Print tartex version
 
 Options for latexmk processing:
