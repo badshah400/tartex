@@ -17,6 +17,7 @@ import tarfile as tar
 import time
 from contextlib import suppress
 from io import BytesIO
+import logging as log
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -116,7 +117,8 @@ def parse_args(args):
         "-v",
         "--verbose",
         help="Print file names added to tarball",
-        action="store_true"
+        action="count",
+        default=0,
     )
 
     parser.add_argument(
@@ -210,8 +212,13 @@ class TarTeX:
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, args):
-        self.cwd = Path(os.getcwd())
         self.args = parse_args(args)
+        log.basicConfig(
+            format="[%(levelname)s] %(message)s",
+            level=((log.INFO // self.args.verbose)
+                   if self.args.verbose > 0 else log.WARN)
+        )
+        self.cwd = Path(os.getcwd())
         self.main_file = Path(self.args.fname).resolve()
         if self.main_file.suffix not in [".fls", ".tex"]:
             sys.exit("Error: Source filename must be .tex or .fls\nQuitting")
@@ -455,9 +462,6 @@ class TarTeX:
                     tinfo.gname = f.getmember(self.main_file.name).gname
 
                     f.addfile(tinfo, BytesIO(byt))
-
-                if self.args.verbose:
-                    print("\n".join(f.getnames()))
 
         os.chdir(self.cwd)
         if self.args.summary:
