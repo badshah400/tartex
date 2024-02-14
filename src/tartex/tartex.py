@@ -216,25 +216,35 @@ class TarTeX:
         if self.main_file.suffix not in [".fls", ".tex"]:
             sys.exit("Error: Source filename must be .tex or .fls\nQuitting")
 
-        tar_base = (
-            strip_tarext(self.args.output).with_suffix(".tar").expanduser()
-            if self.args.output
-            else Path(self.main_file.stem).with_suffix(".tar")
-        )
-        self.tar_file = self.cwd / tar_base
+        # Set default tar extension...
         self.tar_ext = TAR_DEFAULT_COMP
+        # ..but use specified output's TAR_EXT extension if any...
+        if out := self.args.output:
+            if (oex := out.split(".")[-1]) in TAR_EXT:
+                self.tar_ext = oex
+            else:
+                # Check if output is an existing dir
+                if Path(out).is_dir():
+                    self.args.output = (
+                        Path(out).joinpath(
+                            self.main_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}").name
+                        ).as_posix()
+                    )
 
-        # If specified output file has TAR_EXT extension, use that by default...
-        if (out := self.args.output) and ((oex := out.split(".")[-1]) in TAR_EXT):
-            self.tar_ext = oex
-
-        # ...but overwrite if specific option passed
+        # ...but overwrite TAR_EXT if tar compression option passed
         if self.args.bzip2:
             self.tar_ext = "bz2"
         if self.args.gzip:
             self.tar_ext = "gz"
         if self.args.xz:
             self.tar_ext = "xz"
+
+        tar_base = (
+            strip_tarext(self.args.output).with_suffix(".tar").expanduser()
+            if self.args.output
+            else Path(self.main_file.stem).with_suffix(".tar")
+        )
+        self.tar_file = self.cwd / tar_base
 
         self.req_supfiles = {}
         self.add_files = self.args.add.split(",") if self.args.add else []
