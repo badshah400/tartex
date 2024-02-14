@@ -476,6 +476,9 @@ class TarTeX:
             new_name = input("Enter new name for tar file: ")
             if (new_ext := new_name.split(".")[-1]) in TAR_EXT:
                 self.tar_ext = new_ext
+            # If new file is a plain file name, interpret w.r.t. output dir
+            if self.args.output and (str(Path(new_name)) == Path(new_name).name):
+                new_name = Path(self.args.output).parent.joinpath(new_name).as_posix()
             new_path = (
                 strip_tarext(new_name)
                 .with_suffix(f".tar.{self.tar_ext}")
