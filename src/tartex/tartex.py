@@ -199,6 +199,12 @@ def _full_if_not_rel_path(src, dest):
     p = Path(src).resolve()
     with suppress(ValueError):
         p = p.relative_to(dest)
+    if p.is_absolute(): # At this stage p is only absolute if it cannot be
+                        # resolved related to dest
+        log.debug(
+            "Cannot resolve %s relative to %s, will use full path",
+            src.as_posix(), dest.as_posix()
+        )
     # The assignment and return are both necessary in this case
     return p  # noqa: RET504
 
@@ -232,6 +238,7 @@ class TarTeX:
             else:
                 # Check if output is an existing dir
                 if Path(out).is_dir():
+                    log.debug("%s is an exiting dir", out)
                     self.args.output = (
                         Path(out).joinpath(
                             self.main_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}").name
@@ -252,6 +259,10 @@ class TarTeX:
             else Path(self.main_file.stem).with_suffix(".tar")
         )
         self.tar_file = self.cwd / tar_base
+        log.debug(
+            "Output tarball '%s' will be generated",
+            self.tar_file.with_suffix(f".tar.{self.tar_ext}")
+        )
 
         self.req_supfiles = {}
         self.add_files = self.args.add.split(",") if self.args.add else []
@@ -278,6 +289,12 @@ class TarTeX:
                 ]
             )
 
+        if self.excl_files:
+            log.debug(" ".join(excl_lists))
+            log.info(
+                "List of excluded files: %s",
+                ", ".join([x.as_posix() for x in self.excl_files]))
+
         self.force_tex = self.args.latexmk_tex
         if not self.force_tex:
             # If force_tex is not set by user options,
@@ -287,6 +304,10 @@ class TarTeX:
                       for ext in ["eps", "ps"]
                       for p in self.main_file.parent.glob(f"**/*.{ext}")]
             self.force_tex = "ps" if src_ps else "pdf"
+            log.info(
+                "Latexmk will use %slatex for processing, if needed",
+                self.force_tex
+            )
 
         self.recompile = self.args.force_recompile
 
@@ -316,7 +337,6 @@ class TarTeX:
         texf = self.main_file.with_suffix(".tex")
         with open(texf, encoding="utf-8") as f:
             for line in f:
-                # print(line)
                 m = bibre.search(line)
                 if m:
                     bibstr = m.group()
@@ -336,20 +356,23 @@ class TarTeX:
         """
         deps = []
         with TemporaryDirectory() as compile_dir:
-            fls_name = self.main_file.with_suffix(".fls")
-            fls_path = Path(".") / fls_name
-            if not Path(fls_name).exists() or self.recompile:
+            fls_path = self.main_file.with_suffix(".fls")
+            if not fls_path.exists() or self.recompile:
+                log.info(
+                    "%s.fls file not found in %s",
+                    self.main_file.stem,
+                    self.main_file.parent
+                )
+                log.info("Recompiling LaTeX project in %s", compile_dir)
                 # Generate flx file from tex file by running latexmk
-                latexmk_bin = shutil.which("latexmk")
-
                 latexmk_cmd = [
-                    latexmk_bin,
+                    shutil.which("latexmk"),
                     f"-{self.force_tex}",
                     "-f",
                     "-cd",
                     f"-outdir={compile_dir}",
                     "-interaction=nonstopmode",
-                    self.main_file.stem,
+                    self.main_file.name,
                 ]
                 try:
                     subprocess.run(
@@ -359,14 +382,19 @@ class TarTeX:
                         check=True,
                     )
                 except OSError as err:
-                    print(f"Error: {err.strerror}")
+                    log.critical("%s", err.strerror)
                     sys.exit(1)
                 except subprocess.CalledProcessError as err:
-                    print(f"Error: {err.cmd[0]} failed with the following output:")
-                    print(err.stdout)
-                    sys.exit(2)
+                    log.critical("Error: %s failed with the following output:\n"
+                                 "%s", err.cmd[0], err.stdout)
+                    sys.exit(1)
 
+                log.info(
+                    "LaTeX project successfully compiled with: %s",
+                    ' '.join(latexmk_cmd)
+                )
                 fls_path = Path(compile_dir) / f"{self.main_file.stem}.fls"
+                log.debug("%s generated", fls_path.as_posix())
 
             with open(fls_path, encoding="utf-8") as f:
                 for line in f:
@@ -379,6 +407,7 @@ class TarTeX:
                             and (p.suffix not in AUXFILES)
                         ):
                             deps.append(p.as_posix())
+                            log.info("Add file: %s", p.as_posix())
 
                 def _missing_supp(fpath):
                     """ Handle missing supplemetary file from orig dir, if req
@@ -392,6 +421,13 @@ class TarTeX:
                         and (Path(compile_dir) / fpath.name).exists()  # Implies it's req
                         and fpath not in self.excl_files  # Not explicitly excluded
                     ):
+                        log.debug(
+                            "Required file '%s' not in source dir", fpath.name
+                        )
+                        log.info(
+                            "Add contents as BytesIO: %s",
+                            Path(compile_dir) / fpath.name
+                        )
                         return (Path(compile_dir) / fpath.name).read_bytes()
 
                     return None
@@ -402,16 +438,19 @@ class TarTeX:
 
         if self.args.bib and (bib := self.bib_file()):
             deps.append(bib.as_posix())
+            log.info("Add file: %s", deps[-1])
 
         if self.add_files:
             for f in self.add_user_files():
-                if f in deps:
-                    print(
-                        f"Warning: Manually included file {f} already "
-                        "marked for inclusion, skipping..."
+                f_relpath_str = f.relative_to(self.main_file.parent).as_posix()
+                if f_relpath_str in deps:
+                    log.warning(
+                        "Manually included file %s already added",
+                        f_relpath_str
                     )
                     continue
-                deps.append(f)
+                deps.append(f_relpath_str)
+                log.info("Add user specified file: %s", f_relpath_str)
 
         return deps
 
@@ -440,6 +479,7 @@ class TarTeX:
 
         wdir = self.main_file.resolve().parent
         os.chdir(wdir)
+        log.debug("Switching working dir to %s", wdir.as_posix())
         flist = self.input_files()
         if self.args.list:
             idx_width = int(math.log10(len(flist))) + 1
@@ -464,16 +504,19 @@ class TarTeX:
                     f.addfile(tinfo, BytesIO(byt))
 
         os.chdir(self.cwd)
+        log.debug("Reset working dir to %s", os.getcwd())
         if self.args.summary:
             self.summary_msg(_full_if_not_rel_path(full_tar_name, self.cwd), len(flist))
 
     def _tar_name_conflict(self, tpath):
-        owr = input("Warning: A tar file with the same name"
-                    f" [{_full_if_not_rel_path(tpath,self.cwd)}] already"
-                    " exists.\n"
-                    "What would you like to do "
-                    "([o]verwrite/[c]hoose new name/[Q]uit)? "
-                   )
+        print(
+            "A tar file with the same name"
+            f" [{_full_if_not_rel_path(tpath, self.cwd)}] already exists."
+        )
+
+        owr = input(
+            "What would you like to do ([o]verwrite/[c]hoose new name/[Q]uit)? "
+        )
         if owr.lower() in ["", "q"]:
             sys.exit("Not overwriting existing tar file\nQuitting")
         elif owr.lower() == "c":
@@ -500,6 +543,7 @@ class TarTeX:
                     " exists\nQuitting"
                 )
             else:
+                log.info("Tar file %s will be generated", new_path.as_posix())
                 return new_path
         elif owr.lower() == "o":
             return None
@@ -509,7 +553,7 @@ class TarTeX:
     def check_main_file_exists(self):
         """Check for the existence of the main tex/fls file."""
         if not Path(self.main_file).exists():
-            print(f"Error: File not found - {self.main_file}")
+            log.critical("File not found - %s", self.main_file)
             sys.exit(1)
 
 
