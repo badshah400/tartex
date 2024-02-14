@@ -318,15 +318,15 @@ class TarTeX:
         """
         lof = []
         for fpatt in self.add_files:
-            afiles = Path(".").glob(fpatt)
-            for af in afiles:
-                if not af.resolve().exists():
-                    print(
-                        f"Warning: File {af.name} marked for addition not found, "
-                        "skipping..."
-                    )
-                    continue
-                lof.append(af.as_posix())
+            afiles = list(self.main_file.parent.glob(fpatt))
+            if not afiles:
+                log.warning(
+                    "No match corresponding to user specified pattern '%s' for"
+                    " additional files",
+                    fpatt
+                )
+                continue
+            lof.extend(afiles)
 
         return lof
 
