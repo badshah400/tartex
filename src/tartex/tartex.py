@@ -454,14 +454,14 @@ class TarTeX:
 
         return deps
 
-    def summary_msg(self, tarname, nfiles):
+    def summary_msg(self, nfiles, tarname=None):
         """Return summary msg to print at end of run"""
-        num_files = nfiles + len(self.req_supfiles)
-        num_tag   = f"{num_files} file" + ("s" if num_files > 1 else "")
-        if self.args.list:
-            print(f"Summary: {num_tag} to include.")
+        def _num_tag(n: int):
+            return f"{n} file" + ("s" if n > 1 else "")
+        if tarname:
+            print(f"Summary: {tarname} generated with {_num_tag(nfiles)}.")
         else:
-            print(f"Summary: {tarname} generated with {num_tag}.")
+            print(f"Summary: {_num_tag(nfiles)} to include.")
 
     def tar_files(self):
         """Generates a tarball consisting of non-system input files needed to
@@ -470,51 +470,56 @@ class TarTeX:
         self.check_main_file_exists()
         full_tar_name = Path(f"{self.tar_file}.{self.tar_ext}")
 
-        if (
-            full_tar_name.exists()
-            and not self.args.list
-            and (p := self._tar_name_conflict(full_tar_name))
-        ):
-            full_tar_name = p
-
         wdir = self.main_file.resolve().parent
         os.chdir(wdir)
         log.debug("Switching working dir to %s", wdir.as_posix())
-        flist = self.input_files()
         if self.args.list:
+            flist = self.input_files()
             idx_width = int(math.log10(len(flist))) + 1
             for i, f in enumerate(flist):
                 print(f"{i+1:{idx_width}}. {f}")
             for r in self.req_supfiles:
                 print(f"{'*':>{idx_width + 1}}"
                       f" {r.name}")
+            if self.args.summary:
+                self.summary_msg(len(flist) + len(self.req_supfiles))
         else:
             try:
-                f = tar.open(full_tar_name, mode=f"w:{self.tar_ext}")
+                f = tar.open(full_tar_name, mode=f"x:{self.tar_ext}")
+                with f:
+                    self._do_tar(f)
+                    if self.args.summary:
+                        self.summary_msg(
+                            len(f.getmembers()), _full_if_not_rel_path(full_tar_name, self.cwd)
+                        )
             except PermissionError as err:
                 log.critical(
                     "Cannot write to %s, %s",
                     full_tar_name.parent, err.strerror.lower()
                 )
                 sys.exit(1)
-            with f:
-                for dep in flist:
-                    f.add(dep)
-
-                for fpath, byt in self.req_supfiles.items():
-                    tinfo = f.tarinfo(fpath.name)
-                    tinfo.size = len(byt)
-                    tinfo.mtime = int(time.time())
-                    # Copy user/group names from main.tex file
-                    tinfo.uname = f.getmember(self.main_file.name).uname
-                    tinfo.gname = f.getmember(self.main_file.name).gname
-
-                    f.addfile(tinfo, BytesIO(byt))
-
+            except FileExistsError:
+                # At this stage, there is either a new name for the tar file or
+                # user wants to overwrite existing file. In either case, we can
+                # use tar.open() in a mode with FileExistsError suppressed
+                try:
+                    full_tar_name = self._tar_name_conflict(full_tar_name)
+                    f = tar.open(full_tar_name, mode=f"w:{self.tar_ext}")
+                    with f:
+                        self._do_tar(f)
+                        if self.args.summary:
+                            self.summary_msg(
+                                len(f.getmembers()),
+                                _full_if_not_rel_path(full_tar_name, self.cwd)
+                            )
+                except PermissionError as err:
+                    log.critical(
+                        "Cannot write to %s, %s",
+                        full_tar_name.parent, err.strerror.lower()
+                    )
+                    sys.exit(1)
         os.chdir(self.cwd)
         log.debug("Reset working dir to %s", os.getcwd())
-        if self.args.summary:
-            self.summary_msg(_full_if_not_rel_path(full_tar_name, self.cwd), len(flist))
 
     def _tar_name_conflict(self, tpath):
         print(
@@ -534,6 +539,8 @@ class TarTeX:
             # If new file is a plain file name, interpret w.r.t. output dir
             if self.args.output and (str(Path(new_name)) == Path(new_name).name):
                 new_name = Path(self.args.output).parent.joinpath(new_name).as_posix()
+            else:
+                new_name = self.cwd / new_name
             new_path = (
                 strip_tarext(new_name)
                 .with_suffix(f".tar.{self.tar_ext}")
@@ -554,7 +561,7 @@ class TarTeX:
                 log.info("Tar file %s will be generated", new_path.as_posix())
                 return new_path
         elif owr.lower() == "o":
-            return None
+            return tpath
         else:
             sys.exit("Error: Invalid response\nQuitting.")
 
@@ -564,6 +571,19 @@ class TarTeX:
             log.critical("File not found - %s", self.main_file)
             sys.exit(1)
 
+    def _do_tar(self, tar_obj):
+        for dep in self.input_files():
+            tar_obj.add(dep)
+
+        for fpath, byt in self.req_supfiles.items():
+            tinfo = tar_obj.tarinfo(fpath.name)
+            tinfo.size = len(byt)
+            tinfo.mtime = int(time.time())
+            # Copy user/group names from main.tex file
+            tinfo.uname = tar_obj.getmember(self.main_file.name).uname
+            tinfo.gname = tar_obj.getmember(self.main_file.name).gname
+
+            tar_obj.addfile(tinfo, BytesIO(byt))
 
 def make_tar():
     """Build tarball with command line arguments processed by argparse"""
