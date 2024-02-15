@@ -232,18 +232,8 @@ class TarTeX:
         # Set default tar extension...
         self.tar_ext = TAR_DEFAULT_COMP
         # ..but use specified output's TAR_EXT extension if any...
-        if out := self.args.output:
-            if (oex := out.split(".")[-1]) in TAR_EXT:
-                self.tar_ext = oex
-            else:
-                # Check if output is an existing dir
-                if Path(out).is_dir():
-                    log.debug("%s is an existing dir", out)
-                    self.args.output = (
-                        Path(out).joinpath(
-                            self.main_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}").name
-                        ).as_posix()
-                    )
+        if self.args.output:
+            self.args.output = self._proc_output_path()
 
         # ...but overwrite TAR_EXT if tar compression option passed
         if self.args.bzip2:
@@ -254,11 +244,12 @@ class TarTeX:
             self.tar_ext = "xz"
 
         tar_base = (
-            strip_tarext(self.args.output).with_suffix(".tar").expanduser()
+            Path(self.args.output).with_suffix(".tar").expanduser()
             if self.args.output
             else Path(self.main_file.stem).with_suffix(".tar")
         )
-        self.tar_file = self.cwd / tar_base
+        self.tar_file = self.cwd / tar_base # The '/' operation returns tar_base
+                                            # if it is an absolute path
         log.debug(
             "Output tarball '%s' will be generated",
             self.tar_file.with_suffix(f".tar.{self.tar_ext}")
@@ -538,18 +529,15 @@ class TarTeX:
                 self.tar_ext = new_ext
             # If new file is a plain file name, interpret w.r.t. output dir
             if(
-                (out := Path(self.args.output))
+                self.args.output
                 and (str(Path(new_name)) == Path(new_name).name)
             ):
-                new_name = (
-                    (out if out.is_absolute() else self.cwd/out)
-                    .parent.joinpath(new_name).as_posix()
-                )
+                new_name = Path(self.args.output).with_name(new_name)
             else:
                 new_name = self.cwd / new_name
             new_path = (
-                strip_tarext(new_name)
-                .with_suffix(f".tar.{self.tar_ext}")
+                new_name
+                .with_name(f"{strip_tarext(new_name.name)}.tar.{self.tar_ext}")
                 .expanduser()
                 .resolve()
             )
@@ -590,6 +578,35 @@ class TarTeX:
             tinfo.gname = tar_obj.getmember(self.main_file.name).gname
 
             tar_obj.addfile(tinfo, BytesIO(byt))
+
+    def _proc_output_path(self):
+        """
+        Returns the output tar file path (sans any '.tar.?z' suffix) after
+        resolving the value passed to '--output' as part of cmdline options.
+
+        Also sets the tar ext if determined from '--output' argument.
+        """
+
+        out = Path(self.args.output)
+        if not out.is_absolute(): # Resolve w.r.t. cwd if relative path
+            out = self.cwd / out
+        if out.is_dir(): # If dir, set to DIR/main.tar.gz
+            log.debug("%s is an existing dir", out)
+            out = out.joinpath(
+                self.main_file
+                .with_suffix(f".tar.{TAR_DEFAULT_COMP}")
+                .name
+            )
+        else:
+            if (ext := out.suffix.lstrip(".")) in TAR_EXT:
+                self.tar_ext = ext
+            else:
+                out = out.with_name(f"{out.name}.tar.{TAR_DEFAULT_COMP}")
+
+        out = strip_tarext(out)
+        log.debug("Processed output target: %s", self.args.output)
+        return out.as_posix()
+
 
 def make_tar():
     """Build tarball with command line arguments processed by argparse"""
