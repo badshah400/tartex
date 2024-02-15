@@ -534,11 +534,10 @@ class TarTeX:
             ):
                 new_name = Path(self.args.output).with_name(new_name)
             else:
-                new_name = self.cwd / new_name
+                new_name = self.cwd / Path(new_name).expanduser()
             new_path = (
                 new_name
                 .with_name(f"{strip_tarext(new_name.name)}.tar.{self.tar_ext}")
-                .expanduser()
                 .resolve()
             )
             if new_path == tpath:
