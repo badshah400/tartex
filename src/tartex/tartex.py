@@ -246,7 +246,7 @@ class TarTeX:
         tar_base = (
             Path(f"{self.args.output}.tar").expanduser()
             if self.args.output
-            else Path(f"{self.args.output}.tar")
+            else Path(self.main_file.stem).with_suffix(".tar")
         )
         self.tar_file = self.cwd / tar_base # The '/' operation returns tar_base
                                             # if it is an absolute path
