@@ -57,6 +57,14 @@ class TestBasicLaTeX:
         print(dest)
         assert t.tar_file.with_suffix(f".tar.{t.tar_ext}").exists()
 
+    def test_verbose_debug(self, datadir):
+        """
+        Test verbose value set by -vv option
+        """
+        t = TarTeX([(Path(datadir) / "basic_latex.tex").as_posix(),
+                    "-vv"])
+        assert t.args.verbose == 2
+
 
 # These tests involve repeatedly compiling LaTeX files, thus can be slow
 @pytest.mark.slow
