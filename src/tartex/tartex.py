@@ -238,7 +238,7 @@ class TarTeX:
             else:
                 # Check if output is an existing dir
                 if Path(out).is_dir():
-                    log.debug("%s is an exiting dir", out)
+                    log.debug("%s is an existing dir", out)
                     self.args.output = (
                         Path(out).joinpath(
                             self.main_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}").name
@@ -489,7 +489,15 @@ class TarTeX:
                 print(f"{'*':>{idx_width + 1}}"
                       f" {r.name}")
         else:
-            with tar.open(full_tar_name, mode=f"w:{self.tar_ext}") as f:
+            try:
+                f = tar.open(full_tar_name, mode=f"w:{self.tar_ext}")
+            except PermissionError as err:
+                log.critical(
+                    "Cannot write to %s, %s",
+                    full_tar_name.parent, err.strerror.lower()
+                )
+                sys.exit(1)
+            with f:
                 for dep in flist:
                     f.add(dep)
 
