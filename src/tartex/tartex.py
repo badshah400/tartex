@@ -537,8 +537,14 @@ class TarTeX:
             if (new_ext := new_name.split(".")[-1]) in TAR_EXT:
                 self.tar_ext = new_ext
             # If new file is a plain file name, interpret w.r.t. output dir
-            if self.args.output and (str(Path(new_name)) == Path(new_name).name):
-                new_name = Path(self.args.output).parent.joinpath(new_name).as_posix()
+            if(
+                (out := Path(self.args.output))
+                and (str(Path(new_name)) == Path(new_name).name)
+            ):
+                new_name = (
+                    (out if out.is_absolute() else self.cwd/out)
+                    .parent.joinpath(new_name).as_posix()
+                )
             else:
                 new_name = self.cwd / new_name
             new_path = (
