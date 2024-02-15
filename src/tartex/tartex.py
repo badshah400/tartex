@@ -547,7 +547,8 @@ class TarTeX:
                 )
             elif new_path.exists():
                 sys.exit(
-                    "Error: A tar file with the same name also"
+                    "Error: A tar file with the same name"
+                    f" [{_full_if_not_rel_path(new_path, self.cwd)!s}] also"
                     " exists\nQuitting"
                 )
             else:
