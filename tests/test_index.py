@@ -7,8 +7,9 @@
 Test inclusion and exclusion of .ind files
 """
 
-import pytest
 import tarfile as tar
+
+import pytest
 
 from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
 
@@ -45,7 +46,7 @@ class TestIndex:
         """
         Check: tar file must not contain '.ind' when it is asked to be excluded
         """
-        args = default_args + ["-x", "*.ind"]
+        args = [*default_args, "-x", "*.ind"]
         print(args)
         t = TarTeX(args)
         t.tar_files()
