@@ -244,7 +244,7 @@ class TarTeX:
             self.tar_ext = "xz"
 
         tar_base = (
-            Path(f"{self.args.output}.tar").expanduser()
+            Path(f"{self.args.output}.tar")
             if self.args.output
             else Path(self.main_file.stem).with_suffix(".tar")
         )
@@ -587,8 +587,8 @@ class TarTeX:
         Also sets the tar ext if determined from '--output' argument.
         """
 
-        out = self.cwd / self.args.output # If self.args.output is absolute,
-                                          # '/' simply returns it as a PosixPath
+        # If self.args.output is absolute, '/' simply returns it as a PosixPath
+        out = self.cwd / Path(self.args.output).expanduser()
 
         if out.is_dir(): # If dir, set to DIR/main.tar.gz
             log.debug("%s is an existing dir", out)
