@@ -1,4 +1,4 @@
-# vim: set ai et ts=4 sw=4 tw=80:
+# vim: set ai et ts=4 sw=4:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
@@ -11,8 +11,6 @@ import logging as log
 import math
 import os
 import re
-import shutil
-import subprocess
 import sys
 import tarfile as tar
 import time
@@ -23,8 +21,7 @@ from tempfile import TemporaryDirectory
 
 from tartex import __about__
 
-# Match only lines beginning with INPUT
-INPUT_RE = re.compile(r"^INPUT")
+from tartex import _latex
 
 # Auxilliary file extensions to ignore
 # taken from latexmk manual:
@@ -389,54 +386,14 @@ class TarTeX:
                     self.main_file.parent,
                 )
                 log.info("Recompiling LaTeX project in %s", compile_dir)
-                # Generate flx file from tex file by running latexmk
-                latexmk_cmd = [
-                    shutil.which("latexmk"),
-                    f"-{self.force_tex}",
-                    "-f",
-                    "-cd",
-                    f"-outdir={compile_dir}",
-                    "-interaction=nonstopmode",
-                    self.main_file.name,
-                ]
-                try:
-                    subprocess.run(
-                        latexmk_cmd,
-                        capture_output=True,
-                        encoding="utf-8",
-                        check=True,
-                    )
-                except OSError as err:
-                    log.critical("%s", err.strerror)
-                    sys.exit(1)
-                except subprocess.CalledProcessError as err:
-                    log.critical(
-                        "Error: %s failed with the following output:\n%s",
-                        err.cmd[0],
-                        err.stdout,
-                    )
-                    sys.exit(1)
-
-                log.info(
-                    "LaTeX project successfully compiled with: %s",
-                    " ".join(latexmk_cmd),
+                fls_path = _latex.run_latexmk(
+                    self.main_file, self.force_tex, compile_dir
                 )
-                fls_path = Path(compile_dir) / f"{self.main_file.stem}.fls"
-                log.debug("%s generated", fls_path.as_posix())
 
             with open(fls_path, encoding="utf-8") as f:
-                for line in f:
-                    if INPUT_RE.match(line):
-                        p = Path(line.split()[-1])
-                        if (
-                            not p.is_absolute()
-                            and (p.as_posix() not in deps)
-                            and (p.as_posix() not in self.excl_files)
-                            and (p.suffix not in AUXFILES)
-                        ):
-                            deps.append(p.as_posix())
-                            log.info("Add file: %s", p.as_posix())
-
+                deps.extend(
+                    _latex.fls_input_files(f, self.excl_files, AUXFILES)
+                )
 
                 for ext in SUPP_REQ:
                     if app := self._missing_supp(
