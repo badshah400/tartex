@@ -225,6 +225,18 @@ def _full_if_not_rel_path(src, dest):
     return p
 
 
+def _summary_msg(nfiles, tarname=None):
+    """Return summary msg to print at end of run"""
+
+    def _num_tag(n: int):
+        return f"{n} file" + ("s" if n > 1 else "")
+
+    if tarname:
+        print(f"Summary: {tarname} generated with {_num_tag(nfiles)}.")
+    else:
+        print(f"Summary: {_num_tag(nfiles)} to include.")
+
+
 class TarTeX:
     """
     Class to help build  a tarball including all source files needed to
@@ -425,35 +437,10 @@ class TarTeX:
                             deps.append(p.as_posix())
                             log.info("Add file: %s", p.as_posix())
 
-                def _missing_supp(fpath):
-                    """Handle missing supplemetary file from orig dir, if req
-
-                    :fpath: may be one of .bib or .ind file paths
-                    :returns: path of corresponding file from compile_dir
-
-                    """
-                    if (
-                        fpath not in deps  # bbl file not in source dir
-                        and (
-                            Path(compile_dir) / fpath.name
-                        ).exists()  # Implies it's req
-                        and fpath
-                        not in self.excl_files  # Not explicitly excluded
-                    ):
-                        log.debug(
-                            "Required file '%s' not in source dir", fpath.name
-                        )
-                        log.info(
-                            "Add contents as BytesIO: %s",
-                            Path(compile_dir) / fpath.name,
-                        )
-                        return (Path(compile_dir) / fpath.name).read_bytes()
-
-                    return None
 
                 for ext in SUPP_REQ:
-                    if app := _missing_supp(
-                        self.main_file.with_suffix(f".{ext}")
+                    if app := self._missing_supp(
+                        self.main_file.with_suffix(f".{ext}"), compile_dir, deps
                     ):
                         self.req_supfiles[
                             self.main_file.with_suffix(f".{ext}")
@@ -476,17 +463,6 @@ class TarTeX:
 
         return deps
 
-    def summary_msg(self, nfiles, tarname=None):
-        """Return summary msg to print at end of run"""
-
-        def _num_tag(n: int):
-            return f"{n} file" + ("s" if n > 1 else "")
-
-        if tarname:
-            print(f"Summary: {tarname} generated with {_num_tag(nfiles)}.")
-        else:
-            print(f"Summary: {_num_tag(nfiles)} to include.")
-
     def tar_files(self):
         """
         Generates a tarball consisting of non-system input files needed to
@@ -499,21 +475,14 @@ class TarTeX:
         os.chdir(wdir)
         log.debug("Switching working dir to %s", wdir.as_posix())
         if self.args.list:
-            flist = self.input_files()
-            idx_width = int(math.log10(len(flist))) + 1
-            for i, f in enumerate(flist):
-                print(f"{i+1:{idx_width}}. {f}")
-            for r in self.req_supfiles:
-                print(f"{'*':>{idx_width + 1}}" f" {r.name}")
-            if self.args.summary:
-                self.summary_msg(len(flist) + len(self.req_supfiles))
+            self._print_list(self.input_files())
         else:
             try:
                 f = tar.open(full_tar_name, mode=f"x:{self.tar_ext}")
                 with f:
                     self._do_tar(f)
                     if self.args.summary:
-                        self.summary_msg(
+                        _summary_msg(
                             len(f.getmembers()),
                             _full_if_not_rel_path(full_tar_name, self.cwd),
                         )
@@ -534,7 +503,7 @@ class TarTeX:
                     with f:
                         self._do_tar(f)
                         if self.args.summary:
-                            self.summary_msg(
+                            _summary_msg(
                                 len(f.getmembers()),
                                 _full_if_not_rel_path(full_tar_name, self.cwd),
                             )
@@ -636,6 +605,32 @@ class TarTeX:
         out = strip_tarext(out)
         log.debug("Processed output target: %s", self.args.output)
         return out.as_posix()
+
+    def _print_list(self, ls):
+        """helper function to print list of files in a pretty format"""
+        idx_width = int(math.log10(len(ls))) + 1
+        for i, f in enumerate(ls):
+            print(f"{i+1:{idx_width}}. {f}")
+        for r in self.req_supfiles:
+            print(f"{'*':>{idx_width + 1}}" f" {r.name}")
+        if self.args.summary:
+            _summary_msg(len(ls) + len(self.req_supfiles))
+
+    def _missing_supp(self, fpath, tmpdir, deps):
+        """Handle missing supplemetary file from orig dir, if req"""
+        if (
+            fpath not in deps  # bbl file not in source dir
+            and (Path(tmpdir) / fpath.name).exists()  # Implies it's req
+            and fpath not in self.excl_files  # Not explicitly excluded
+        ):
+            log.debug("Required file '%s' not in source dir", fpath.name)
+            log.info(
+                "Add contents as BytesIO: %s",
+                Path(tmpdir) / fpath.name,
+            )
+            return (Path(tmpdir) / fpath.name).read_bytes()
+
+        return None
 
 
 def make_tar():
