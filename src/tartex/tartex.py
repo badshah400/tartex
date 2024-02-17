@@ -241,7 +241,9 @@ class TarTeX:
                 )
                 log.info("Recompiling LaTeX project in %s", compile_dir)
                 fls_path = _latex.run_latexmk(
-                    self.main_file, self.force_tex, compile_dir
+                    self.main_file.with_suffix(".tex"),
+                    self.force_tex,
+                    compile_dir,
                 )
 
             with open(fls_path, encoding="utf-8") as f:
