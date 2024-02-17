@@ -382,7 +382,18 @@ class TarTeX:
 
     def _do_tar(self, tar_obj):
         for dep in self.input_files():
-            tar_obj.add(dep)
+            # By now, if the file is still missing, this indicates a .fls file
+            # is present in source but some of its INPUT marked entries are
+            # not. That is user error and we simply omit the missing file from
+            # tarball with a warning
+            try:
+                tar_obj.add(dep)
+            except FileNotFoundError:
+                log.warning(
+                    "Skipping INPUT file '%s' not found amongst sources, try"
+                    " forcing a LaTeX recompile ('-F').",
+                    dep,
+                )
 
         for fpath, byt in self.req_supfiles.items():
             tinfo = tar_obj.tarinfo(fpath.name)
