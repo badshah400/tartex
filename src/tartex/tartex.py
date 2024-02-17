@@ -64,9 +64,8 @@ def _full_if_not_rel_path(src, dest):
     p = Path(src).resolve()
     with suppress(ValueError):
         p = p.relative_to(dest)
-    if (
-        p.is_absolute()
-    ):  # Here p is only absolute if it cannot be resolved wrt to dest
+    if p.is_absolute():
+        # Here p is only absolute if it cannot be resolved wrt to dest
         log.debug(
             "Cannot resolve %s relative to %s, will use full path",
             src.as_posix(),
@@ -105,7 +104,7 @@ class TarTeX:
                 else log.WARN
             ),
         )
-        self.cwd = Path(os.getcwd())
+        self.cwd = Path.cwd()
         self.main_file = Path(self.args.fname).resolve()
         if self.main_file.suffix not in [".fls", ".tex"]:
             sys.exit("Error: Source filename must be .tex or .fls\nQuitting")
@@ -226,12 +225,14 @@ class TarTeX:
     def input_files(self):
         """
         Returns non-system input files needed to compile the main tex file.
-        Note that this will try to compile the main tex file using `latexmk` if
-        it cannot find the fls file in the same dir.
+        Will try to compile the main tex file using `latexmk` if it cannot find
+        the fls file in the same dir.
         """
         deps = []
         with TemporaryDirectory() as compile_dir:
             fls_path = self.main_file.with_suffix(".fls")
+            # If .fls exists, this assumes that all INPUT files recorded in it
+            # are also included in source dir
             if not fls_path.exists() or self.recompile:
                 log.info(
                     "%s.fls file not found in %s",
