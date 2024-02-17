@@ -24,6 +24,7 @@ def default_args(datadir, tmpdir):
         f"{tmpdir!s}/test_index.tar.{TAR_DEFAULT_COMP}",
     ]
 
+
 class TestIndex:
 
     """Test to verify handling of missing .ind file"""
@@ -39,8 +40,10 @@ class TestIndex:
             assert "test_index.ind" in f.getnames()
             # Check user/group name attributes
             for attr in ["gname", "uname"]:
-                assert (f.getmember("test_index.ind").get_info()[attr]
-                        == f.getmember(t.main_file.name).get_info()[attr])
+                assert (
+                    f.getmember("test_index.ind").get_info()[attr]
+                    == f.getmember(t.main_file.name).get_info()[attr]
+                )
 
     def test_ind_excl(self, default_args):
         """

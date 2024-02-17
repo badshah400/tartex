@@ -228,7 +228,6 @@ class TarTeX:
         Will try to compile the main tex file using `latexmk` if it cannot find
         the fls file in the same dir.
         """
-        deps = []
         with TemporaryDirectory() as compile_dir:
             fls_path = self.main_file.with_suffix(".fls")
             # If .fls exists, this assumes that all INPUT files recorded in it
@@ -247,7 +246,7 @@ class TarTeX:
                 )
 
             with open(fls_path, encoding="utf-8") as f:
-                deps.extend(
+                deps = (
                     _latex.fls_input_files(f, self.excl_files, AUXFILES)
                 )
 
