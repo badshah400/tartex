@@ -385,9 +385,14 @@ class TarTeX:
             tinfo = tar_obj.tarinfo(fpath.name)
             tinfo.size = len(byt)
             tinfo.mtime = int(time.time())
+
             # Copy user/group names from main.tex file
-            tinfo.uname = tar_obj.getmember(self.main_file.name).uname
-            tinfo.gname = tar_obj.getmember(self.main_file.name).gname
+            tinfo.uname = tar_obj.getmember(
+                self.main_file.with_suffix(".tex").name
+            ).uname
+            tinfo.gname = tar_obj.getmember(
+                self.main_file.with_suffix(".tex").name
+            ).gname
 
             tar_obj.addfile(tinfo, BytesIO(byt))
 
