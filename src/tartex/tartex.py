@@ -229,8 +229,6 @@ class TarTeX:
         the fls file in the same dir.
         """
         if not self.main_file.with_suffix(".fls").exists() or self.recompile:
-            # If .fls exists, this assumes that all INPUT files recorded in it
-            # are also included in source dir
             with TemporaryDirectory() as compile_dir:
                 log.info(
                     "%s.fls file not found in %s",
@@ -255,6 +253,8 @@ class TarTeX:
                             self.main_file.with_suffix(f".{ext}")
                         ] = app
         else:
+            # If .fls exists, this assumes that all INPUT files recorded in it
+            # are also included in source dir
             with open(self.main_file.with_suffix(".fls"), encoding="utf-8") as f:
                 deps = _latex.fls_input_files(f, self.excl_files, AUXFILES)
 
