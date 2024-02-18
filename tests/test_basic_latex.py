@@ -47,11 +47,15 @@ class TestBasicLaTeX:
         # Make a new dir inside tmpdir
         destdir = tmpdir / "dest"
         os.mkdir(destdir)
-        t = TarTeX([(Path(datadir) / "basic_latex.tex").as_posix(),
-                    "-v",
-                    "-s",
-                    "-o",
-                    str(destdir / "output.tar.gz")])
+        t = TarTeX(
+            [
+                (Path(datadir) / "basic_latex.tex").as_posix(),
+                "-v",
+                "-s",
+                "-o",
+                str(destdir / "output.tar.gz"),
+            ]
+        )
         t.tar_files()
         dest = t.tar_file.with_suffix(f".tar.{t.tar_ext}")
         print(dest)
@@ -61,8 +65,7 @@ class TestBasicLaTeX:
         """
         Test verbose value set by -vv option
         """
-        t = TarTeX([(Path(datadir) / "basic_latex.tex").as_posix(),
-                    "-vv"])
+        t = TarTeX([(Path(datadir) / "basic_latex.tex").as_posix(), "-vv"])
         assert t.args.verbose == 2
 
 
@@ -121,7 +124,7 @@ class TestTarConflict:
 
         output = str(tmpdir / "new.tar.gz")
         # Monkeypatch responses for choosing a new file name
-        user_inputs = iter(['c', output])
+        user_inputs = iter(["c", output])
         monkeypatch.setattr("builtins.input", lambda _: next(user_inputs))
         t_con.tar_files()
         assert Path(output).exists() is True
@@ -137,7 +140,7 @@ class TestTarConflict:
         assert Path(output).exists() is True
 
         # Monkeypatch responses for choosing file name same as original
-        user_inputs = iter(['c', output])
+        user_inputs = iter(["c", output])
         monkeypatch.setattr("builtins.input", lambda _: next(user_inputs))
         with pytest.raises(SystemExit) as exc:
             t_con.tar_files()
@@ -154,7 +157,7 @@ class TestTarConflict:
 
         output = output.replace(".gz", ".xz")
         # Monkeypatch responses for choosing file name same as original
-        user_inputs = iter(['c', output])
+        user_inputs = iter(["c", output])
         monkeypatch.setattr("builtins.input", lambda _: next(user_inputs))
         t_con.tar_files()
         assert Path(output).exists() is True

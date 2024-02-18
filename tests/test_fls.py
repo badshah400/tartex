@@ -9,9 +9,10 @@ Tests for when source dir has .fls file
 """
 
 import tarfile as tar
+
 import pytest
 
-from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
+from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
 
 
 @pytest.fixture

@@ -34,10 +34,12 @@ def multidir_tartex_obj(datadir, multidir_target):
 
 @pytest.fixture
 def src_files(datadir):
-    """Return sorted list of files in source dir """
-    src_files = [str(Path(dname).relative_to(datadir) / f)
-                 for dname, _, files in os.walk(datadir)
-                 for f in files]
+    """Return sorted list of files in source dir"""
+    src_files = [
+        str(Path(dname).relative_to(datadir) / f)
+        for dname, _, files in os.walk(datadir)
+        for f in files
+    ]
 
     src_files.sort()  # Sort for comparison with tar output
     return src_files

@@ -226,14 +226,19 @@ class TarTeX:
         Will try to compile the main tex file using `latexmk` if it cannot find
         the fls file in the same dir.
         """
-        if not self.main_file.with_suffix(".fls").exists() or self.args.force_recompile:
+        if (
+            not self.main_file.with_suffix(".fls").exists()
+            or self.args.force_recompile
+        ):
             with TemporaryDirectory() as compile_dir:
                 log.info(
                     "LaTeX recompile forced"
-                     if self.args.force_recompile
-                     else ("%s.fls file not found in %s",
-                           self.main_file.stem,
-                           self.main_file.parent)
+                    if self.args.force_recompile
+                    else (
+                        "%s.fls file not found in %s",
+                        self.main_file.stem,
+                        self.main_file.parent,
+                    )
                 )
                 log.info("Recompiling LaTeX project in %s", compile_dir)
                 fls_path = _latex.run_latexmk(
@@ -255,9 +260,10 @@ class TarTeX:
         else:
             # If .fls exists, this assumes that all INPUT files recorded in it
             # are also included in source dir
-            with open(self.main_file.with_suffix(".fls"), encoding="utf-8") as f:
+            with open(
+                self.main_file.with_suffix(".fls"), encoding="utf-8"
+            ) as f:
                 deps = _latex.fls_input_files(f, self.excl_files, AUXFILES)
-
 
         if self.args.bib and (bib := self.bib_file()):
             deps.append(bib.as_posix())
