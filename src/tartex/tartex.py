@@ -183,8 +183,6 @@ class TarTeX:
                 self.force_tex,
             )
 
-        self.recompile = self.args.force_recompile
-
     def add_user_files(self):
         """
         Return list of additional user specified/globbed file paths,
@@ -228,11 +226,11 @@ class TarTeX:
         Will try to compile the main tex file using `latexmk` if it cannot find
         the fls file in the same dir.
         """
-        if not self.main_file.with_suffix(".fls").exists() or self.recompile:
+        if not self.main_file.with_suffix(".fls").exists() or self.args.force_recompile:
             with TemporaryDirectory() as compile_dir:
                 log.info(
                     "LaTeX recompile forced"
-                     if self.recompile
+                     if self.args.force_recompile
                      else ("%s.fls file not found in %s",
                            self.main_file.stem,
                            self.main_file.parent)
