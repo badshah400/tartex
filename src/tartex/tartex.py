@@ -234,11 +234,8 @@ class TarTeX:
                 log.info(
                     "LaTeX recompile forced"
                     if self.args.force_recompile
-                    else (
-                        "%s.fls file not found in %s",
-                        self.main_file.stem,
-                        self.main_file.parent,
-                    )
+                    else f"{self.main_file.stem}.fls file not found in"
+                         f" {self.main_file.parent.as_posix()}"
                 )
                 log.info("Recompiling LaTeX project in %s", compile_dir)
                 fls_path = _latex.run_latexmk(
