@@ -231,9 +231,11 @@ class TarTeX:
         if not self.main_file.with_suffix(".fls").exists() or self.recompile:
             with TemporaryDirectory() as compile_dir:
                 log.info(
-                    "%s.fls file not found in %s",
-                    self.main_file.stem,
-                    self.main_file.parent,
+                    "LaTeX recompile forced"
+                     if self.recompile
+                     else ("%s.fls file not found in %s",
+                           self.main_file.stem,
+                           self.main_file.parent)
                 )
                 log.info("Recompiling LaTeX project in %s", compile_dir)
                 fls_path = _latex.run_latexmk(
