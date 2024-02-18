@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.3.0] 2024-02-18
+
 ### Added
 
 - Better logging of warnings to user as well as debugging based on `-v` or
@@ -25,6 +27,7 @@
 - Do `.expanduser()` early when processing output arg.
 - Fix last non-tar suffix, if any, in `OUTPUT` being dropped from tar file
   name.
+- Correct message when LaTeX recompile is forced.
 
 
 ## [0.2.2] 2024-02-14
