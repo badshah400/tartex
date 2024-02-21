@@ -393,7 +393,7 @@ class TarTeX:
                 tar_obj.add(dep)
             except FileNotFoundError:
                 log.warning(
-                    "Skipping INPUT file '%s' not found amongst sources, try"
+                    "Skipping INPUT file '%s', not found amongst sources; try"
                     " forcing a LaTeX recompile ('-F').",
                     dep,
                 )

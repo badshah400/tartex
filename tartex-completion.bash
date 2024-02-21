@@ -1,5 +1,5 @@
-#/usr/bin/env bash
-#
+# bash completion for tartex                               -*- shell-script -*-
+
 _tartex_completions()
 {
   local cur prev split
@@ -14,9 +14,9 @@ _tartex_completions()
     eval cur="$cur"
   fi
 
-	case $prev in 
-		--help | --version | -!(-*)[hV])
-		  return
+  case $prev in 
+    --help | --version | -!(-*)[hV])
+      return
       ;;
 
     --output | -!(-*)o)
@@ -24,7 +24,7 @@ _tartex_completions()
       return
       ;;
 
-    --latexmk_tex)
+    --latexmk-tex)
       COMPREPLY=($(compgen -W "dvi luatex lualatex pdf pdflua ps xdv xelatex" -- "$cur"))
       return
       ;;
@@ -34,7 +34,7 @@ _tartex_completions()
       return
       ;;
 
-	esac
+  esac
 
   $split && return
 
@@ -47,4 +47,4 @@ _tartex_completions()
 } &&
   complete -F _tartex_completions tartex
 
-# ex: filetype=sh
+# ex: filetype=sh et ts=2 sw=2:
