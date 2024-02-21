@@ -17,6 +17,8 @@ from contextlib import suppress
 from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from rich import print as richprint
+from rich.prompt import Prompt
 
 from tartex import _latex
 from tartex._parse_args import parse_args
@@ -78,12 +80,12 @@ def _summary_msg(nfiles, tarname=None):
     """Return summary msg to print at end of run"""
 
     def _num_tag(n: int):
-        return f"{n} file" + ("s" if n > 1 else "")
+        return f"[bold]{n} file" + ("s" if n > 1 else "") + "[/]"
 
     if tarname:
-        print(f"Summary: {tarname} generated with {_num_tag(nfiles)}.")
+        richprint(f"[cyan]Summary: [bold]{tarname}[/] generated with {_num_tag(nfiles)}.[/]")
     else:
-        print(f"Summary: {_num_tag(nfiles)} to include.")
+        richprint(f"[cyan]Summary: {_num_tag(nfiles)} to include.[/]")
 
 
 class TarTeX:
@@ -310,11 +312,11 @@ class TarTeX:
                 )
                 sys.exit(1)
             except FileExistsError:
-                # At this stage, there is either a new name for the tar file or
-                # user wants to overwrite existing file. In either case, we can
-                # use tar.open() in a mode with FileExistsError suppressed
                 try:
                     full_tar_name = self._tar_name_conflict(full_tar_name)
+                    # At this stage, there is either a new name for the tar
+                    # file or user wants to overwrite existing file. In either
+                    # case, calling tar.open() with 'w' mode should be OK.
                     f = tar.open(full_tar_name, mode=f"w:{self.tar_ext}")
                     with f:
                         self._do_tar(f)
@@ -334,18 +336,25 @@ class TarTeX:
         log.debug("Reset working dir to %s", os.getcwd())
 
     def _tar_name_conflict(self, tpath):
-        print(
-            "A tar file with the same name"
-            f" [{_full_if_not_rel_path(tpath, self.cwd)}] already exists."
+        richprint(
+            "[bold red]A tar file with the same name"
+            rf" \[{_full_if_not_rel_path(tpath, self.cwd)}] already exists[/bold red]"
         )
 
-        owr = input(
-            "What would you like to do ([o]verwrite/[c]hoose new name/[Q]uit)? "
+        owr = Prompt.ask(
+            "What would you like to do "
+            r"([bold cyan]\[O][/bold cyan]verwrite /"
+            r" [bold green]\[C][/bold green]hoose new name /"
+            r" *[bold red]\[Q][/bold red]uit)?"
         )
         if owr.lower() in ["", "q"]:
-            sys.exit("Not overwriting existing tar file\nQuitting")
+            richprint(
+                "[bold]Not overwriting existing tar file[/bold]\nQuitting",
+                file=sys.stderr
+            )
+            sys.exit(1)
         elif owr.lower() == "c":
-            new_name = input("Enter new name for tar file: ")
+            new_name = Prompt.ask("Enter [bold]new name[/bold] for tar file")
             if (new_ext := new_name.split(".")[-1]) in TAR_EXT:
                 self.tar_ext = new_ext
             # If new file is a plain file name, interpret w.r.t. output dir
@@ -359,23 +368,29 @@ class TarTeX:
                 f"{strip_tarext(new_name.name)}.tar.{self.tar_ext}"
             ).resolve()
             if new_path == tpath:
-                sys.exit(
-                    "Error: New name entered is also the same as existing tar"
-                    " file name\nQuitting"
+                richprint(
+                    "[bold red]Error: New name entered is also the same as"
+                    " existing tar file name[/bold red]\nQuitting",
+                    file=sys.stderr
                 )
+                sys.exit(1)
             elif new_path.exists():
-                sys.exit(
-                    "Error: A tar file with the same name"
-                    f" [{_full_if_not_rel_path(new_path, self.cwd)!s}] also"
-                    " exists\nQuitting"
+                richprint(
+                    "[bold red]Error: A tar file with the same name"
+                    rf" \[{_full_if_not_rel_path(new_path, self.cwd)!s}] also"
+                    " exists[/bold red]\nQuitting",
+                    file=sys.stderr
                 )
+                sys.exit(1)
             else:
                 log.info("Tar file %s will be generated", new_path.as_posix())
                 return new_path
         elif owr.lower() == "o":
             return tpath
         else:
-            sys.exit("Error: Invalid response\nQuitting.")
+            richprint("[bold red]Error: Invalid response[/]\nQuitting.",
+                      file=sys.stderr)
+            sys.exit(1)
 
     def check_main_file_exists(self):
         """Check for the existence of the main tex/fls file."""
