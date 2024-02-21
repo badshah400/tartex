@@ -101,7 +101,7 @@ def parse_args(args):
     # Latexmk options
     latexmk_opts = parser.add_argument_group("Options for latexmk processing")
     latexmk_opts.add_argument(
-        "--latexmk_tex",
+        "--latexmk-tex",
         choices=LATEXMK_TEX,
         default=None,
         help="Force TeX processing mode used by latexmk",
@@ -109,7 +109,7 @@ def parse_args(args):
 
     latexmk_opts.add_argument(
         "-F",
-        "--force_recompile",
+        "--force-recompile",
         action="store_true",
         help="Force recompilation even if .fls exists",
     )
