@@ -338,12 +338,13 @@ class TarTeX:
     def _tar_name_conflict(self, tpath):
         richprint(
             "[bold red]A tar file with the same name"
-            rf" \[{_full_if_not_rel_path(tpath, self.cwd)}] already exists[/bold red]"
+            rf" \[{_full_if_not_rel_path(tpath, self.cwd)}]"
+            " already exists[/bold red]"
         )
 
         owr = Prompt.ask(
             "What would you like to do "
-            r"([bold cyan]\[O][/bold cyan]verwrite /"
+            r"([bold blue]\[O][/bold blue]verwrite /"
             r" [bold green]\[C][/bold green]hoose new name /"
             r" *[bold red]\[Q][/bold red]uit)?"
         )
@@ -457,9 +458,9 @@ class TarTeX:
         """helper function to print list of files in a pretty format"""
         idx_width = int(math.log10(len(ls))) + 1
         for i, f in enumerate(ls):
-            print(f"{i+1:{idx_width}}. {f}")
+            richprint(f"{i+1:{idx_width}}. {f}")
         for r in self.req_supfiles:
-            print(f"{'*':>{idx_width + 1}}" f" {r.name}")
+            richprint(f"{'*':>{idx_width + 1}} {r.name}")
         if self.args.summary:
             _summary_msg(len(ls) + len(self.req_supfiles))
 
