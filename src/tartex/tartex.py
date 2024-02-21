@@ -17,8 +17,6 @@ from contextlib import suppress
 from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from rich.live import Live
-from rich.spinner import Spinner
 
 from tartex import _latex
 from tartex._parse_args import parse_args
@@ -239,16 +237,12 @@ class TarTeX:
                     else f"{self.main_file.stem}.fls file not found in"
                     f" {self.main_file.parent.as_posix()}"
                 )
-                log.info("Recompiling LaTeX project in %s", compile_dir)
-                with Live(
-                    Spinner("dots2", text="Compiling LaTeX project"),
-                    transient=True,
-                ):
-                    fls_path = _latex.run_latexmk(
-                        self.main_file.with_suffix(".tex"),
-                        self.force_tex,
-                        compile_dir,
-                    )
+                log.info("LaTeX compile directory: %s", compile_dir)
+                fls_path = _latex.run_latexmk(
+                    self.main_file.with_suffix(".tex"),
+                    self.force_tex,
+                    compile_dir,
+                )
 
                 with open(fls_path, encoding="utf-8") as f:
                     deps = _latex.fls_input_files(f, self.excl_files, AUXFILES)

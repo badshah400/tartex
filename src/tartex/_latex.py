@@ -14,6 +14,8 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from rich.live import Live
+from rich.spinner import Spinner
 
 # Match only lines beginning with INPUT
 INPUT_RE = re.compile(r"^INPUT")
@@ -32,12 +34,16 @@ def run_latexmk(filename, mode, compdir):
         filename.name,
     ]
     try:
-        subprocess.run(
-            latexmk_cmd,
-            capture_output=True,
-            encoding="utf-8",
-            check=True,
-        )
+        with Live(
+            Spinner("dots2", text="Compiling LaTeX project"),
+            transient=True,
+        ):
+            subprocess.run(
+                latexmk_cmd,
+                capture_output=True,
+                encoding="utf-8",
+                check=True,
+            )
     except OSError as err:
         log.critical("%s", err.strerror)
         sys.exit(1)
