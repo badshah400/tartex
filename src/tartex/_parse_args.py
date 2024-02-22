@@ -11,6 +11,7 @@ Module that sets up argparse and returns parsed arguments from the cmdline
 import argparse
 
 from tartex.__about__ import __version__
+from tartex.completion import BashCompletion
 
 # Latexmk allowed compilers
 LATEXMK_TEX = [
@@ -23,6 +24,62 @@ LATEXMK_TEX = [
     "xdv",
     "xelatex",
 ]
+
+
+class CompletionPrintAction(argparse.Action):
+
+    """
+    Defines CompletionAction for argparse which will print a completion syntax
+    and exit
+    """
+
+    def __init__(
+        self,
+        option_strings,
+        dest=argparse.SUPPRESS,
+        default=argparse.SUPPRESS,
+        help=None,
+    ):
+        """Initialise Action class"""
+        super().__init__(
+            option_strings=option_strings,
+            dest=dest,
+            default=default,
+            nargs=0,
+            help=help,
+        )
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        BashCompletion().print()
+        parser.exit()
+
+
+class CompletionInstallAction(argparse.Action):
+
+    """
+    Defines CompletionAction for argparse which will print a completion syntax
+    and exit
+    """
+
+    def __init__(
+        self,
+        option_strings,
+        dest=argparse.SUPPRESS,
+        default=argparse.SUPPRESS,
+        help=None,
+    ):
+        """Initialise Action class"""
+        super().__init__(
+            option_strings=option_strings,
+            dest=dest,
+            default=default,
+            nargs=0,
+            help=help,
+        )
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        BashCompletion().install()
+        parser.exit()
 
 
 def parse_args(args):
@@ -150,6 +207,19 @@ def parse_args(args):
         help="Print %(prog)s version",
         action="version",
         version=f"%(prog)s {__version__}",
+    )
+
+    misc_opts = parser.add_argument_group("Miscellaneous options")
+    misc_opts.add_argument(
+        "--completion",
+        help="Print bash completion for %(prog)s",
+        action=CompletionPrintAction,
+    )
+
+    misc_opts.add_argument(
+        "--install-completion",
+        help="Install bash completion for %(prog)s",
+        action=CompletionInstallAction,
     )
 
     return parser.parse_args(args)

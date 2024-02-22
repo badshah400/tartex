@@ -19,6 +19,10 @@ _tartex_completions()
       return
       ;;
 
+    --completion | --install-completion)
+      return
+      ;;
+
     --output | -!(-*)o)
       _filedir "$tarext"
       return
