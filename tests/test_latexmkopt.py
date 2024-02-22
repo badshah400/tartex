@@ -40,12 +40,12 @@ class TestLatexmkOpts:
 
     def test_ps(self, basic_opts):
         """Check: Processing using -ps"""
-        basic_opts.extend(["--latexmk_tex", "ps"])
+        basic_opts.extend(["--latexmk-tex", "ps"])
         t = TarTeX(basic_opts)
         t.tar_files()
 
     def test_pdflua(self, basic_opts):
         """Check: Processing using -pdflua"""
-        basic_opts.extend(["--latexmk_tex", "pdflua"])
+        basic_opts.extend(["--latexmk-tex", "pdflua"])
         t = TarTeX(basic_opts)
         t.tar_files()
