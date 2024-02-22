@@ -209,7 +209,7 @@ def parse_args(args):
         version=f"%(prog)s {__version__}",
     )
 
-    misc_opts = parser.add_argument_group("Miscellaneous options")
+    misc_opts = parser.add_argument_group("Shell completion options")
     misc_opts.add_argument(
         "--completion",
         help="Print bash completion for %(prog)s",
@@ -218,7 +218,8 @@ def parse_args(args):
 
     misc_opts.add_argument(
         "--install-completion",
-        help="Install bash completion for %(prog)s",
+        help="Install bash completion for %(prog)s into user's XDG_DATA_DIR"
+             f" [{BashCompletion().install_dir}]",
         action=CompletionInstallAction,
     )
 
