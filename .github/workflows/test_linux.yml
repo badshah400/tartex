@@ -5,7 +5,7 @@ name: Python package
 
 on:
   push:
-    branches: [ "main", "feature-output-dir" ]
+    branches: [ "main", "feature-output-dir", "feature-bash-completion" ]
   pull_request:
     branches: [ "main" ]
 
