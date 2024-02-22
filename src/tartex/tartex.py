@@ -17,6 +17,7 @@ from contextlib import suppress
 from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
 from rich import print as richprint
 from rich.prompt import Prompt
 
@@ -83,7 +84,10 @@ def _summary_msg(nfiles, tarname=None):
         return f"[bold]{n} file" + ("s" if n > 1 else "") + "[/]"
 
     if tarname:
-        richprint(f"[cyan]Summary: [bold]{tarname}[/] generated with {_num_tag(nfiles)}.[/]")
+        richprint(
+            f"[cyan]Summary: [bold]{tarname}[/] generated with"
+            f" {_num_tag(nfiles)}.[/]"
+        )
     else:
         richprint(f"[cyan]Summary: {_num_tag(nfiles)} to include.[/]")
 
@@ -351,7 +355,7 @@ class TarTeX:
         if owr.lower() in ["", "q"]:
             richprint(
                 "[bold]Not overwriting existing tar file[/bold]\nQuitting",
-                file=sys.stderr
+                file=sys.stderr,
             )
             sys.exit(1)
         elif owr.lower() == "c":
@@ -372,7 +376,7 @@ class TarTeX:
                 richprint(
                     "[bold red]Error: New name entered is also the same as"
                     " existing tar file name[/bold red]\nQuitting",
-                    file=sys.stderr
+                    file=sys.stderr,
                 )
                 sys.exit(1)
             elif new_path.exists():
@@ -380,7 +384,7 @@ class TarTeX:
                     "[bold red]Error: A tar file with the same name"
                     rf" \[{_full_if_not_rel_path(new_path, self.cwd)!s}] also"
                     " exists[/bold red]\nQuitting",
-                    file=sys.stderr
+                    file=sys.stderr,
                 )
                 sys.exit(1)
             else:
@@ -389,8 +393,10 @@ class TarTeX:
         elif owr.lower() == "o":
             return tpath
         else:
-            richprint("[bold red]Error: Invalid response[/]\nQuitting.",
-                      file=sys.stderr)
+            richprint(
+                "[bold red]Error: Invalid response[/]\nQuitting.",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
     def check_main_file_exists(self):

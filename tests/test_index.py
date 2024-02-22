@@ -50,7 +50,6 @@ class TestIndex:
         Check: tar file must not contain '.ind' when it is asked to be excluded
         """
         args = [*default_args, "-x", "*.ind"]
-        print(args)
         t = TarTeX(args)
         t.tar_files()
         with tar.open(t.tar_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}")) as f:

@@ -7,7 +7,6 @@
 import os
 import tarfile as tar
 from pathlib import Path
-import rich.prompt
 
 import pytest
 
@@ -58,8 +57,6 @@ class TestBasicLaTeX:
             ]
         )
         t.tar_files()
-        dest = t.tar_file.with_suffix(f".tar.{t.tar_ext}")
-        print(dest)
         assert t.tar_file.with_suffix(f".tar.{t.tar_ext}").exists()
 
     def test_verbose_debug(self, datadir):
@@ -89,7 +86,7 @@ class TestTarConflict:
             t_con.tar_files()
 
         assert "Not overwriting existing tar file" in capsys.readouterr().err
-        assert 1 == exc.value.code
+        assert exc.value.code == 1
 
     def test_sol_quit(self, default_tartex_obj, capsys, monkeypatch):
         """Test when user response is 'q'"""
@@ -105,7 +102,7 @@ class TestTarConflict:
             t_con.tar_files()
 
         assert "Not overwriting existing tar file" in capsys.readouterr().err
-        assert 1 == exc.value.code
+        assert exc.value.code == 1
 
     def test_sol_overwrite(self, default_tartex_obj, monkeypatch):
         """Test overwrite resolution"""
@@ -128,13 +125,17 @@ class TestTarConflict:
         output = str(tmpdir / "new.tar.gz")
         # Monkeypatch responses for choosing a new file name
         user_inputs = iter(["c", output])
-        monkeypatch.setattr("rich.prompt.Prompt.ask", lambda _: next(user_inputs))
+        monkeypatch.setattr(
+            "rich.prompt.Prompt.ask", lambda _: next(user_inputs)
+        )
         t_con.tar_files()
         assert Path(output).exists() is True
         with tar.open(output) as rat:
             assert len(rat.getnames()) == 1
 
-    def test_sol_newname_old(self, default_tartex_obj, tmpdir, capsys, monkeypatch):
+    def test_sol_newname_old(
+        self, default_tartex_obj, tmpdir, capsys, monkeypatch
+    ):
         """Test error when entering new name that is same as the old name"""
         t_con = default_tartex_obj
         t_con.tar_files()
@@ -144,12 +145,14 @@ class TestTarConflict:
 
         # Monkeypatch responses for choosing file name same as original
         user_inputs = iter(["c", output])
-        monkeypatch.setattr("rich.prompt.Prompt.ask", lambda _: next(user_inputs))
+        monkeypatch.setattr(
+            "rich.prompt.Prompt.ask", lambda _: next(user_inputs)
+        )
         with pytest.raises(SystemExit) as exc:
             t_con.tar_files()
 
         assert "New name entered is also the same" in capsys.readouterr().err
-        assert 1 == exc.value.code
+        assert exc.value.code == 1
 
     def test_sol_newext(self, default_tartex_obj, tmpdir, monkeypatch):
         """Test new name with just the file ext changed"""
@@ -162,7 +165,9 @@ class TestTarConflict:
         output = output.replace(".gz", ".xz")
         # Monkeypatch responses for choosing file name same as original
         user_inputs = iter(["c", output])
-        monkeypatch.setattr("rich.prompt.Prompt.ask", lambda _: next(user_inputs))
+        monkeypatch.setattr(
+            "rich.prompt.Prompt.ask", lambda _: next(user_inputs)
+        )
         t_con.tar_files()
         assert Path(output).exists() is True
         assert t_con.tar_ext == "xz"
