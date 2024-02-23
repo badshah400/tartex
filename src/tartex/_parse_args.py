@@ -82,6 +82,44 @@ class CompletionInstallAction(argparse.Action):
         parser.exit()
 
 
+class GnuStyleHelpFormatter(argparse.HelpFormatter):
+
+    """
+    Format help string in GNU style, i.e.
+
+    * `-s, --long           Help string for long`
+      for an action that takes no argument
+    * `-s, --long=LONG      Help string for long`
+      for an action that requires an argument
+    """
+
+    def _format_action_invocation(self, action):
+        if not action.option_strings:
+            default = self._get_default_metavar_for_positional(action)
+            (metavar,) = self._metavar_formatter(action, default)(1)
+            return metavar
+
+        parts = []
+
+        # if the Optional doesn't take a value, format is:
+        #    -s, --long
+        if action.nargs == 0:
+            parts.extend(action.option_strings)
+
+        # if the Optional takes a value, format is:
+        #    -s, --long=ARGS
+        else:
+            default = self._get_default_metavar_for_optional(action)
+            args_string = self._format_args(action, default)
+            for option_string in action.option_strings:
+                if len(option_string.lstrip("-")) == 1:  # short form
+                    parts.append(f"{option_string}")
+                else:  # long form
+                    parts.append(f"{option_string}={args_string}")
+
+        return ", ".join(parts)
+
+
 def parse_args(args):
     """Set up argparse options and parse input args accordingly"""
     parser = argparse.ArgumentParser(
@@ -89,6 +127,7 @@ def parse_args(args):
             "Build a tarball including all source files needed to compile your"
             f" LaTeX project (version {__version__})."
         ),
+        formatter_class=GnuStyleHelpFormatter,
         usage="%(prog)s [options] filename",
     )
 
