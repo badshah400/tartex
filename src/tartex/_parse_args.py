@@ -102,10 +102,11 @@ def parse_args(args):
     parser.add_argument(
         "-a",
         "--add",
+        metavar="PATTERNS",
         type=str,
         help=(
-            "Comma separated list of additional files (wildcards allowed!) "
-            "to include (loc relative to main TeX file)"
+            "Comma separated list of file name PATTERNS to additionally"
+            " include (relative to main TeX file)"
         ),
     )
 
@@ -126,8 +127,9 @@ def parse_args(args):
     parser.add_argument(
         "-o",
         "--output",
+        metavar="NAME[.SUF]",
         type=str,
-        help="Name of output tar file (suffix can determine tar compression)",
+        help="Name of output tar (.SUF, if any, may set tar compression)",
     )
 
     parser.add_argument(
@@ -148,10 +150,11 @@ def parse_args(args):
     parser.add_argument(
         "-x",
         "--excl",
+        metavar="PATTERNS",
         type=str,
         help=(
-            "Comma separated list of files (wildcards allowed!) to exclude (loc"
-            " relative to main TeX file)"
+            "Comma separated list of file name PATTERNS to exclude"
+            " (relative to main TeX file)"
         ),
     )
 
@@ -159,9 +162,11 @@ def parse_args(args):
     latexmk_opts = parser.add_argument_group("Options for latexmk processing")
     latexmk_opts.add_argument(
         "--latexmk-tex",
+        metavar="TEXMODE",
         choices=LATEXMK_TEX,
         default=None,
-        help="Force TeX processing mode used by latexmk",
+        help="Force TeX processing mode used by latexmk (TEXMODE must be one"
+        f" of: {', '.join(LATEXMK_TEX)})",
     )
 
     latexmk_opts.add_argument(
@@ -177,7 +182,7 @@ def parse_args(args):
     def cmp_str(cmp, ext):
         return (
             f"{cmp} (.tar.{ext}) compression"
-            " (overrides OUTPUT ext if needed)"
+            " (overrides if any set by output NAME[.SUF])"
         )
 
     tar_opts.add_argument(
@@ -218,8 +223,7 @@ def parse_args(args):
 
     misc_opts.add_argument(
         "--install-completion",
-        help="Install bash completion for %(prog)s into user's XDG_DATA_DIR"
-             f" [{BashCompletion().install_dir}]",
+        help="Install bash completion for %(prog)s into user XDG_DATA_DIR",
         action=CompletionInstallAction,
     )
 
