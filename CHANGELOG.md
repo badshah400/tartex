@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- Rich markup when displaying output or prompts.
+- Show spinner when waiting on LaTeX compile.
+
+### Changed
+
+- Use "-" for long form options (e.g. "--latexmk-tex") instead of "_"
+  ("--latexmk_tex").
+
 ## [0.3.0] 2024-02-18
 
 ### Added
