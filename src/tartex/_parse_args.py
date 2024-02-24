@@ -221,7 +221,7 @@ def parse_args(args):
     def cmp_str(cmp, ext):
         return (
             f"{cmp} (.tar.{ext}) compression"
-            " (overrides if any set by output NAME[.SUF])"
+            " (overrides .SUF in output NAME[.SUF])"
         )
 
     tar_opts.add_argument(
