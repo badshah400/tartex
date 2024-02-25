@@ -6,6 +6,7 @@
 
 - Rich markup when displaying output or prompts.
 - Show spinner when waiting on LaTeX compile.
+- New options to install completions for the bash and zsh shells.
 
 ### Changed
 
