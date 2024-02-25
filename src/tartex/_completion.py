@@ -8,7 +8,10 @@ from shutil import copy2
 import os
 
 APPNAME = "tartex"
-COMPDIR = {"bash": "bash-completion/completions"}
+COMPFILE = {
+    "bash": Path(f"bash-completion/completions/{APPNAME}"),
+    "zsh": Path(f"zsh-completions/_{APPNAME}"),
+}
 
 
 class Completion:
@@ -24,7 +27,8 @@ class Completion:
         install_root = Path(
             os.getenv("XDG_DATA_DIR") or Path.home().joinpath(".local", "share")
         )
-        self.install_dir = install_root.joinpath(COMPDIR[self.shell])
+        self.install_dir = install_root.joinpath(COMPFILE[self.shell]).parent
+        self.install_filename = COMPFILE[self.shell].name
 
     def print(self):
         """Print completion to stdout"""
@@ -37,9 +41,12 @@ class Completion:
             os.makedirs(path)
         except FileExistsError:
             pass
-        inst_path = Path(copy2(self.completion_file, path / APPNAME))
+        inst_path = Path(
+            copy2(self.completion_file, path.joinpath(self.install_filename))
+        )
         print(
-            f"Completion file for {self.shell} shell installed to {inst_path.parent}"
+            f"Completion file for {self.shell} shell installed to"
+            f" {inst_path.parent}"
         )
 
 

@@ -6,7 +6,7 @@ Tests for bash completion printing and installing
 from pathlib import Path
 import pytest
 
-from tartex.completion import BashCompletion, APPNAME
+from tartex._completion import BashCompletion, APPNAME
 from tartex.tartex import TarTeX
 
 def test_print(capsys):
@@ -14,14 +14,14 @@ def test_print(capsys):
     with pytest.raises(SystemExit) as exc:
         TarTeX(["--completion"])
 
-    assert "_tartex_completions()" in capsys.readouterr().out
+    assert "bash and zsh" in capsys.readouterr().out
     assert exc.value.code == 0
 
 def test_install(capsys, monkeypatch, tmpdir):
     """Test installed completions file"""
     monkeypatch.setenv("HOME", str(tmpdir))
     with pytest.raises(SystemExit) as exc:
-        TarTeX(["--install-completion"])
+        TarTeX(["--bash-completion"])
 
     assert exc.value.code == 0
     bc = BashCompletion()

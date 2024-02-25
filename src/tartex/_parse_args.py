@@ -9,9 +9,10 @@ Module that sets up argparse and returns parsed arguments from the cmdline
 """
 
 import argparse
+from pathlib import Path
 
 from tartex.__about__ import __version__
-from tartex.completion import BashCompletion
+from tartex._completion import BashCompletion
 
 # Latexmk allowed compilers
 LATEXMK_TEX = [
@@ -50,11 +51,15 @@ class CompletionPrintAction(argparse.Action):
         )
 
     def __call__(self, parser, namespace, values, option_string=None):
-        BashCompletion().print()
+        print("Completion is currently supported for bash and zsh shells.")
+        print(
+            "Please consider contributing if you would like completion for"
+            " any other shell"
+        )
         parser.exit()
 
 
-class CompletionInstallAction(argparse.Action):
+class CompletionInstall(argparse.Action):
 
     """
     Defines CompletionAction for argparse which will print a completion syntax
@@ -78,8 +83,16 @@ class CompletionInstallAction(argparse.Action):
         )
 
     def __call__(self, parser, namespace, values, option_string=None):
-        BashCompletion().install()
         parser.exit()
+
+
+class BashCompletionInstall(CompletionInstall):
+
+    """Completion install action for Bash shell"""
+
+    def __call__(self, parser, namespace, values, option_strings=None):
+        BashCompletion().install()
+        super().__call__(parser, namespace, values, option_strings)
 
 
 class GnuStyleHelpFormatter(argparse.HelpFormatter):
@@ -261,9 +274,10 @@ def parse_args(args):
     )
 
     misc_opts.add_argument(
-        "--install-completion",
-        help="Install bash completion for %(prog)s into user XDG_DATA_DIR",
-        action=CompletionInstallAction,
+        "--bash-completion",
+        help="Install bash completion for %(prog)s into"
+        " ~/$XDG_DATA_DIR/bash-completion/completions/",
+        action=BashCompletionInstall,
     )
 
     return parser.parse_args(args)
