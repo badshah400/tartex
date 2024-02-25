@@ -302,7 +302,7 @@ def parse_args(args):
     misc_opts = parser.add_argument_group("Shell completion options")
     misc_opts.add_argument(
         "--completion",
-        help="Print bash completion for %(prog)s",
+        help="Print shell completion guides for %(prog)s",
         action=CompletionPrintAction,
     )
 
