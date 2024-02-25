@@ -133,6 +133,12 @@ class GnuStyleHelpFormatter(argparse.HelpFormatter):
       for an action that requires an argument
     """
 
+    def __init__(self, prog):
+        """
+        Initialise
+        """
+        argparse.HelpFormatter.__init__(self, prog, max_help_position=30)
+
     def _format_action_invocation(self, action):
         if not action.option_strings:
             default = self._get_default_metavar_for_positional(action)
@@ -159,6 +165,9 @@ class GnuStyleHelpFormatter(argparse.HelpFormatter):
 
         return ", ".join(parts)
 
+    def _split_lines(self, text, width):
+        return text.splitlines()
+
 
 def parse_args(args):
     """Set up argparse options and parse input args accordingly"""
@@ -168,12 +177,12 @@ def parse_args(args):
             f" LaTeX project (version {__version__})."
         ),
         formatter_class=GnuStyleHelpFormatter,
-        usage="%(prog)s [options] filename",
+        usage="%(prog)s [OPTIONS] FILENAME",
     )
 
     parser.add_argument(
         "fname",
-        metavar="filename",
+        metavar="FILENAME",
         type=str,
         help="Input file name (with .tex or .fls suffix)",
     )
@@ -184,8 +193,8 @@ def parse_args(args):
         metavar="PATTERNS",
         type=str,
         help=(
-            "Comma separated list of file name PATTERNS to additionally"
-            " include (relative to main TeX file)"
+            "Include additional file names matching glob-style PATTERNS\n"
+            "Multiple PATTERNS must be separated by commas"
         ),
     )
 
@@ -231,10 +240,7 @@ def parse_args(args):
         "--excl",
         metavar="PATTERNS",
         type=str,
-        help=(
-            "Comma separated list of file name PATTERNS to exclude"
-            " (relative to main TeX file)"
-        ),
+        help=("Exclude file names matching PATTERNS"),
     )
 
     # Latexmk options
@@ -244,8 +250,8 @@ def parse_args(args):
         metavar="TEXMODE",
         choices=LATEXMK_TEX,
         default=None,
-        help="Force TeX processing mode used by latexmk (TEXMODE must be one"
-        f" of: {', '.join(LATEXMK_TEX)})",
+        help="Force TeX processing mode used by latexmk\n"
+        f"TEXMODE must be one of: {', '.join(LATEXMK_TEX)}",
     )
 
     latexmk_opts.add_argument(
