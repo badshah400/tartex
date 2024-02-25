@@ -12,7 +12,7 @@ import argparse
 from pathlib import Path
 
 from tartex.__about__ import __version__
-from tartex._completion import BashCompletion
+from tartex._completion import BashCompletion, ZshCompletion
 
 # Latexmk allowed compilers
 LATEXMK_TEX = [
@@ -92,6 +92,33 @@ class BashCompletionInstall(CompletionInstall):
 
     def __call__(self, parser, namespace, values, option_strings=None):
         BashCompletion().install()
+        super().__call__(parser, namespace, values, option_strings)
+
+
+class ZshCompletionInstall(CompletionInstall):
+
+    """Completion install action for Zsh shell"""
+
+    def __call__(self, parser, namespace, values, option_strings=None):
+        ZshCompletion().install()
+        print(
+            "\nAdd the following to your .zshrc if not already present:"
+            "\n-----------------------------------------------------------"
+        )
+        print(
+            "# Update fpath to include completions dir\n"
+            "# Note: Must be done before initialising compinit\n"
+            "fpath"
+            f"=(~/{ZshCompletion().install_dir.relative_to(Path.home())}"
+            " $fpath)\n"
+            "\n"
+            "# If the following two lines already appear in your .zshrc\n"
+            "# do not add them again, but move the fpath line above the\n"
+            "# 'autoload compinit' line\n"
+            "autoload -U compinit\n"
+            "compinit"
+            "\n-----------------------------------------------------------\n"
+        )
         super().__call__(parser, namespace, values, option_strings)
 
 
@@ -278,6 +305,13 @@ def parse_args(args):
         help="Install bash completion for %(prog)s into"
         " ~/$XDG_DATA_DIR/bash-completion/completions/",
         action=BashCompletionInstall,
+    )
+
+    misc_opts.add_argument(
+        "--zsh-completion",
+        help="Install bash completion for %(prog)s into"
+        " ~/$XDG_DATA_DIR/zsh-completions/",
+        action=ZshCompletionInstall,
     )
 
     return parser.parse_args(args)

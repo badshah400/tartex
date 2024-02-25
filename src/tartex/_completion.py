@@ -59,3 +59,14 @@ class BashCompletion(Completion):
         Completion.__init__(
             self, shell="bash", filename="tartex-completion.bash"
         )
+
+
+class ZshCompletion(Completion):
+
+    """Completion for zsh shell"""
+
+    def __init__(self):
+        """Initialise"""
+        Completion.__init__(
+            self, shell="zsh", filename="tartex-completion.zsh"
+        )
