@@ -6,8 +6,9 @@
 
 -----
 
-TarTeX is a command-line utility to generate a tarball including all
-(non-system) source files needed to compile your LaTeX project.
+TarTeX is a command-line utility to generate a tarball including all required
+— but no more! — (non-system) source files to (re)compile your LaTeX project
+elsewhere.
 
 **Table of Contents**
 
@@ -23,15 +24,18 @@ TarTeX is a command-line utility to generate a tarball including all
 * Creates tarballs compatible with arXiv (and most journal) requirements.
 * Automatically determines pdf or ps processing based on source dir contents.
 * Supports different compression methods for output tarball.
+* Does not modify or create files inside source directory itself.
 * Preserves directory structure in generated tarball, i.e. no flattening.
 * Handy options to allow edge cases.
+* Native TAB-completion for common interactive shells: bash, fish, and zsh (help welcome for others).
 
 ## Installation
 
-__Note__: Unless you provide a prepared ".fls" file as `filename` input, you
+__Note__: Unless you provide a prepared ".fls" file as `FILENAME` input, you
 must have `latexmk` and `pdflatex`, as well as a full LaTeX env installed to
 allow compilation of your LaTeX project. `tartex` does not include any
-system-wide files, such as TeX style files, classes, etc. in the tar file.
+system-wide files, such as standard TeX style files, classes, etc. in the tar
+file.
 
 ### Using pipx
 
@@ -58,41 +62,42 @@ pipx install ./dist/*.whl
 Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 
 ```console
-usage: tartex [options] filename
+usage: tartex [OPTIONS] FILENAME
 
-Build a tarball including all source files needed to compile your LaTeX
-project (version 0.3.0).
+Build a tarball including all source files needed to compile your LaTeX project
+(version 0.4.0~dev).
 
 positional arguments:
-  filename              Input file name (with .tex or .fls suffix)
+  FILENAME                 input file name (with .tex or .fls suffix)
 
 options:
-  -h, --help            show this help message and exit
-  -a ADD, --add ADD     Comma separated list of additional files (wildcards
-                        allowed!) to include (loc relative to main TeX file)
-  -b, --bib             find and add bib file to tarball
-  -l, --list            Print a list of files to include and quit (no tarball
-                        generated)
-  -o OUTPUT, --output OUTPUT
-                        Name of output tar file (suffix can determine tar
-                        compression)
-  -s, --summary         Print a summary at the end
-  -v, --verbose         Print file names added to tarball
-  -x EXCL, --excl EXCL  Comma separated list of files (wildcards allowed!) to
-                        exclude (loc relative to main TeX file)
-  -j, --bzip2           bzip2 (.tar.bz2) compression (overrides OUTPUT ext if
-                        needed)
-  -J, --xz              lzma (.tar.xz) compression (overrides OUTPUT ext if
-                        needed)
-  -z, --gzip            gzip (.tar.gz) compression (overrides OUTPUT ext if
-                        needed)
-  -V, --version         Print tartex version
+  -h, --help               show this help message and exit
+  -V, --version            print tartex version and exit
+  -a, --add=PATTERNS       include additional files matching glob-style
+                           PATTERN; separate multiple PATTERNS using commas
+  -b, --bib                find and add bib file to tarball
+  -l, --list               print list of files to include and quit
+  -o, --output=NAME[.SUF]  output tar file name; tar compression mode will be
+                           inferred from .SUF, if possible (default 'gz')
+  -s, --summary            print a summary at the end
+  -v, --verbose            increase verbosity (-v, -vv, etc.)
+  -x, --excl=PATTERNS      exclude file names matching PATTERNS
+  -j, --bzip2              Recompress with bzip2 (.bz2) (overrides .SUF in
+                           '-o')
+  -J, --xz                 Recompress with lzma (.xz) (overrides .SUF in '-o')
+  -z, --gzip               Recompress with gzip (.gz) (overrides .SUF in '-o')
 
 Options for latexmk processing:
-  --latexmk_tex {dvi,luatex,lualatex,pdf,pdflua,ps,xdv,xelatex}
-                        Force TeX processing mode used by latexmk
-  -F, --force_recompile
-                        Force recompilation even if .fls exists
+  --latexmk-tex=TEXMODE    force TeX processing mode used by latexmk; TEXMODE
+                           must be one of: dvi, luatex, lualatex, pdf, pdflua,
+                           ps, xdv, xelatex
+  -F, --force-recompile    force recompilation even if .fls exists
+
+Shell completion options:
+  --completion             print shell completion guides for tartex
+  --bash-completions       install bash completions for tartex
+  --fish-completions       install fish completions for tartex
+  --zsh-completions        install zsh completions for tartex
 ```
 
 __Note__: If the source dir of your LaTeX project already contains the `.fls`
@@ -107,7 +112,7 @@ latexmk -f -<texmode> -cd -outdir=<tmpdir> -interaction=nonstopmode filename
 ```
 
 `texmode` is one of `pdf` or `ps` by default, as detemined from the contents of
-the source dir. It may be overridden by the `--latexmk_tex` option.
+the source dir. It may be overridden by the `--latexmk-tex` option.
 
 
 ## License
