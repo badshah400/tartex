@@ -10,7 +10,7 @@ Module that sets up argparse and returns parsed arguments from the cmdline
 
 import argparse
 from pathlib import Path
-from textwrap import fill
+from textwrap import fill, wrap
 
 from tartex.__about__ import __appname__ as APPNAME, __version__
 from tartex._completion import (
@@ -58,13 +58,13 @@ class CompletionPrintAction(argparse.Action):
 
     # TODO: This is a mess of print calls; see if it can be simplified
     def __call__(self, parser, namespace, values, option_string=None):
-        fill_width = 79
+        fill_width = 80
         print(
             "Completion is currently supported for bash, fish, and zsh shells."
         )
         print(
             "Please consider contributing if you would like completion for"
-            " any other shell\n"
+            " any other shell.\n"
         )
 
         print(
@@ -250,7 +250,7 @@ class GnuStyleHelpFormatter(argparse.HelpFormatter):
         return ", ".join(parts)
 
     def _split_lines(self, text, width):
-        return text.splitlines()
+        return wrap(text, width=52, break_on_hyphens=False)
 
 
 def parse_args(args):
@@ -268,7 +268,15 @@ def parse_args(args):
         "fname",
         metavar="FILENAME",
         type=Path,
-        help="Input file name (with .tex or .fls suffix)",
+        help="input file name (with .tex or .fls suffix)",
+    )
+
+    parser.add_argument(
+        "-V",
+        "--version",
+        help="print %(prog)s version and exit",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
 
     parser.add_argument(
@@ -277,8 +285,8 @@ def parse_args(args):
         metavar="PATTERNS",
         type=str,
         help=(
-            "Include additional file names matching glob-style PATTERNS\n"
-            "Multiple PATTERNS must be separated by commas"
+            "include additional files matching glob-style PATTERN;"
+            " separate multiple PATTERNS using commas"
         ),
     )
 
@@ -293,7 +301,7 @@ def parse_args(args):
         "-l",
         "--list",
         action="store_true",
-        help="Print a list of files to include and quit (no tarball generated)",
+        help="print list of files to include and quit",
     )
 
     parser.add_argument(
@@ -301,20 +309,21 @@ def parse_args(args):
         "--output",
         metavar="NAME[.SUF]",
         type=Path,
-        help="Name of output tar (.SUF, if any, may set tar compression)",
+        help="output tar file name; tar compression mode will be inferred from"
+             " .SUF, if possible (default 'gz')",
     )
 
     parser.add_argument(
         "-s",
         "--summary",
         action="store_true",
-        help="Print a summary at the end",
+        help="print a summary at the end",
     )
 
     parser.add_argument(
         "-v",
         "--verbose",
-        help="Print file names added to tarball",
+        help="increase verbosity (-v, -vv, etc.)",
         action="count",
         default=0,
     )
@@ -324,7 +333,7 @@ def parse_args(args):
         "--excl",
         metavar="PATTERNS",
         type=str,
-        help=("Exclude file names matching PATTERNS"),
+        help="exclude file names matching PATTERNS",
     )
 
     # Latexmk options
@@ -334,15 +343,17 @@ def parse_args(args):
         metavar="TEXMODE",
         choices=LATEXMK_TEX,
         default=None,
-        help="Force TeX processing mode used by latexmk\n"
-        f"TEXMODE must be one of: {', '.join(LATEXMK_TEX)}",
+        help=(
+            "force TeX processing mode used by latexmk;"
+            f" TEXMODE must be one of: {', '.join(LATEXMK_TEX)}"
+        ),
     )
 
     latexmk_opts.add_argument(
         "-F",
         "--force-recompile",
         action="store_true",
-        help="Force recompilation even if .fls exists",
+        help="force recompilation even if .fls exists",
     )
 
     # Tar recompress options
@@ -350,8 +361,8 @@ def parse_args(args):
 
     def cmp_str(cmp, ext):
         return (
-            f"{cmp} (.tar.{ext}) compression"
-            " (overrides .SUF in output NAME[.SUF])"
+            f"{cmp} (tar.{ext}) mode"
+            " (overrides .SUF in '--output')"
         )
 
     tar_opts.add_argument(
@@ -375,36 +386,28 @@ def parse_args(args):
         help=cmp_str("gzip", "gz"),
     )
 
-    parser.add_argument(
-        "-V",
-        "--version",
-        help="Print %(prog)s version",
-        action="version",
-        version=f"%(prog)s {__version__}",
-    )
-
     misc_opts = parser.add_argument_group("Shell completion options")
     misc_opts.add_argument(
         "--completion",
-        help="Print shell completion guides for %(prog)s",
+        help="print shell completion guides for %(prog)s",
         action=CompletionPrintAction,
     )
 
     misc_opts.add_argument(
         "--bash-completions",
-        help="Install bash completions for %(prog)s",
+        help="install bash completions for %(prog)s",
         action=BashCompletionInstall,
     )
 
     misc_opts.add_argument(
         "--fish-completions",
-        help="Install fish completions for %(prog)s",
+        help="install fish completions for %(prog)s",
         action=FishCompletionInstall,
     )
 
     misc_opts.add_argument(
         "--zsh-completions",
-        help="Install zsh completions for %(prog)s",
+        help="install zsh completions for %(prog)s",
         action=ZshCompletionInstall,
     )
 
