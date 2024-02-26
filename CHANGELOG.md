@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.4.0] 2024-02-27
 
 ### Added
 
@@ -13,8 +13,12 @@
 
 ### Changed
 
-- Use "-" for long form options (e.g. "--latexmk-tex") instead of "_"
-  ("--latexmk_tex").
+- Use "-" for long form options (e.g. "--latexmk-tex") instead of "_" ("--latexmk_tex")
+
+### Fixed
+
+- Catch exception when latexmk is missing from system or not in `PATH`.
+
 
 ## [0.3.0] 2024-02-18
 
