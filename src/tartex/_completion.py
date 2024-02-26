@@ -25,7 +25,7 @@ class Completion:
         self.data = self.completion_file.read_text(encoding="utf-8")
 
         install_root = Path(
-            os.getenv("XDG_DATA_DIR") or Path.home().joinpath(".local", "share")
+            os.getenv("XDG_DATA_HOME") or Path.home().joinpath(".local", "share")
         )
         self.install_dir = install_root.joinpath(COMPFILE[self.shell]).parent
         self.install_filename = COMPFILE[self.shell].name
