@@ -105,7 +105,7 @@ class TarTeX:
             ),
         )
         self.cwd = Path.cwd()
-        self.main_file = Path(self.args.fname).resolve()
+        self.main_file = self.args.fname.resolve()
         if self.main_file.suffix not in [".fls", ".tex"]:
             sys.exit("Error: Source filename must be .tex or .fls\nQuitting")
 
@@ -422,7 +422,7 @@ class TarTeX:
         """
 
         # If self.args.output is absolute, '/' simply returns it as a PosixPath
-        out = self.cwd / Path(self.args.output).expanduser()
+        out = self.cwd / self.args.output.expanduser()
 
         if out.is_dir():  # If dir, set to DIR/main.tar.gz
             log.debug("%s is an existing dir", out)

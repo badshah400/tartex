@@ -183,7 +183,7 @@ def parse_args(args):
     parser.add_argument(
         "fname",
         metavar="FILENAME",
-        type=str,
+        type=Path,
         help="Input file name (with .tex or .fls suffix)",
     )
 
@@ -216,7 +216,7 @@ def parse_args(args):
         "-o",
         "--output",
         metavar="NAME[.SUF]",
-        type=str,
+        type=Path,
         help="Name of output tar (.SUF, if any, may set tar compression)",
     )
 
