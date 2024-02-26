@@ -6,10 +6,11 @@ Module to help users with completion syntax for tartex
 from pathlib import Path
 from shutil import copy2
 import os
+from tartex.__about__ import __appname__ as APPNAME
 
-APPNAME = "tartex"
 COMPFILE = {
     "bash": Path(f"bash-completion/completions/{APPNAME}"),
+    "fish": Path(f"fish/vendor_completions.d/{APPNAME}.fish"),
     "zsh": Path(f"zsh-completions/_{APPNAME}"),
 }
 
@@ -67,6 +68,15 @@ class ZshCompletion(Completion):
 
     def __init__(self):
         """Initialise"""
+        Completion.__init__(self, shell="zsh", filename="tartex-completion.zsh")
+
+
+class FishCompletion(Completion):
+
+    """Completion for fish shell"""
+
+    def __init__(self):
+        """Initialise"""
         Completion.__init__(
-            self, shell="zsh", filename="tartex-completion.zsh"
+            self, shell="fish", filename="tartex-completion.fish"
         )

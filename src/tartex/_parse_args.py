@@ -10,9 +10,15 @@ Module that sets up argparse and returns parsed arguments from the cmdline
 
 import argparse
 from pathlib import Path
+from textwrap import fill
 
-from tartex.__about__ import __version__
-from tartex._completion import BashCompletion, ZshCompletion
+from tartex.__about__ import __appname__ as APPNAME, __version__
+from tartex._completion import (
+    COMPFILE,
+    BashCompletion,
+    FishCompletion,
+    ZshCompletion,
+)
 
 # Latexmk allowed compilers
 LATEXMK_TEX = [
@@ -50,11 +56,80 @@ class CompletionPrintAction(argparse.Action):
             help=help,
         )
 
+    # TODO: This is a mess of print calls; see if it can be simplified
     def __call__(self, parser, namespace, values, option_string=None):
-        print("Completion is currently supported for bash and zsh shells.")
+        fill_width = 79
+        print(
+            "Completion is currently supported for bash, fish, and zsh shells."
+        )
         print(
             "Please consider contributing if you would like completion for"
-            " any other shell"
+            " any other shell\n"
+        )
+
+        print(
+            "----\n"  # do not join
+            "Bash\n"  # do not join
+            "----\n"  # do not join
+            + fill(
+                "The option `--bash-completion` will install bash completions"
+                " for tartex to the directory:",
+                width=fill_width,
+            )
+            + f"\n${{XDG_DATA_HOME}}/{COMPFILE['bash'].parent!s}\n"
+        )
+        print(
+            fill(
+                "Bash automatically searches this dir for completions, so"
+                f" completion for {APPNAME} should work immediately after"
+                " starting a new terminal session."
+                " If it does not, you may have to add the following lines"
+                " to your .bashrc:",
+                replace_whitespace=False,
+                width=fill_width,
+            )
+        )
+        bash_comp_path = BashCompletion().install_dir.joinpath("tartex")
+        print(
+            "\n# Source tartex completion\n"
+            f"source ~/{bash_comp_path.relative_to(Path.home())}",
+        )
+        print(
+            "\n"  # do not join
+            "---\n"  # do not join
+            "Zsh\n"  # do not join
+            "---\n"  # do not join
+            + fill(
+                "The option `--zsh-completion` will install a zsh completion"
+                " file for tartex to the directory:",
+                width=fill_width,
+            )
+            + "\n"
+            f"${{XDG_DATA_HOME}}/{COMPFILE['zsh'].parent!s}/\n"
+            "\n"
+            + fill(
+                "It will also print what to add to your .zshrc file to enable"
+                " these completions",
+                width=fill_width,
+            )
+        )
+        print(
+            "\n"  # do not join
+            "----\n"  # do not join
+            "Fish\n"  # do not join
+            "----\n"  # do not join
+            + fill(
+                "The option `--fish-completion` will install a fish completion"
+                " file for tartex to the directory:",
+                width=fill_width,
+            )
+            + f"\n${{XDG_DATA_HOME}}/{COMPFILE['fish'].parent!s}/\n"
+        )
+        print(
+            fill(
+                "No further configuration should be needed. Simply start a"
+                " new fish terminal et voila!"
+            )
         )
         parser.exit()
 
@@ -92,6 +167,15 @@ class BashCompletionInstall(CompletionInstall):
 
     def __call__(self, parser, namespace, values, option_strings=None):
         BashCompletion().install()
+        super().__call__(parser, namespace, values, option_strings)
+
+
+class FishCompletionInstall(CompletionInstall):
+
+    """Completion install action for Fish shell"""
+
+    def __call__(self, parser, namespace, values, option_strings=None):
+        FishCompletion().install()
         super().__call__(parser, namespace, values, option_strings)
 
 
@@ -307,16 +391,20 @@ def parse_args(args):
     )
 
     misc_opts.add_argument(
-        "--bash-completion",
-        help="Install bash completion for %(prog)s into"
-        " ~/$XDG_DATA_DIR/bash-completion/completions/",
+        "--bash-completions",
+        help="Install bash completions for %(prog)s",
         action=BashCompletionInstall,
     )
 
     misc_opts.add_argument(
-        "--zsh-completion",
-        help="Install bash completion for %(prog)s into"
-        " ~/$XDG_DATA_DIR/zsh-completions/",
+        "--fish-completions",
+        help="Install fish completions for %(prog)s",
+        action=FishCompletionInstall,
+    )
+
+    misc_opts.add_argument(
+        "--zsh-completions",
+        help="Install zsh completions for %(prog)s",
         action=ZshCompletionInstall,
     )
 

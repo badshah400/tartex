@@ -53,7 +53,8 @@ _arguments -s -S \
   '--latexmk-tex=[Force TeX processing mode used by latexmk]:TEXMODE:(dvi luatex lualatex pdf pdflua ps xdv xelatex)' \
   '(-F --force-recompile)'{-F,--force-recompile}'[Force recompilation even if .fls exists]' \
   '--completion[Print bash completion for tartex]' \
-  '--bash-completion[Install bash completion for tartex (~/${XDG_DATA_DIR}/bash-completion/completions/)]' \
-  '--zsh-completion[Install zsh completion for tartex (~/${XDG_DATA_DIR}/zsh-completions/)]' \
+  '--bash-completion[Install bash completions for tartex]' \
+  '--fish-completion[Install fish completions for tartex]' \
+  '--zsh-completion[Install zsh completions for tartex]' \
   '*:INPUT_FILE:_files -g "*.(fls|tex)"' && ret=0
 return ret

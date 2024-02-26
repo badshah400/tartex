@@ -14,7 +14,7 @@ def test_print(capsys):
     with pytest.raises(SystemExit) as exc:
         TarTeX(["--completion"])
 
-    assert "bash and zsh" in capsys.readouterr().out
+    assert "bash" in capsys.readouterr().out
     assert exc.value.code == 0
 
 def test_install(capsys, monkeypatch, tmpdir):
