@@ -55,6 +55,11 @@ def run_latexmk(filename, mode, compdir):
             err.stdout,
         )
         sys.exit(1)
+    except TypeError as err:  # Typically when latexmk is missing and shutil
+                              # gets a None as the first elem of cmdline list
+        log.critical("%s", err)
+        log.critical("Is latexmk installed and in PATH?")
+        sys.exit(1)
 
     log.info(
         "LaTeX project successfully compiled with: %s", " ".join(latexmk_cmd)
