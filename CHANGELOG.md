@@ -6,7 +6,10 @@
 
 - Rich markup when displaying output or prompts.
 - Show spinner when waiting on LaTeX compile.
-- New options to install completions for the bash, fish, and zsh shells.
+- New options to install completions for bash, fish¹, and zsh¹ shells.
+- [docs] Clearer help strings for options and more consistent formatting.
+
+¹ Experimental support, needs more testing.
 
 ### Changed
 
