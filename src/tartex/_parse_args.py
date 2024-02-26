@@ -221,7 +221,9 @@ class GnuStyleHelpFormatter(argparse.HelpFormatter):
         """
         Initialise
         """
-        argparse.HelpFormatter.__init__(self, prog, max_help_position=30)
+        argparse.HelpFormatter.__init__(
+            self, prog, max_help_position=30, width=80
+        )
 
     def _format_action_invocation(self, action):
         if not action.option_strings:
@@ -310,7 +312,7 @@ def parse_args(args):
         metavar="NAME[.SUF]",
         type=Path,
         help="output tar file name; tar compression mode will be inferred from"
-             " .SUF, if possible (default 'gz')",
+        " .SUF, if possible (default 'gz')",
     )
 
     parser.add_argument(
@@ -360,10 +362,7 @@ def parse_args(args):
     tar_opts = parser.add_mutually_exclusive_group()
 
     def cmp_str(cmp, ext):
-        return (
-            f"{cmp} (tar.{ext}) mode"
-            " (overrides .SUF in '--output')"
-        )
+        return f"Recompress with {cmp} (.{ext})" " (overrides .SUF in '-o')"
 
     tar_opts.add_argument(
         "-j",
