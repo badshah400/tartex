@@ -66,6 +66,12 @@ dependencies = [
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/tartex tests}"
 
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.github",
+  "/ruff.toml"
+]
+
 [tool.coverage.run]
 source_pkgs = ["tartex", "tests"]
 branch = true
