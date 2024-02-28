@@ -29,7 +29,7 @@ _tartex_completions()
       ;;
 
     --latexmk-tex)
-      COMPREPLY=($(compgen -W "dvi luatex lualatex pdf pdflua ps xdv xelatex" -- "$cur"))
+      COMPREPLY=($(compgen -W "dvi lualatex luatex pdf pdflua ps xdv xelatex" -- "$cur"))
       return
       ;;
 

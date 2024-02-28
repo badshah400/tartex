@@ -365,7 +365,7 @@ def parse_args(args):
     tar_opts = parser.add_mutually_exclusive_group()
 
     def cmp_str(cmp, ext):
-        return f"Recompress with {cmp} (.{ext})" " (overrides .SUF in '-o')"
+        return f"recompress with {cmp} (.{ext})" " (overrides .SUF in '-o')"
 
     tar_opts.add_argument(
         "-j",
