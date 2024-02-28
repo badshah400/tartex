@@ -19,7 +19,7 @@ _tartex_completions()
       return
       ;;
 
-    --completion | --install-completion)
+    --completion | --@(bash|fish|zsh)-completions)
       return
       ;;
 

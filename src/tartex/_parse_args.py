@@ -168,6 +168,7 @@ class BashCompletionInstall(CompletionInstall):
     def __call__(self, parser, namespace, values, option_strings=None):
         BashCompletion().install()
         super().__call__(parser, namespace, values, option_strings)
+        parser.exit()
 
 
 class FishCompletionInstall(CompletionInstall):
@@ -177,6 +178,7 @@ class FishCompletionInstall(CompletionInstall):
     def __call__(self, parser, namespace, values, option_strings=None):
         FishCompletion().install()
         super().__call__(parser, namespace, values, option_strings)
+        parser.exit()
 
 
 class ZshCompletionInstall(CompletionInstall):
@@ -204,6 +206,7 @@ class ZshCompletionInstall(CompletionInstall):
             "\n-----------------------------------------------------------\n"
         )
         super().__call__(parser, namespace, values, option_strings)
+        parser.exit()
 
 
 class GnuStyleHelpFormatter(argparse.HelpFormatter):
