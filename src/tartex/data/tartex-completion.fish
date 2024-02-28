@@ -7,8 +7,8 @@ complete -c tartex -s o -l output -f -r \
 	-k -a "(__fish_complete_suffix .tar.gz .tar.bz2 .tar.xz)"
 complete -c tartex -f -l latexmk-tex -ra "dvi lualatex luatex pdf pdflua ps xdv xelatex" \
 	-d "force TeX processing mode used by latexmk"
-complete -c tartex -s a -l add -F -r
-complete -c tartex -s x -l excl -F -r
+complete -c tartex -s a -l add -F -r -d "file names or patterns (comma separated) to include additionally"
+complete -c tartex -s x -l excl -F -r -d "file names or patterns to exclude"
 
 # Help/Version options
 complete -c tartex -s h -l help -d "display help for tartex and exit"
