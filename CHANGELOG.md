@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1] 2024-02-29
+
+### Fixed
+
+- Improve consistency of option descriptions for completions across different shells.
+- Add option grouping for zsh completions to only suggest non-conflicting options.
+- Add missing option (`--completion`) for fish.
+
 ## [0.4.0] 2024-02-27
 
 ### Added
