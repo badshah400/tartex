@@ -73,7 +73,7 @@ class CompletionPrintAction(argparse.Action):
             "----\n"  # do not join
             + fill(
                 "The option `--bash-completion` will install bash completions"
-                " for tartex to the directory:",
+                f" for {APPNAME} to the directory:",
                 width=fill_width,
             )
             + f"\n${{XDG_DATA_HOME}}/{COMPFILE['bash'].parent!s}\n"
@@ -89,9 +89,9 @@ class CompletionPrintAction(argparse.Action):
                 width=fill_width,
             )
         )
-        bash_comp_path = BashCompletion().install_dir.joinpath("tartex")
+        bash_comp_path = BashCompletion().install_dir.joinpath(f"{APPNAME}")
         print(
-            "\n# Source tartex completion\n"
+            f"\n# Source {APPNAME} completion\n"
             f"source ~/{bash_comp_path.relative_to(Path.home())}",
         )
         print(
@@ -101,7 +101,7 @@ class CompletionPrintAction(argparse.Action):
             "---\n"  # do not join
             + fill(
                 "The option `--zsh-completion` will install a zsh completion"
-                " file for tartex to the directory:",
+                f" file for {APPNAME} to the directory:",
                 width=fill_width,
             )
             + "\n"
@@ -120,7 +120,7 @@ class CompletionPrintAction(argparse.Action):
             "----\n"  # do not join
             + fill(
                 "The option `--fish-completion` will install a fish completion"
-                " file for tartex to the directory:",
+                f" file for {APPNAME} to the directory:",
                 width=fill_width,
             )
             + f"\n${{XDG_DATA_HOME}}/{COMPFILE['fish'].parent!s}/\n"
