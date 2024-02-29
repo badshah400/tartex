@@ -314,8 +314,17 @@ def parse_args(args):
         "--output",
         metavar="NAME[.SUF]",
         type=Path,
-        help="output tar file name; tar compression mode will be inferred from"
-        " .SUF, if possible (default 'gz')",
+        help=(
+            "output tar file name; tar compression mode will be inferred from"
+            " .SUF, if possible (default 'gz')",
+        )
+    )
+
+    parser.add_argument(
+        "-p",
+        "--packages",
+        action="store_true",
+        help="List of TeX/LaTeX packages used and locations"
     )
 
     parser.add_argument(

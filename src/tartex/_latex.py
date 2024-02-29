@@ -20,6 +20,7 @@ from rich.spinner import Spinner
 
 # Match only lines beginning with INPUT
 INPUT_RE = re.compile(r"^INPUT")
+INPUT_STY = re.compile(r"^INPUT.*.(sty|cls)")
 
 
 def run_latexmk(filename, mode, compdir):
@@ -69,10 +70,11 @@ def run_latexmk(filename, mode, compdir):
     return fls_path
 
 
-def fls_input_files(f, lof_excl, skip_files):
+def fls_input_files(fls_fileobj, lof_excl, skip_files, sty_files=False):
     """Helper function to return list on files marked as 'INPUT' in fls file"""
     deps = []
-    for line in f:
+    pkgs = {"System": set(), "Local": set()}
+    for line in fls_fileobj:
         if INPUT_RE.match(line):
             p = Path(line.split()[-1])
             if (
@@ -84,4 +86,16 @@ def fls_input_files(f, lof_excl, skip_files):
                 deps.append(p.as_posix())
                 log.info("Add file: %s", p.as_posix())
 
-    return deps
+        if sty_files:
+            if INPUT_STY.match(line):
+                print(line)
+                p = Path(line.split()[-1])
+                if p.is_absolute():
+                    # Base is not a (La)TeX package; it is installed with even the
+                    # most basic TeXlive/MikTeX installation
+                    if (pdir := p.parent.name) != "base":
+                        pkgs["System"].add(pdir)
+                else:
+                    pkgs["Local"].add(p.stem)
+
+    return deps, pkgs

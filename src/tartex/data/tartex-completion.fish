@@ -18,6 +18,7 @@ complete -c tartex -s V -l Version -d "display tartex version and exit"
 complete -c tartex -f -s b -l bib -d "include bibliography (.bib) file in tar"
 complete -c tartex -f -s F -l force-recompile -d "force recompilation even if .fls exists"
 complete -c tartex -f -s l -l list -d "print a list of files to include and quit"
+complete -c tartex -f -s p -l packages -d "print used (La)TeX packages as json"
 complete -c tartex -f -s s -l summary -d "print a summary at the end"
 complete -c tartex -f -s v -l verbose -d "increase verbosity (-v, -vv, etc.)"
 

@@ -6,6 +6,7 @@
 """tartex module"""
 
 import fnmatch
+import json
 import logging as log
 import math
 import os
@@ -251,7 +252,10 @@ class TarTeX:
                 )
 
                 with open(fls_path, encoding="utf-8") as f:
-                    deps = _latex.fls_input_files(f, self.excl_files, AUXFILES)
+                    deps, pkgs = _latex.fls_input_files(
+                        f, self.excl_files, AUXFILES, self.args.packages
+                    )
+                    print(json.dumps(pkgs, cls=SetEncoder))
 
                 for ext in SUPP_REQ:
                     if app := self._missing_supp(
@@ -266,7 +270,10 @@ class TarTeX:
             with open(
                 self.main_file.with_suffix(".fls"), encoding="utf-8"
             ) as f:
-                deps = _latex.fls_input_files(f, self.excl_files, AUXFILES)
+                deps, pkgs = _latex.fls_input_files(
+                    f, self.excl_files, AUXFILES, self.args.packages
+                )
+                print(json.dumps(pkgs, cls=SetEncoder))
 
         if self.args.bib and (bib := self.bib_file()):
             deps.append(bib.as_posix())
@@ -492,6 +499,14 @@ def make_tar():
     t = TarTeX(sys.argv[1:])
     t.tar_files()
 
+
+class SetEncoder(json.JSONEncoder):
+
+    """Docstring for SetEncoder. """
+
+    def default(self, obj):
+        """TODO: to be defined."""
+        return sorted(list(obj))
 
 if __name__ == "__main__":
     make_tar()
