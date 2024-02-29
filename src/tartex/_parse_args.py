@@ -23,8 +23,8 @@ from tartex._completion import (
 # Latexmk allowed compilers
 LATEXMK_TEX = [
     "dvi",
-    "luatex",
     "lualatex",
+    "luatex",
     "pdf",
     "pdflua",
     "ps",
@@ -316,8 +316,8 @@ def parse_args(args):
         type=Path,
         help=(
             "output tar file name; tar compression mode will be inferred from"
-            " .SUF, if possible (default 'gz')",
-        )
+            " .SUF, if possible (default 'gz')"
+        ),
     )
 
     parser.add_argument(
