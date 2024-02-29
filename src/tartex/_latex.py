@@ -72,7 +72,7 @@ def run_latexmk(filename, mode, compdir):
 
 def fls_input_files(fls_fileobj, lof_excl, skip_files, sty_files=False):
     """Helper function to return list on files marked as 'INPUT' in fls file"""
-    deps = []
+    deps = set()
     pkgs = {"System": set(), "Local": set()}
     for line in fls_fileobj:
         if INPUT_RE.match(line):
@@ -83,12 +83,11 @@ def fls_input_files(fls_fileobj, lof_excl, skip_files, sty_files=False):
                 and (p.as_posix() not in lof_excl)
                 and (p.suffix not in skip_files)
             ):
-                deps.append(p.as_posix())
+                deps.add(p.as_posix())
                 log.info("Add file: %s", p.as_posix())
 
         if sty_files:
             if INPUT_STY.match(line):
-                print(line)
                 p = Path(line.split()[-1])
                 if p.is_absolute():
                     # Base is not a (La)TeX package; it is installed with even the
@@ -98,4 +97,4 @@ def fls_input_files(fls_fileobj, lof_excl, skip_files, sty_files=False):
                 else:
                     pkgs["Local"].add(p.stem)
 
-    return deps, pkgs
+    return list(deps), pkgs
