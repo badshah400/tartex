@@ -20,7 +20,9 @@ from rich.spinner import Spinner
 
 # Match only lines beginning with INPUT
 INPUT_RE = re.compile(r"^INPUT")
-INPUT_STY = re.compile(r"^INPUT.*.(sty|cls)")
+INPUT_STY = re.compile(r"^INPUT\s.*.(cls|def|sty)")
+INPUT_FONTS = re.compile(r"^INPUT\s.*.(pfb|tfm)")
+FONT_PUBLIC = re.compile(r"\/public\/.*\/")
 
 
 def run_latexmk(filename, mode, compdir):
@@ -96,5 +98,13 @@ def fls_input_files(fls_fileobj, lof_excl, skip_files, sty_files=False):
                         pkgs["System"].add(pdir)
                 else:
                     pkgs["Local"].add(p.stem)
+            elif INPUT_FONTS.match(line):
+                p = Path(line.split()[-1])
+                if p.is_absolute():
+                    try:
+                        fontdir = FONT_PUBLIC.match(str(p)).split('/')[2]
+                    except AttributeError:
+                        fontdir = p.parent.name
+                    pkgs["System"].add(fontdir)
 
     return list(deps), pkgs
