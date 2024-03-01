@@ -5,7 +5,8 @@ Tests for package list inclusion
 
 import json
 import tarfile as tar
-from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
+
+from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
 
 
 def test_float_pkg(datadir, tmpdir, capsys):

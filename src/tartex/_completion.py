@@ -3,9 +3,10 @@
 Module to help users with completion syntax for tartex
 """
 
+import os
 from pathlib import Path
 from shutil import copy2
-import os
+
 from tartex.__about__ import __appname__ as APPNAME
 
 COMPFILE = {
@@ -26,7 +27,8 @@ class Completion:
         self.data = self.completion_file.read_text(encoding="utf-8")
 
         install_root = Path(
-            os.getenv("XDG_DATA_HOME") or Path.home().joinpath(".local", "share")
+            os.getenv("XDG_DATA_HOME")
+            or Path.home().joinpath(".local", "share")
         )
         self.install_dir = install_root.joinpath(COMPFILE[self.shell]).parent
         self.install_filename = COMPFILE[self.shell].name

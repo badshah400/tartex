@@ -102,7 +102,7 @@ def fls_input_files(fls_fileobj, lof_excl, skip_files, sty_files=False):
                 p = Path(line.split()[-1])
                 if p.is_absolute():
                     try:
-                        fontdir = FONT_PUBLIC.match(str(p)).split('/')[2]
+                        fontdir = FONT_PUBLIC.match(str(p)).split("/")[2]
                     except AttributeError:
                         fontdir = p.parent.name
                     pkgs["System"].add(fontdir)

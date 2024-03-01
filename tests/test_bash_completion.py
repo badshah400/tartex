@@ -4,10 +4,12 @@ Tests for bash completion printing and installing
 """
 
 from pathlib import Path
+
 import pytest
 
-from tartex._completion import BashCompletion, APPNAME
+from tartex._completion import APPNAME, BashCompletion
 from tartex.tartex import TarTeX
+
 
 def test_print(capsys):
     """Test output of print is not empty"""
@@ -16,6 +18,7 @@ def test_print(capsys):
 
     assert "bash" in capsys.readouterr().out
     assert exc.value.code == 0
+
 
 def test_install(capsys, monkeypatch, tmpdir):
     """Test installed completions file"""

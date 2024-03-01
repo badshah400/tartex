@@ -12,7 +12,8 @@ import argparse
 from pathlib import Path
 from textwrap import fill, wrap
 
-from tartex.__about__ import __appname__ as APPNAME, __version__
+from tartex.__about__ import __appname__ as APPNAME
+from tartex.__about__ import __version__
 from tartex._completion import (
     COMPFILE,
     BashCompletion,

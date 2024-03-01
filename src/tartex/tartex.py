@@ -500,7 +500,7 @@ class TarTeX:
             )
 
     def _missing_supp(self, fpath, tmpdir, deps):
-        """Handle missing supplemetary file from orig dir, if req"""
+        """Handle missing supplementary file from orig dir, if req"""
         if (
             fpath not in deps  # bbl file not in source dir
             and (Path(tmpdir) / fpath.name).exists()  # Implies it's req
