@@ -3,11 +3,12 @@
 Module to help users with completion syntax for tartex
 """
 
+import contextlib
 import os
 from pathlib import Path
 from shutil import copy2
 
-from tartex.__about__ import __appname__ as APPNAME
+from tartex.__about__ import __appname__ as APPNAME  # noqa
 
 COMPFILE = {
     "bash": Path(f"bash-completion/completions/{APPNAME}"),
@@ -40,10 +41,8 @@ class Completion:
     def install(self, install_dir=None):
         """Install completion to path"""
         path = Path(install_dir or self.install_dir)
-        try:
+        with contextlib.suppress(FileExistsError):
             os.makedirs(path)
-        except FileExistsError:
-            pass
         inst_path = Path(
             copy2(self.completion_file, path.joinpath(self.install_filename))
         )
