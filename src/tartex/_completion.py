@@ -34,10 +34,6 @@ class Completion:
         self.install_dir = install_root.joinpath(COMPFILE[self.shell]).parent
         self.install_filename = COMPFILE[self.shell].name
 
-    def print(self):
-        """Print completion to stdout"""
-        print(self.data, end="")
-
     def install(self, install_dir=None):
         """Install completion to path"""
         path = Path(install_dir or self.install_dir)
