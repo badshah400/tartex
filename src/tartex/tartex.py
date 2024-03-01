@@ -492,10 +492,11 @@ class TarTeX:
             richprint(f"{i+1:{idx_width}}. {f}")
         for r in self.req_supfiles:
             richprint(f"{'*':>{idx_width + 1}} {r.name}")
-        richprint(f"{'*':>{idx_width + 1}} {self.pkglist_name}")
+        if self.args.packages:
+            richprint(f"{'*':>{idx_width + 1}} {self.pkglist_name}")
         if self.args.summary:
             _summary_msg(
-                len(ls) + len(self.req_supfiles) + 1 if self.pkglist else 0
+                len(ls) + len(self.req_supfiles) + (1 if self.pkglist else 0)
             )
 
     def _missing_supp(self, fpath, tmpdir, deps):
