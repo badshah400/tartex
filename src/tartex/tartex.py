@@ -533,7 +533,7 @@ class SetEncoder(json.JSONEncoder):
         :o: set
         :return: list
         """
-        return sorted(list(o))
+        return sorted(o)
 
 
 if __name__ == "__main__":
