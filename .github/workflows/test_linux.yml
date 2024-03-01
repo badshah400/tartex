@@ -41,7 +41,7 @@ jobs:
         uses: zauguin/install-texlive@v3
         with:
           packages: >
-            latex-bin latexmk scheme-basic makeindex imakeidx xkeyval
+            latex-bin latexmk scheme-basic makeindex imakeidx xkeyval float
           cache_version: 1
       - name: Lint with flake8
         run: |
