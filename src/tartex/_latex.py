@@ -72,7 +72,7 @@ def run_latexmk(filename, mode, compdir):
     return fls_path
 
 
-def fls_input_files(fls_fileobj, lof_excl, skip_files, sty_files=False):
+def fls_input_files(fls_fileobj, lof_excl, skip_files, *, sty_files=False):
     """Helper function to return list on files marked as 'INPUT' in fls file"""
     deps = set()
     pkgs = {"System": set(), "Local": set()}

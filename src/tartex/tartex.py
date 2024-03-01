@@ -257,7 +257,10 @@ class TarTeX:
 
                 with open(fls_path, encoding="utf-8") as f:
                     deps, pkgs = _latex.fls_input_files(
-                        f, self.excl_files, AUXFILES, self.args.packages
+                        f,
+                        self.excl_files,
+                        AUXFILES,
+                        sty_files=self.args.packages,
                     )
                     if self.args.packages:
                         self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
@@ -276,7 +279,7 @@ class TarTeX:
             # are also included in source dir
             with open(self.main_file.with_suffix(".fls"), encoding="utf8") as f:
                 deps, pkgs = _latex.fls_input_files(
-                    f, self.excl_files, AUXFILES, self.args.packages
+                    f, self.excl_files, AUXFILES, sty_files=self.args.packages
                 )
                 if self.args.packages:
                     self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
