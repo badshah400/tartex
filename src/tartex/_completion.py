@@ -20,9 +20,9 @@ class Completion:
 
     """Methods for helping users print or install shell completion"""
 
-    def __init__(self, shell, filename):
+    def __init__(self, shell_name, filename):
         """Initialise"""
-        self.shell = shell
+        self.shell = shell_name
         self.completion_file = Path(__file__).parent.joinpath("data", filename)
         self.data = self.completion_file.read_text(encoding="utf-8")
 
@@ -60,7 +60,7 @@ class BashCompletion(Completion):
     def __init__(self):
         """Initialise"""
         Completion.__init__(
-            self, shell="bash", filename="tartex-completion.bash"
+            self, shell_name="bash", filename="tartex-completion.bash"
         )
 
 
@@ -70,7 +70,7 @@ class ZshCompletion(Completion):
 
     def __init__(self):
         """Initialise"""
-        Completion.__init__(self, shell="zsh", filename="tartex-completion.zsh")
+        Completion.__init__(self, shell_name="zsh", filename="tartex-completion.zsh")
 
 
 class FishCompletion(Completion):
@@ -80,5 +80,5 @@ class FishCompletion(Completion):
     def __init__(self):
         """Initialise"""
         Completion.__init__(
-            self, shell="fish", filename="tartex-completion.fish"
+            self, shell_name="fish", filename="tartex-completion.fish"
         )
