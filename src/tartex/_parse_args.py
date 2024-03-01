@@ -12,7 +12,7 @@ import argparse
 from pathlib import Path
 from textwrap import fill, wrap
 
-from tartex.__about__ import __appname__ as APPNAME
+from tartex.__about__ import __appname__ as APPNAME  # noqa
 from tartex.__about__ import __version__
 from tartex._completion import (
     COMPFILE,
@@ -58,7 +58,9 @@ class CompletionPrintAction(argparse.Action):
         )
 
     # TODO: This is a mess of print calls; see if it can be simplified
-    def __call__(self, parser, namespace, values, option_string=None):
+    # Note that correct __call__ signature requires all positional args even if
+    # they are not used in this method itself
+    def __call__(self, parser, namespace, values, option_string=None):  #noqa
         fill_width = 80
         print(
             "Completion is currently supported for bash, fish, and zsh shells."
@@ -158,7 +160,9 @@ class CompletionInstall(argparse.Action):
             help=help,
         )
 
-    def __call__(self, parser, namespace, values, option_string=None):
+    # Note that correct __call__ signature requires all positional args even if
+    # they are not used in this method itself
+    def __call__(self, parser, namespace, values, option_string=None):  #noqa
         parser.exit()
 
 

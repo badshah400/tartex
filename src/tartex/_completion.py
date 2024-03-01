@@ -65,7 +65,9 @@ class ZshCompletion(Completion):
 
     def __init__(self):
         """Initialise"""
-        Completion.__init__(self, shell_name="zsh", filename="tartex-completion.zsh")
+        Completion.__init__(
+            self, shell_name="zsh", filename="tartex-completion.zsh"
+        )
 
 
 class FishCompletion(Completion):

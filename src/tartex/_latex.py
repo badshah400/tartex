@@ -92,8 +92,8 @@ def fls_input_files(fls_fileobj, lof_excl, skip_files, *, sty_files=False):
             if INPUT_STY.match(line):
                 p = Path(line.split()[-1])
                 if p.is_absolute():
-                    # Base is not a (La)TeX package; it is installed with even the
-                    # most basic TeXlive/MikTeX installation
+                    # Base is not a (La)TeX package; it is installed with even
+                    # the most basic TeXlive/MikTeX installation
                     if (pdir := p.parent.name) != "base":
                         pkgs["System"].add(pdir)
                 else:
