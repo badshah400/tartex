@@ -28,7 +28,7 @@ def test_install(capsys, monkeypatch, tmpdir):
 
     assert exc.value.code == 0
     bc = BashCompletion()
-    print(bc.data, end="")
+    print(bc.data, end="")  # noqa: T201
     compl_file = Path.home() / bc.install_dir / APPNAME
     assert str(compl_file.parent) in capsys.readouterr().out
     assert compl_file.exists()

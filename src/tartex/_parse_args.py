@@ -16,7 +16,7 @@ from rich import print as richprint
 from rich.markdown import Markdown
 from rich.syntax import Syntax
 
-from tartex.__about__ import __appname__ as APPNAME  # noqa
+from tartex.__about__ import __appname__ as APPNAME  # noqa: N812
 from tartex.__about__ import __version__
 from tartex._completion import (
     COMPFILE,
@@ -95,7 +95,7 @@ class CompletionPrintAction(argparse.Action):
         option_strings,
         dest=argparse.SUPPRESS,
         default=argparse.SUPPRESS,
-        help=None,
+        help=None,  # noqa: A002
     ):
         """Initialise Action class"""
         super().__init__(
@@ -108,7 +108,7 @@ class CompletionPrintAction(argparse.Action):
 
     # Note that correct __call__ signature requires all positional args even if
     # they are not used in this method itself
-    def __call__(self, parser, namespace, values, option_string=None):  # noqa
+    def __call__(self, parser, nsp, vals, opt_str=None):  # noqa: ARG002
         richprint(Markdown(COMPLETIONS_GUIDE))
         parser.exit()
 
@@ -125,7 +125,7 @@ class CompletionInstall(argparse.Action):
         option_strings,
         dest=argparse.SUPPRESS,
         default=argparse.SUPPRESS,
-        help=None,
+        help=None,  # noqa: A002
     ):
         """Initialise Action class"""
         super().__init__(
@@ -138,7 +138,7 @@ class CompletionInstall(argparse.Action):
 
     # Note that correct __call__ signature requires all positional args even if
     # they are not used in this method itself
-    def __call__(self, parser, namespace, values, option_string=None):  #noqa
+    def __call__(self, parser, namespace, values, option_string=None):  # noqa
         parser.exit()
 
 
@@ -222,7 +222,7 @@ class GnuStyleHelpFormatter(argparse.HelpFormatter):
 
         return ", ".join(parts)
 
-    def _split_lines(self, text, width):
+    def _split_lines(self, text, width):  # noqa: ARG002
         return wrap(text, width=52, break_on_hyphens=False)
 
 
@@ -292,7 +292,7 @@ def parse_args(args):
         "-p",
         "--packages",
         action="store_true",
-        help="List of TeX/LaTeX packages used and locations"
+        help="List of TeX/LaTeX packages used and locations",
     )
 
     parser.add_argument(
