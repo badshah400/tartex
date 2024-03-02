@@ -29,6 +29,7 @@ def test_install(capsys, monkeypatch, tmpdir):
 
     assert exc.value.code == 0
     bc = BashCompletion()
+    bc.install()  # Additional output to capsys for GitHub CI
     compl_file = Path.home() / bc.install_dir / APPNAME
     assert str(compl_file.parent) in capsys.readouterr().out
     assert compl_file.exists()
