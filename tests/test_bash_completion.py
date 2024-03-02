@@ -23,14 +23,14 @@ def test_print(capsys):
 def test_install(capsys, monkeypatch, tmpdir):
     """Test installed completions file"""
     monkeypatch.setenv("HOME", str(tmpdir))
-    monkeypatch.setattr("rich.print", print)
     with pytest.raises(SystemExit) as exc:
         TarTeX(["--bash-completion"])
 
     assert exc.value.code == 0
     bc = BashCompletion()
-    bc.install()  # Additional output to capsys for GitHub CI
     compl_file = Path.home() / bc.install_dir / APPNAME
-    assert str(compl_file.parent) in capsys.readouterr().out
+    # For overtly long paths, capsys output may end up introducing "\n" inside
+    # the path, make sure we get rid of those when comparing
+    assert str(compl_file.parent) in capsys.readouterr().out.replace("\n", "")
     assert compl_file.exists()
     assert compl_file.read_text(encoding="utf-8") == bc.data
