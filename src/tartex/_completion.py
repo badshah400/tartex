@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 from shutil import copy2
 
+from rich import print as richprint
+
 from tartex.__about__ import __appname__ as APPNAME  # noqa
 
 COMPFILE = {
@@ -42,9 +44,9 @@ class Completion:
         inst_path = Path(
             copy2(self.completion_file, path.joinpath(self.install_filename))
         )
-        print(
-            f"Completion file for {self.shell} shell installed to"
-            f" {inst_path.parent}"
+        richprint(
+            f"✓ Completion file for [bold]{self.shell}[/] shell installed to"
+            f" [link={inst_path.parent.as_uri()}]{inst_path.parent}[/]"
         )
 
 

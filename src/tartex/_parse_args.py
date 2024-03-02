@@ -10,7 +10,11 @@ Module that sets up argparse and returns parsed arguments from the cmdline
 
 import argparse
 from pathlib import Path
-from textwrap import fill, wrap
+from textwrap import wrap
+
+from rich import print as richprint
+from rich.markdown import Markdown
+from rich.syntax import Syntax
 
 from tartex.__about__ import __appname__ as APPNAME  # noqa
 from tartex.__about__ import __version__
@@ -32,6 +36,51 @@ LATEXMK_TEX = [
     "xdv",
     "xelatex",
 ]
+
+
+BASH_COMP_PATH = BashCompletion().install_dir.joinpath(f"{APPNAME}")
+COMPLETIONS_GUIDE = f"""
+Completions are currently supported for bash, fish, and zsh shells.
+Please consider [contributing](https://github.com/badshah400/tartex) if you
+would like completion for any other shell.
+
+__Note__: XDG_DATA_HOME defaults to `~/.local/share`.
+
+## Bash ##
+The option `--bash-completion` will install bash completions for {APPNAME} to
+the directory: $XDG_DATA_HOME/{COMPFILE["bash"]}.
+
+Bash automatically searches this dir for completions, so completion for
+tartex should work immediately after starting a new terminal session.  If it
+does not, you may have to add the following lines to your
+'~/.bashrc' file:
+
+```bash
+# Source {APPNAME} completion
+source ~/{BASH_COMP_PATH.relative_to(Path.home())}
+```
+
+## Zsh ##
+The option `--zsh-completion` will install a zsh completions file for {APPNAME}
+to the directory: $XDG_DATA_HOME/{COMPFILE['zsh'].parent!s}.  It will also
+print what to add to your .zshrc file to enable these completions.
+
+## Fish ##
+The option `--fish-completion` will install a fish completions file for
+{APPNAME} to the directory: $XDG_DATA_HOME/{COMPFILE['fish'].parent!s}.
+
+No further configuration should be needed. Simply start a new fish terminal et
+voila!
+"""
+
+ZSH_GUIDE = f"""# Update fpath to include completions dir
+# Note: Must be done before initialising compinit
+fpath=(~/{ZshCompletion().install_dir.relative_to(Path.home())} $fpath)
+
+# If the following two lines already appear in your .zshrc do not add them
+# again, but move the fpath line above the 'autoload compinit' line
+autoload -U compinit
+compinit"""
 
 
 class CompletionPrintAction(argparse.Action):
@@ -57,83 +106,10 @@ class CompletionPrintAction(argparse.Action):
             help=help,
         )
 
-    # TODO: This is a mess of print calls; see if it can be simplified
     # Note that correct __call__ signature requires all positional args even if
     # they are not used in this method itself
-    def __call__(self, parser, namespace, values, option_string=None):  #noqa
-        fill_width = 80
-        print(
-            "Completion is currently supported for bash, fish, and zsh shells."
-        )
-        print(
-            "Please consider contributing if you would like completion for"
-            " any other shell.\n"
-        )
-
-        print(
-            "----\n"  # do not join
-            "Bash\n"  # do not join
-            "----\n"  # do not join
-            + fill(
-                "The option `--bash-completion` will install bash completions"
-                f" for {APPNAME} to the directory:",
-                width=fill_width,
-            )
-            + f"\n${{XDG_DATA_HOME}}/{COMPFILE['bash'].parent!s}\n"
-        )
-        print(
-            fill(
-                "Bash automatically searches this dir for completions, so"
-                f" completion for {APPNAME} should work immediately after"
-                " starting a new terminal session."
-                " If it does not, you may have to add the following lines"
-                " to your .bashrc:",
-                replace_whitespace=False,
-                width=fill_width,
-            )
-        )
-        bash_comp_path = BashCompletion().install_dir.joinpath(f"{APPNAME}")
-        print(
-            f"\n# Source {APPNAME} completion\n"
-            f"source ~/{bash_comp_path.relative_to(Path.home())}",
-        )
-        print(
-            "\n"  # do not join
-            "---\n"  # do not join
-            "Zsh\n"  # do not join
-            "---\n"  # do not join
-            + fill(
-                "The option `--zsh-completion` will install a zsh completion"
-                f" file for {APPNAME} to the directory:",
-                width=fill_width,
-            )
-            + "\n"
-            f"${{XDG_DATA_HOME}}/{COMPFILE['zsh'].parent!s}/\n"
-            "\n"
-            + fill(
-                "It will also print what to add to your .zshrc file to enable"
-                " these completions",
-                width=fill_width,
-            )
-        )
-        print(
-            "\n"  # do not join
-            "----\n"  # do not join
-            "Fish\n"  # do not join
-            "----\n"  # do not join
-            + fill(
-                "The option `--fish-completion` will install a fish completion"
-                f" file for {APPNAME} to the directory:",
-                width=fill_width,
-            )
-            + f"\n${{XDG_DATA_HOME}}/{COMPFILE['fish'].parent!s}/\n"
-        )
-        print(
-            fill(
-                "No further configuration should be needed. Simply start a"
-                " new fish terminal et voila!"
-            )
-        )
+    def __call__(self, parser, namespace, values, option_string=None):  # noqa
+        richprint(Markdown(COMPLETIONS_GUIDE))
         parser.exit()
 
 
@@ -192,24 +168,11 @@ class ZshCompletionInstall(CompletionInstall):
 
     def __call__(self, parser, namespace, values, option_strings=None):
         ZshCompletion().install()
-        print(
-            "\nAdd the following to your .zshrc if not already present:"
-            "\n-----------------------------------------------------------"
-        )
-        print(
-            "# Update fpath to include completions dir\n"
-            "# Note: Must be done before initialising compinit\n"
-            "fpath"
-            f"=(~/{ZshCompletion().install_dir.relative_to(Path.home())}"
-            " $fpath)\n"
+        richprint(
             "\n"
-            "# If the following two lines already appear in your .zshrc\n"
-            "# do not add them again, but move the fpath line above the\n"
-            "# 'autoload compinit' line\n"
-            "autoload -U compinit\n"
-            "compinit"
-            "\n-----------------------------------------------------------\n"
+            "Add the following to your [bold].zshrc[/] if not already present:"
         )
+        richprint(Syntax(ZSH_GUIDE, "zsh"))
         super().__call__(parser, namespace, values, option_strings)
         parser.exit()
 
