@@ -23,12 +23,12 @@ def test_print(capsys):
 def test_install(capsys, monkeypatch, tmpdir):
     """Test installed completions file"""
     monkeypatch.setenv("HOME", str(tmpdir))
+    monkeypatch.setattr("rich.print", print)
     with pytest.raises(SystemExit) as exc:
         TarTeX(["--bash-completion"])
 
     assert exc.value.code == 0
     bc = BashCompletion()
-    print(bc.data, end="")  # noqa: T201
     compl_file = Path.home() / bc.install_dir / APPNAME
     assert str(compl_file.parent) in capsys.readouterr().out
     assert compl_file.exists()
