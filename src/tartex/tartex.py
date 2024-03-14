@@ -101,7 +101,7 @@ class TarTeX:
 
     # pylint: disable=too-many-instance-attributes
 
-    pkglist_name = "packages.json"
+    pkglist_name = "TeXPackages.json"
 
     def __init__(self, args):
         self.args = parse_args(args)
