@@ -22,7 +22,7 @@ from rich.spinner import Spinner
 INPUT_RE = re.compile(r"^INPUT")
 INPUT_STY = re.compile(r"^INPUT\s.*.(cls|def|sty)")
 INPUT_FONTS = re.compile(r"^INPUT\s.*.(pfb|tfm)")
-FONT_PUBLIC = re.compile(r"\/public\/.*\/")
+FONT_PUBLIC = re.compile(r"/public/.*/")
 
 
 def run_latexmk(filename, mode, compdir):
@@ -102,7 +102,9 @@ def fls_input_files(fls_fileobj, lof_excl, skip_files, *, sty_files=False):
                 p = Path(line.split()[-1])
                 if p.is_absolute():
                     try:
-                        fontdir = FONT_PUBLIC.match(str(p)).split("/")[2]
+                        fontdir = (
+                            FONT_PUBLIC.search(str(p)).group(0).split("/")[2]
+                        )
                     except AttributeError:
                         fontdir = p.parent.name
                     pkgs["System"].add(fontdir)
