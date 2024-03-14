@@ -27,7 +27,7 @@ def test_float_pkg(datadir, tmpdir, capsys):
     with tar.open(
         f"{tmpdir!s}/packagelist.tar.{TAR_DEFAULT_COMP}", mode="r"
     ) as f:
-        assert "packages.json" in f.getnames()
+        assert "TeXPackages.json" in f.getnames()
 
     pkgjson = json.loads(t.pkglist)
     assert "float" in pkgjson["System"]
