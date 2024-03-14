@@ -292,7 +292,7 @@ def parse_args(args):
         "-p",
         "--packages",
         action="store_true",
-        help="List of TeX/LaTeX packages used and locations",
+        help="Add a json file, listing TeX/LaTeX packages used, to tarball",
     )
 
     parser.add_argument(
