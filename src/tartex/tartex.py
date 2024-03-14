@@ -263,6 +263,11 @@ class TarTeX:
                         sty_files=self.args.packages,
                     )
                     if self.args.packages:
+                        log.info(
+                            "System TeX/LaTeX packages used: %s",
+                            ", ".join(sorted(pkgs["System"]))
+                        )
+
                         self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
                             "utf8"
                         )
@@ -454,7 +459,7 @@ class TarTeX:
 
         if self.args.packages:
             log.info(
-                "Adding list of packages as BytesIO object %s",
+                "Adding list of packages as BytesIO object: %s",
                 self.pkglist_name,
             )
             _tar_add_bytesio(self.pkglist, self.pkglist_name)
@@ -526,7 +531,6 @@ def make_tar():
 
 
 class SetEncoder(json.JSONEncoder):
-
     """A class to allow JSONEncoder to interpret a set as a list"""
 
     def default(self, o):
