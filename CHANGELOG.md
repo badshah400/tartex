@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Option "-p/--packages": Save a `TeXPackages.json` file, listing system and
+  local latex packages used, inside output tarball.
+- Rich formatting for printed messages for completion options.
+
 ## [0.4.0] 2024-02-27
 
 ### Added
