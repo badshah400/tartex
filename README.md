@@ -65,7 +65,7 @@ Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 usage: tartex [OPTIONS] FILENAME
 
 Build a tarball including all source files needed to compile your LaTeX project
-(version 0.4.1).
+(version 0.4.0).
 
 positional arguments:
   FILENAME                 input file name (with .tex or .fls suffix)
@@ -79,6 +79,7 @@ options:
   -l, --list               print list of files to include and quit
   -o, --output=NAME[.SUF]  output tar file name; tar compression mode will be
                            inferred from .SUF, if possible (default 'gz')
+  -p, --packages           add json file listing TeX packages used
   -s, --summary            print a summary at the end
   -v, --verbose            increase verbosity (-v, -vv, etc.)
   -x, --excl=PATTERNS      exclude file names matching PATTERNS
@@ -89,7 +90,7 @@ options:
 
 Options for latexmk processing:
   --latexmk-tex=TEXMODE    force TeX processing mode used by latexmk; TEXMODE
-                           must be one of: dvi, luatex, lualatex, pdf, pdflua,
+                           must be one of: dvi, lualatex, luatex, pdf, pdflua,
                            ps, xdv, xelatex
   -F, --force-recompile    force recompilation even if .fls exists
 
