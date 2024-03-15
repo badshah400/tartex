@@ -6,6 +6,7 @@
 """tartex module"""
 
 import fnmatch
+import json
 import logging as log
 import math
 import os
@@ -100,6 +101,8 @@ class TarTeX:
 
     # pylint: disable=too-many-instance-attributes
 
+    pkglist_name = "TeXPackages.json"
+
     def __init__(self, args):
         self.args = parse_args(args)
         log.basicConfig(
@@ -189,6 +192,8 @@ class TarTeX:
                 self.force_tex,
             )
 
+        self.pkglist = None
+
     def add_user_files(self):
         """
         Return list of additional user specified/globbed file paths,
@@ -251,7 +256,21 @@ class TarTeX:
                 )
 
                 with open(fls_path, encoding="utf-8") as f:
-                    deps = _latex.fls_input_files(f, self.excl_files, AUXFILES)
+                    deps, pkgs = _latex.fls_input_files(
+                        f,
+                        self.excl_files,
+                        AUXFILES,
+                        sty_files=self.args.packages,
+                    )
+                    if self.args.packages:
+                        log.info(
+                            "System TeX/LaTeX packages used: %s",
+                            ", ".join(sorted(pkgs["System"]))
+                        )
+
+                        self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
+                            "utf8"
+                        )
 
                 for ext in SUPP_REQ:
                     if app := self._missing_supp(
@@ -263,10 +282,14 @@ class TarTeX:
         else:
             # If .fls exists, this assumes that all INPUT files recorded in it
             # are also included in source dir
-            with open(
-                self.main_file.with_suffix(".fls"), encoding="utf-8"
-            ) as f:
-                deps = _latex.fls_input_files(f, self.excl_files, AUXFILES)
+            with open(self.main_file.with_suffix(".fls"), encoding="utf8") as f:
+                deps, pkgs = _latex.fls_input_files(
+                    f, self.excl_files, AUXFILES, sty_files=self.args.packages
+                )
+                if self.args.packages:
+                    self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
+                        "utf8"
+                    )
 
         if self.args.bib and (bib := self.bib_file()):
             deps.append(bib.as_posix())
@@ -420,9 +443,9 @@ class TarTeX:
                     dep,
                 )
 
-        for fpath, byt in self.req_supfiles.items():
-            tinfo = tar_obj.tarinfo(fpath.name)
-            tinfo.size = len(byt)
+        def _tar_add_bytesio(obj, name):
+            tinfo = tar_obj.tarinfo(name)
+            tinfo.size = len(obj)
             tinfo.mtime = int(time.time())
 
             # Copy user/group names from main.tex file
@@ -432,8 +455,18 @@ class TarTeX:
             tinfo.gname = tar_obj.getmember(
                 self.main_file.with_suffix(".tex").name
             ).gname
+            tar_obj.addfile(tinfo, BytesIO(obj))
 
-            tar_obj.addfile(tinfo, BytesIO(byt))
+        if self.args.packages:
+            log.info(
+                "Adding list of packages as BytesIO object: %s",
+                self.pkglist_name,
+            )
+            _tar_add_bytesio(self.pkglist, self.pkglist_name)
+
+        for fpath, byt in self.req_supfiles.items():
+            log.info("Adding %s as BytesIO object", fpath.name)
+            _tar_add_bytesio(byt, fpath.name)
 
     def _proc_output_path(self):
         """
@@ -467,11 +500,15 @@ class TarTeX:
             richprint(f"{i+1:{idx_width}}. {f}")
         for r in self.req_supfiles:
             richprint(f"{'*':>{idx_width + 1}} {r.name}")
+        if self.args.packages:
+            richprint(f"{'*':>{idx_width + 1}} {self.pkglist_name}")
         if self.args.summary:
-            _summary_msg(len(ls) + len(self.req_supfiles))
+            _summary_msg(
+                len(ls) + len(self.req_supfiles) + (1 if self.pkglist else 0)
+            )
 
     def _missing_supp(self, fpath, tmpdir, deps):
-        """Handle missing supplemetary file from orig dir, if req"""
+        """Handle missing supplementary file from orig dir, if req"""
         if (
             fpath not in deps  # bbl file not in source dir
             and (Path(tmpdir) / fpath.name).exists()  # Implies it's req
@@ -491,6 +528,19 @@ def make_tar():
     """Build tarball with command line arguments processed by argparse"""
     t = TarTeX(sys.argv[1:])
     t.tar_files()
+
+
+class SetEncoder(json.JSONEncoder):
+    """A class to allow JSONEncoder to interpret a set as a list"""
+
+    def default(self, o):
+        """
+        Convert o (a set) into a sorted list
+
+        :o: set
+        :return: list
+        """
+        return sorted(o)
 
 
 if __name__ == "__main__":

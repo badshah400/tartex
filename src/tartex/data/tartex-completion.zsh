@@ -43,6 +43,7 @@ _arguments -s -S \
   '(- : *)'{-V,--version}'[print tartex version and exit]' \
   '(completions -a --add)'{-a,--add=}'[include additional file names matching glob-style PATTERNS]:PATTERNS:_files' \
   '(completions -b --bib)'{-b,--bib}'[find and add bib file to tarball]' \
+  '(completions -p --packages)'{-p,--packages}'[add names of used (La)TeX packages as a json file]' \
   '(completions -s --summary)'{-s,--summary}'[print a summary at the end]' \
   '*'{-v,--verbose}'[increase verbosity (-v, -vv, etc.)]' \
   '(completions -x --excl)'{-x,--excl=}'[exclude file names matching PATTERNS]:PATTERNS:_files' \

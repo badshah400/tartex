@@ -20,6 +20,9 @@ from rich.spinner import Spinner
 
 # Match only lines beginning with INPUT
 INPUT_RE = re.compile(r"^INPUT")
+INPUT_STY = re.compile(r"^INPUT\s.*.(cls|def|sty)")
+INPUT_FONTS = re.compile(r"^INPUT\s.*.(pfb|tfm)")
+FONT_PUBLIC = re.compile(r"/public/.*/")
 
 
 def run_latexmk(filename, mode, compdir):
@@ -69,10 +72,11 @@ def run_latexmk(filename, mode, compdir):
     return fls_path
 
 
-def fls_input_files(f, lof_excl, skip_files):
+def fls_input_files(fls_fileobj, lof_excl, skip_files, *, sty_files=False):
     """Helper function to return list on files marked as 'INPUT' in fls file"""
-    deps = []
-    for line in f:
+    deps = set()
+    pkgs = {"System": set(), "Local": set()}
+    for line in fls_fileobj:
         if INPUT_RE.match(line):
             p = Path(line.split()[-1])
             if (
@@ -81,7 +85,28 @@ def fls_input_files(f, lof_excl, skip_files):
                 and (p.as_posix() not in lof_excl)
                 and (p.suffix not in skip_files)
             ):
-                deps.append(p.as_posix())
+                deps.add(p.as_posix())
                 log.info("Add file: %s", p.as_posix())
 
-    return deps
+        if sty_files:
+            if INPUT_STY.match(line):
+                p = Path(line.split()[-1])
+                if p.is_absolute():
+                    # Base is not a (La)TeX package; it is installed with even
+                    # the most basic TeXlive/MikTeX installation
+                    if (pdir := p.parent.name) != "base":
+                        pkgs["System"].add(pdir)
+                else:
+                    pkgs["Local"].add(p.stem)
+            elif INPUT_FONTS.match(line):
+                p = Path(line.split()[-1])
+                if p.is_absolute():
+                    try:
+                        fontdir = (
+                            FONT_PUBLIC.search(str(p)).group(0).split("/")[2]
+                        )
+                    except AttributeError:
+                        fontdir = p.parent.name
+                    pkgs["System"].add(fontdir)
+
+    return list(deps), pkgs

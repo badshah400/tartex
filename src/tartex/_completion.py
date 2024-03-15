@@ -3,10 +3,14 @@
 Module to help users with completion syntax for tartex
 """
 
+import contextlib
+import os
 from pathlib import Path
 from shutil import copy2
-import os
-from tartex.__about__ import __appname__ as APPNAME
+
+from rich import print as richprint
+
+from tartex.__about__ import __appname__ as APPNAME  # noqa
 
 COMPFILE = {
     "bash": Path(f"bash-completion/completions/{APPNAME}"),
@@ -19,35 +23,30 @@ class Completion:
 
     """Methods for helping users print or install shell completion"""
 
-    def __init__(self, shell, filename):
+    def __init__(self, shell_name, filename):
         """Initialise"""
-        self.shell = shell
+        self.shell = shell_name
         self.completion_file = Path(__file__).parent.joinpath("data", filename)
         self.data = self.completion_file.read_text(encoding="utf-8")
 
         install_root = Path(
-            os.getenv("XDG_DATA_HOME") or Path.home().joinpath(".local", "share")
+            os.getenv("XDG_DATA_HOME")
+            or Path.home().joinpath(".local", "share")
         )
         self.install_dir = install_root.joinpath(COMPFILE[self.shell]).parent
         self.install_filename = COMPFILE[self.shell].name
 
-    def print(self):
-        """Print completion to stdout"""
-        print(self.data, end="")
-
     def install(self, install_dir=None):
         """Install completion to path"""
         path = Path(install_dir or self.install_dir)
-        try:
+        with contextlib.suppress(FileExistsError):
             os.makedirs(path)
-        except FileExistsError:
-            pass
         inst_path = Path(
             copy2(self.completion_file, path.joinpath(self.install_filename))
         )
-        print(
-            f"Completion file for {self.shell} shell installed to"
-            f" {inst_path.parent}"
+        richprint(
+            f"✓ Completion file for [bold]{self.shell}[/] shell installed to"
+            f" [link={inst_path.parent.as_uri()}]{inst_path.parent}[/]"
         )
 
 
@@ -58,7 +57,7 @@ class BashCompletion(Completion):
     def __init__(self):
         """Initialise"""
         Completion.__init__(
-            self, shell="bash", filename="tartex-completion.bash"
+            self, shell_name="bash", filename="tartex-completion.bash"
         )
 
 
@@ -68,7 +67,9 @@ class ZshCompletion(Completion):
 
     def __init__(self):
         """Initialise"""
-        Completion.__init__(self, shell="zsh", filename="tartex-completion.zsh")
+        Completion.__init__(
+            self, shell_name="zsh", filename="tartex-completion.zsh"
+        )
 
 
 class FishCompletion(Completion):
@@ -78,5 +79,5 @@ class FishCompletion(Completion):
     def __init__(self):
         """Initialise"""
         Completion.__init__(
-            self, shell="fish", filename="tartex-completion.fish"
+            self, shell_name="fish", filename="tartex-completion.fish"
         )
