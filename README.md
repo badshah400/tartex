@@ -79,7 +79,7 @@ options:
   -l, --list               print list of files to include and quit
   -o, --output=NAME[.SUF]  output tar file name; tar compression mode will be
                            inferred from .SUF, if possible (default 'gz')
-  -p, --packages           add json file listing TeX packages used
+  -p, --packages           add names of used (La)TeX packages as a json file
   -s, --summary            print a summary at the end
   -v, --verbose            increase verbosity (-v, -vv, etc.)
   -x, --excl=PATTERNS      exclude file names matching PATTERNS
