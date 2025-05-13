@@ -2,4 +2,4 @@
 #
 # SPDX-License-Identifier: MIT
 __appname__ = "tartex"
-__version__ = "0.6.0"
+__version__ = "0.6.1.dev0"
