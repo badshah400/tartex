@@ -1,4 +1,9 @@
 # vim:set et sw=4 ts=4:
+# SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
+#
+# SPDX-License-Identifier: MIT
+#
+
 """
 Tests for bash completion printing and installing
 """

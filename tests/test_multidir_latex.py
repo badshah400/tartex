@@ -1,7 +1,8 @@
-# vim: set ai et ts=4 sw=4 tw=80:
+# vim:set et sw=4 ts=4:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
+#
 
 """Tests for LaTeX project consisting of multiple dirs"""
 
