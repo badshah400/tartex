@@ -241,7 +241,7 @@ def parse_args(args):
         "fname",
         metavar="FILENAME",
         type=Path,
-        help="input file name (with .tex or .fls suffix)",
+        help="input file name [.tex|.fls] (with or without suffix)",
     )
 
     parser.add_argument(

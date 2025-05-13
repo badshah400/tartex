@@ -116,7 +116,16 @@ class TarTeX:
         self.cwd = Path.cwd()
         self.main_file = self.args.fname.resolve()
         if self.main_file.suffix not in [".fls", ".tex"]:
-            sys.exit("Error: Source filename must be .tex or .fls\nQuitting")
+            found_file = False
+            # Try adding the .fls/.tex suffix to main_file
+            for f in [str(self.main_file) + suff for suff in ['.fls', '.tex']]:
+                if Path(f).is_file():
+                    self.main_file = Path(f)
+                    found_file = True
+                    break
+            if not found_file:
+                log.critical(f"Error: File {self.main_file.name}[.tex|.fls] not found.")
+                sys.exit(1)
 
         # Set default tar extension...
         self.tar_ext = TAR_DEFAULT_COMP

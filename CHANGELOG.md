@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Append '.fls' or '.tex' extension to input filename if it does not have one.
+
 ## [0.5.0] 2024-03-15
 
 ### Added
