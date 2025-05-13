@@ -35,9 +35,23 @@ def test_fls_main_arg(tartex_obj, flsfile):
     assert t.tar_file.name == flsfile.replace(".fls", ".tar")
 
 
+def test_fls_main_arg_noext(datadir, flsfile):
+    """
+    User passes a file name with no extension but tartex should find .fls file
+    """
+    flsfile_noext = flsfile.removesuffix('.fls')
+    t = TarTeX(
+        [str(datadir / flsfile_noext), "-o", str(datadir), "-b"],
+    )
+    t.tar_files()
+    assert t.tar_file.name == flsfile_noext + ".tar"
+    with tar.open(f"{t.tar_file!s}.{TAR_DEFAULT_COMP}") as f:
+        assert len(f.getnames()) == 2
+
+
 def test_fls_missing_bbl(tartex_obj, flsfile):
     """
-    Verify that missing .bbl file is omitted from tarball and the cal to
+    Verify that missing .bbl file is omitted from tarball and the call to
     tar_files() does not cause an exception
     """
     tartex_obj.tar_files()

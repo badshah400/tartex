@@ -30,6 +30,17 @@ def default_tartex_obj(datadir, default_target):
         ]
     )
 
+@pytest.fixture
+def default_tartex_obj_noext(datadir, default_target):
+    return TarTeX(
+        [
+            (Path(datadir) / "basic_latex").as_posix(),
+            "-v",
+            "-s",
+            "-o",
+            default_target.as_posix(),
+        ]
+    )
 
 class TestBasicLaTeX:
     """Tests checking tar file generation from a basic latex file"""
@@ -38,6 +49,17 @@ class TestBasicLaTeX:
         """Should include a single file in tarball"""
         output = default_target.with_suffix(".tar.gz")
         t = default_tartex_obj
+        t.tar_files()
+        assert output.exists() is True
+        with tar.open(output) as rat:
+            assert len(rat.getnames()) == 1
+
+    def test_gen_tar_no_suffix(self, default_target, default_tartex_obj_noext):
+        """Should include a single file in tarball even though main file has no
+           .tex or .fls suffix
+        """
+        output = default_target.with_suffix(".tar.gz")
+        t = default_tartex_obj_noext
         t.tar_files()
         assert output.exists() is True
         with tar.open(output) as rat:
