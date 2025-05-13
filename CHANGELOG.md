@@ -1,8 +1,12 @@
 # Changelog
 
-## Unreleased
+## [0.6.0] 2025-05-13
+
+### Added
 
 - Append '.fls' or '.tex' extension to input filename if it does not have one.
+- Drop Python 3.8 support.
+- Add Python 3.13 support.
 
 ## [0.5.0] 2024-03-15
 
