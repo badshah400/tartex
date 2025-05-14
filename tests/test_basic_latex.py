@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MIT
 #
 """Tests for tarball generation from basic latex files"""
+import logging
 import os
 import tarfile as tar
 from pathlib import Path
@@ -195,3 +196,23 @@ class TestTarConflict:
         assert t_con.tar_ext == "xz"
         with tar.open(output) as rat:
             assert len(rat.getnames()) == 1
+
+    def test_option_overwrite(self, caplog, datadir, default_target, default_tartex_obj):
+        """Should include a single file in tarball"""
+        output = default_target.with_suffix(".tar.gz")
+        t = default_tartex_obj("basic_latex.tex")
+        t.tar_files()
+        q = TarTeX(
+            [
+                (Path(datadir) / "basic_latex.tex").as_posix(),
+                "-v",
+                "--overwrite",
+                "-o",
+                default_target.as_posix(),
+            ]
+        )
+        q.tar_files()
+        assert output.exists() is True
+        caplog.set_level(logging.WARNING)
+        out_mess = caplog.text
+        assert "overwriting existing" in out_mess.lower()
