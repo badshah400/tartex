@@ -389,6 +389,9 @@ class TarTeX:
         log.debug("Reset working dir to %s", os.getcwd())
 
     def _tar_name_conflict(self, tpath):
+        if self.args.overwrite:
+            log.warning(f"Overwriting existing tar file {tpath}")
+            return tpath
         richprint(
             "[bold red]A tar file with the same name"
             rf" \[{_full_if_not_rel_path(tpath, self.cwd)}]"
@@ -440,6 +443,7 @@ class TarTeX:
                 log.info("Tar file %s will be generated", new_path.as_posix())
                 return new_path
         elif owr.lower() == "o":
+            log.warning(f"Overwriting existing tar file {tpath}")
             return tpath
         else:
             richprint(

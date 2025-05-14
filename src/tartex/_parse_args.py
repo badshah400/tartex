@@ -289,6 +289,12 @@ def parse_args(args):
     )
 
     parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="overwrite output tarball if necessary",
+    )
+
+    parser.add_argument(
         "-p",
         "--packages",
         action="store_true",
