@@ -97,7 +97,7 @@ def fls_input_files(fls_fileobj, lof_excl, skip_files, *, sty_files=False):
                     if (pdir := p.parent.name) != "base":
                         pkgs["System"].add(pdir)
                 else:
-                    pkgs["Local"].add(p.stem)
+                    pkgs["Local"].add(p.name)
             elif INPUT_FONTS.match(line):
                 p = Path(line.split()[-1])
                 if p.is_absolute():
