@@ -65,7 +65,7 @@ Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 usage: tartex [OPTIONS] FILENAME
 
 Build a tarball including all source files needed to compile your LaTeX project
-(version 0.6.0).
+(version 0.6.1.dev0).
 
 positional arguments:
   FILENAME                 input file name [.tex|.fls] (with or without suffix)
@@ -79,6 +79,7 @@ options:
   -l, --list               print list of files to include and quit
   -o, --output=NAME[.SUF]  output tar file name; tar compression mode will be
                            inferred from .SUF, if possible (default 'gz')
+  --overwrite              overwrite output tarball if necessary
   -p, --packages           add names of used (La)TeX packages as a json file
   -s, --summary            print a summary at the end
   -v, --verbose            increase verbosity (-v, -vv, etc.)
