@@ -1,5 +1,11 @@
 # Changelog
 
+## [Un-released]
+
+### Added
+
+- Add command line option to overwrite target output if it already exists.
+
 ## [0.6.0] 2025-05-13
 
 ### Added
