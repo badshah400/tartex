@@ -20,9 +20,9 @@ def default_target(datadir):
 
 @pytest.fixture
 def default_tartex_obj(datadir, default_target):
-    return TarTeX(
+    return lambda fname: TarTeX(
         [
-            (Path(datadir) / "basic_latex.tex").as_posix(),
+            (Path(datadir) / fname).as_posix(),
             "-v",
             "-s",
             "-o",
@@ -30,17 +30,6 @@ def default_tartex_obj(datadir, default_target):
         ]
     )
 
-@pytest.fixture
-def default_tartex_obj_noext(datadir, default_target):
-    return TarTeX(
-        [
-            (Path(datadir) / "basic_latex").as_posix(),
-            "-v",
-            "-s",
-            "-o",
-            default_target.as_posix(),
-        ]
-    )
 
 class TestBasicLaTeX:
     """Tests checking tar file generation from a basic latex file"""
@@ -48,18 +37,18 @@ class TestBasicLaTeX:
     def test_gen_tar(self, default_target, default_tartex_obj):
         """Should include a single file in tarball"""
         output = default_target.with_suffix(".tar.gz")
-        t = default_tartex_obj
+        t = default_tartex_obj("basic_latex.tex")
         t.tar_files()
         assert output.exists() is True
         with tar.open(output) as rat:
             assert len(rat.getnames()) == 1
 
-    def test_gen_tar_no_suffix(self, default_target, default_tartex_obj_noext):
+    def test_gen_tar_no_suffix(self, default_target, default_tartex_obj):
         """Should include a single file in tarball even though main file has no
            .tex or .fls suffix
         """
         output = default_target.with_suffix(".tar.gz")
-        t = default_tartex_obj_noext
+        t = default_tartex_obj("basic_latex")
         t.tar_files()
         assert output.exists() is True
         with tar.open(output) as rat:
@@ -96,7 +85,7 @@ class TestTarConflict:
 
     def test_sol_default(self, default_tartex_obj, capsys, monkeypatch):
         """Test default (empty) user response"""
-        t_con = default_tartex_obj
+        t_con = default_tartex_obj("basic_latex.tex")
         t_con.tar_files()
 
         # Monkeypatch empty response for input
@@ -112,7 +101,7 @@ class TestTarConflict:
 
     def test_sol_quit(self, default_tartex_obj, capsys, monkeypatch):
         """Test when user response is 'q'"""
-        t_con = default_tartex_obj
+        t_con = default_tartex_obj("basic_latex.tex")
         t_con.tar_files()
 
         # Monkeypatch empty response for input
@@ -128,7 +117,7 @@ class TestTarConflict:
 
     def test_sol_overwrite(self, default_tartex_obj, monkeypatch):
         """Test overwrite resolution"""
-        t_con = default_tartex_obj
+        t_con = default_tartex_obj("basic_latex.tex")
         t_con.tar_files()
 
         # Monkeypatch empty response for input
@@ -141,7 +130,7 @@ class TestTarConflict:
 
     def test_sol_newname_ok(self, default_tartex_obj, tmpdir, monkeypatch):
         """Test entering new name that works"""
-        t_con = default_tartex_obj
+        t_con = default_tartex_obj("basic_latex.tex")
         t_con.tar_files()
 
         output = str(tmpdir / "new.tar.gz")
@@ -159,7 +148,7 @@ class TestTarConflict:
         self, default_tartex_obj, tmpdir, capsys, monkeypatch
     ):
         """Test error when entering new name that is same as the old name"""
-        t_con = default_tartex_obj
+        t_con = default_tartex_obj("basic_latex.tex")
         t_con.tar_files()
 
         output = str(tmpdir / "test.tar.gz")
@@ -178,7 +167,7 @@ class TestTarConflict:
 
     def test_sol_newext(self, default_tartex_obj, tmpdir, monkeypatch):
         """Test new name with just the file ext changed"""
-        t_con = default_tartex_obj
+        t_con = default_tartex_obj("basic_latex.tex")
         t_con.tar_files()
 
         output = str(tmpdir / "test.tar.gz")
