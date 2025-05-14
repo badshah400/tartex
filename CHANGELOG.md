@@ -5,6 +5,7 @@
 ### Added
 
 - Add command line option to overwrite target output if it already exists.
+- Include local bib style file (if any) when using the '-b'/'--bib' option.
 
 ### Fixed
 
