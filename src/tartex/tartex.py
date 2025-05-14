@@ -282,15 +282,6 @@ class TarTeX:
                         AUXFILES,
                         sty_files=self.args.packages,
                     )
-                    if self.args.packages:
-                        log.info(
-                            "System TeX/LaTeX packages used: %s",
-                            ", ".join(sorted(pkgs["System"]))
-                        )
-
-                        self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
-                            "utf8"
-                        )
 
                 for ext in SUPP_REQ:
                     if app := self._missing_supp(
@@ -316,6 +307,8 @@ class TarTeX:
                 try:
                     deps.append(f.as_posix())
                     log.info("Add file: %s", deps[-1])
+                    if re.match(r".bst", f.suffix):
+                        pkgs["Local"].add(deps[-1])
                 except:
                     pass
 
@@ -330,6 +323,15 @@ class TarTeX:
                 deps.append(f_relpath_str)
                 log.info("Add user specified file: %s", f_relpath_str)
 
+        if self.args.packages:
+            log.info(
+                "System TeX/LaTeX packages used: %s",
+                ", ".join(sorted(pkgs["System"]))
+            )
+
+            self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
+                "utf8"
+            )
         return deps
 
     def tar_files(self):
