@@ -280,11 +280,11 @@ def parse_args(args):
     parser.add_argument(
         "-o",
         "--output",
-        metavar="NAME[.SUF]",
+        metavar="NAME[.EXT]",
         type=Path,
         help=(
             "output tar file name; tar compression mode will be inferred from"
-            " .SUF, if possible (default 'gz')"
+            " .EXT, if possible (default 'gz')"
         ),
     )
 
@@ -348,7 +348,7 @@ def parse_args(args):
     tar_opts = parser.add_mutually_exclusive_group()
 
     def cmp_str(cmp, ext):
-        return f"recompress with {cmp} (.{ext})" " (overrides .SUF in '-o')"
+        return f"recompress with {cmp} (.{ext})" "; override .EXT in '-o'"
 
     tar_opts.add_argument(
         "-j",

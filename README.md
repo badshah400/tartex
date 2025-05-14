@@ -77,17 +77,16 @@ options:
                            PATTERN; separate multiple PATTERNS using commas
   -b, --bib                find and add bib file to tarball
   -l, --list               print list of files to include and quit
-  -o, --output=NAME[.SUF]  output tar file name; tar compression mode will be
-                           inferred from .SUF, if possible (default 'gz')
+  -o, --output=NAME[.EXT]  output tar file name; tar compression mode will be
+                           inferred from .EXT, if possible (default 'gz')
   --overwrite              overwrite output tarball if necessary
   -p, --packages           add names of used (La)TeX packages as a json file
   -s, --summary            print a summary at the end
   -v, --verbose            increase verbosity (-v, -vv, etc.)
   -x, --excl=PATTERNS      exclude file names matching PATTERNS
-  -j, --bzip2              recompress with bzip2 (.bz2) (overrides .SUF in
-                           '-o')
-  -J, --xz                 recompress with lzma (.xz) (overrides .SUF in '-o')
-  -z, --gzip               recompress with gzip (.gz) (overrides .SUF in '-o')
+  -j, --bzip2              recompress with bzip2 (.bz2); override .EXT in '-o'
+  -J, --xz                 recompress with lzma (.xz); override .EXT in '-o'
+  -z, --gzip               recompress with gzip (.gz); override .EXT in '-o'
 
 Options for latexmk processing:
   --latexmk-tex=TEXMODE    force TeX processing mode used by latexmk; TEXMODE
