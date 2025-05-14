@@ -205,7 +205,6 @@ class TestTarConflict:
         q = TarTeX(
             [
                 (Path(datadir) / "basic_latex.tex").as_posix(),
-                "-v",
                 "--overwrite",
                 "-o",
                 default_target.as_posix(),
