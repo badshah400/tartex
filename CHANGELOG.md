@@ -6,6 +6,11 @@
 
 - Add command line option to overwrite target output if it already exists.
 
+### Fixed
+
+- Add bst filename to pkg list if necessary.
+- Keep ext for local style file in pkg list.
+
 ## [0.6.0] 2025-05-13
 
 ### Added
