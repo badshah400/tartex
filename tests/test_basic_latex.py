@@ -35,6 +35,16 @@ def default_tartex_obj(datadir, default_target):
 class TestBasicLaTeX:
     """Tests checking tar file generation from a basic latex file"""
 
+    def test_list_only(self, datadir, default_target, capsys):
+        """Test `--list` and `--dry-run` options which _do not_ produce tarballs"""
+        output = default_target.with_suffix(".tar.gz")
+        for opt in ["-l", "--list", "--dry-run"]:
+            t = TarTeX([(Path(datadir) / "basic_latex.tex").as_posix(), opt])
+            t.tar_files()
+            assert t.args.list
+            assert not output.exists()
+            assert capsys.readouterr().out.strip() == "1. basic_latex.tex"
+
     def test_gen_tar(self, default_target, default_tartex_obj):
         """Should include a single file in tarball"""
         output = default_target.with_suffix(".tar.gz")

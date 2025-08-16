@@ -273,6 +273,8 @@ def parse_args(args):
     parser.add_argument(
         "-l",
         "--list",
+        "--dry-run",
+        dest="list",
         action="store_true",
         help="print list of files to include and quit",
     )

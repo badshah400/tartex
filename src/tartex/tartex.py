@@ -329,9 +329,7 @@ class TarTeX:
                 ", ".join(sorted(pkgs["System"]))
             )
 
-            self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
-                "utf8"
-            )
+            self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode("utf8")
         return deps
 
     def tar_files(self):
