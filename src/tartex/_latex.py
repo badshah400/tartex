@@ -27,9 +27,14 @@ FONT_PUBLIC = re.compile(r"/public/.*/")
 
 def run_latexmk(filename, mode, compdir):
     """Helper function to actually compile the latex file in a tmpdir"""
+    latexmk_bin = shutil.which("latexmk")
+    if not latexmk_bin:
+        log.critical("Unable to find `latexmk` in PATH.")
+        sys.exit(1)
+
     # Generate fls file from tex file by running latexmk
     latexmk_cmd = [
-        shutil.which("latexmk"),
+        latexmk_bin,
         f"-{mode}",
         "-f",
         "-cd",
@@ -57,11 +62,6 @@ def run_latexmk(filename, mode, compdir):
             err.cmd[0],
             err.stdout,
         )
-        sys.exit(1)
-    except TypeError as err:  # Typically when latexmk is missing and shutil
-                              # gets a None as the first elem of cmdline list
-        log.critical("%s", err)
-        log.critical("Is latexmk installed and in PATH?")
         sys.exit(1)
 
     log.info(
