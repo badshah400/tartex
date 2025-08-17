@@ -28,6 +28,7 @@ elsewhere.
 * Preserves directory structure in generated tarball, i.e. no flattening.
 * Handy options to allow edge cases.
 * Native TAB-completion for common interactive shells: bash, fish, and zsh (help welcome for others).
+* Options to add/excl extra files, do dry runs, print verbose logging, and summaries.
 
 ## Installation
 
@@ -65,7 +66,7 @@ Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 usage: tartex [OPTIONS] FILENAME
 
 Build a tarball including all source files needed to compile your LaTeX project
-(version 0.6.1.dev0).
+(version 0.7.0).
 
 positional arguments:
   FILENAME                 input file name [.tex|.fls] (with or without suffix)
@@ -76,12 +77,13 @@ options:
   -a, --add=PATTERNS       include additional files matching glob-style
                            PATTERN; separate multiple PATTERNS using commas
   -b, --bib                find and add bib file to tarball
-  -l, --list               print list of files to include and quit
+  -l, --list, --dry-run    print list of files to include and quit
   -o, --output=NAME[.EXT]  output tar file name; tar compression mode will be
                            inferred from .EXT, if possible (default 'gz')
   --overwrite              overwrite output tarball if necessary
   -p, --packages           add names of used (La)TeX packages as a json file
   -s, --summary            print a summary at the end
+  --with-pdf               add existing/generated final output PDF
   -v, --verbose            increase verbosity (-v, -vv, etc.)
   -x, --excl=PATTERNS      exclude file names matching PATTERNS
   -j, --bzip2              recompress with bzip2 (.bz2); override .EXT in '-o'

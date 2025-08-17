@@ -6,11 +6,17 @@
 
 - Add command line option to overwrite target output if it already exists.
 - Include local bib style file (if any) when using the '-b'/'--bib' option.
+- Add `--dry-run` option as alias to `--list`.
+- Add `--with-pdf` option to allow adding final output PDF directly or after compilation.
+- Clear out uid/gid attributes from archived files.
+- Add 300 sec timeout duration when running latexmk and raise error when compilation exceeds it.
 
 ### Fixed
 
 - Add bst filename to pkg list if necessary.
 - Keep ext for local style file in pkg list.
+- Fix type error when using `.as_posix()` on excluded patterns.
+- Set out-of-source archived files' mtime to fls file mtime.
 
 ## [0.6.0] 2025-05-13
 
