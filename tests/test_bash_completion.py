@@ -25,7 +25,7 @@ def test_print(capsys):
     assert exc.value.code == 0
 
 
-def test_install(capsys, monkeypatch, tmpdir):
+def test_install(capsys, monkeypatch, tmpdir, join_linebreaks):
     """Test installed completions file"""
     monkeypatch.setenv("HOME", str(tmpdir))
     with pytest.raises(SystemExit) as exc:
@@ -34,8 +34,6 @@ def test_install(capsys, monkeypatch, tmpdir):
     assert exc.value.code == 0
     bc = BashCompletion()
     compl_file = Path.home() / bc.install_dir / APPNAME
-    # For overtly long paths, capsys output may end up introducing "\n" inside
-    # the path, make sure we get rid of those when comparing
-    assert str(compl_file.parent) in capsys.readouterr().out.replace("\n", "")
+    assert str(compl_file.parent) in join_linebreaks(capsys.readouterr().out)
     assert compl_file.exists()
     assert compl_file.read_text(encoding="utf-8") == bc.data

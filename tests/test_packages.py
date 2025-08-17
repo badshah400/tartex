@@ -14,7 +14,7 @@ import tarfile as tar
 from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
 
 
-def test_float_pkg(datadir, tmpdir, capsys):
+def test_float_pkg(datadir, tmpdir, capsys, join_linebreaks):
     """
     Test 'packages.json' for float package included from test_packages
     """
@@ -28,7 +28,7 @@ def test_float_pkg(datadir, tmpdir, capsys):
         ]
     )
     t.tar_files()
-    assert "2 files" in capsys.readouterr().out
+    assert "2 files" in join_linebreaks(capsys.readouterr().out)
     with tar.open(
         f"{tmpdir!s}/packagelist.tar.{TAR_DEFAULT_COMP}", mode="r"
     ) as f:

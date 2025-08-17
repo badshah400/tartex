@@ -37,3 +37,12 @@ def datadir(tmpdir, request):
         shutil.copytree(test_dir, tmpdir, dirs_exist_ok=True)
 
     return tmpdir
+
+@pytest.fixture
+def join_linebreaks():
+    """Joins lines with line breaks into one contiguous string
+
+    :returns: Lambda that joins line at line breaks (str)
+
+    """
+    return lambda lbreaks: "".join(lbreaks.split("\n"))

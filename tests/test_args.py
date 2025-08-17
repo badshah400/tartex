@@ -26,13 +26,13 @@ class TestArgs:
         assert sample_texfile.main_file.stem == "some_file"
         assert sample_texfile.tar_file.name == "some_file.tar"
 
-    def test_version(self, capsys):
+    def test_version(self, capsys, join_linebreaks):
         """Test version string against version from __about.py__"""
         # argparse will call SystemExit(0) for -h and -v, and print to stdout
         with pytest.raises(SystemExit) as exc:
             TarTeX(["--version"])
 
-        output = capsys.readouterr().out
+        output = join_linebreaks(capsys.readouterr().out)
         assert f"{__version__}" in output
         assert exc.value.code == 0
 
