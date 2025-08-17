@@ -40,10 +40,7 @@ class TestIndex:
             assert "test_index.ind" in f.getnames()
             # Check user/group name attributes
             for attr in ["gname", "uname"]:
-                assert (
-                    f.getmember("test_index.ind").get_info()[attr]
-                    == f.getmember(t.main_file.name).get_info()[attr]
-                )
+                assert not f.getmember("test_index.ind").get_info()[attr]
 
     def test_ind_excl(self, default_args):
         """

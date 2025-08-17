@@ -31,7 +31,4 @@ def test_bib(datadir, tmpdir):
         assert "main_bib.bbl" in f.getnames()
         # Check user/group name attributes
         for attr in ["gname", "uname"]:
-            assert (
-                f.getmember("main_bib.bbl").get_info()[attr]
-                == f.getmember(t.main_file.name).get_info()[attr]
-            )
+            assert not f.getmember("main_bib.bbl").get_info()[attr]
