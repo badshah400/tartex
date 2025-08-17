@@ -484,7 +484,10 @@ class TarTeX:
             # not. That is user error and we simply omit the missing file from
             # tarball with a warning
             try:
-                tar_obj.add(dep)
+                tinfo = tar_obj.gettarinfo(dep)
+                tinfo.uid = tinfo.gid = 0
+                tinfo.uname = tinfo.gname = ""
+                tar_obj.addfile(tinfo, open(dep, "rb"))
             except FileNotFoundError:
                 log.warning(
                     "Skipping INPUT file '%s', not found amongst sources; try"
