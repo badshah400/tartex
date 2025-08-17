@@ -13,7 +13,6 @@ import os
 import re
 import sys
 import tarfile as tar
-import time
 from contextlib import suppress
 from io import BytesIO
 from pathlib import Path
@@ -127,6 +126,7 @@ class TarTeX:
                 log.critical(f"Error: File {self.main_file.name}[.tex|.fls] not found.")
                 sys.exit(1)
 
+        self.mtime = os.path.getmtime(self.main_file.with_suffix(".tex"))
         self.main_pdf = self.main_file.with_suffix(".pdf")
         # Set default tar extension...
         self.tar_ext = TAR_DEFAULT_COMP
@@ -287,6 +287,7 @@ class TarTeX:
                         sty_files=self.args.packages,
                     )
 
+                self.mtime = os.path.getmtime(fls_path)
                 for ext in SUPP_REQ:
                     if app := self._missing_supp(
                         self.main_file.with_suffix(f".{ext}"), compile_dir, deps
@@ -488,15 +489,9 @@ class TarTeX:
         def _tar_add_bytesio(obj, name):
             tinfo = tar_obj.tarinfo(name)
             tinfo.size = len(obj)
-            tinfo.mtime = int(time.time())
-
-            # Copy user/group names from main.tex file
-            tinfo.uname = tar_obj.getmember(
-                self.main_file.with_suffix(".tex").name
-            ).uname
-            tinfo.gname = tar_obj.getmember(
-                self.main_file.with_suffix(".tex").name
-            ).gname
+            tinfo.mtime = self.mtime
+            tinfo.uid = tinfo.gid = 0
+            tinfo.uname = tinfo.gname = ""
             tar_obj.addfile(tinfo, BytesIO(obj))
 
         if self.args.packages:
