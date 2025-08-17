@@ -313,7 +313,7 @@ def parse_args(args):
     parser.add_argument(
         "--with-pdf",
         action="store_true",
-        help="Include the generated/existing output PDF in the tarball."
+        help="add existing/generated final output PDF"
     )
 
     parser.add_argument(
