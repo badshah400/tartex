@@ -126,7 +126,7 @@ class TarTeX:
                 log.critical(f"Error: File {self.main_file.name}[.tex|.fls] not found.")
                 sys.exit(1)
 
-        self.mtime = os.path.getmtime(self.main_file.with_suffix(".tex"))
+        self.mtime: int
         self.main_pdf = self.main_file.with_suffix(".pdf")
         # Set default tar extension...
         self.tar_ext = TAR_DEFAULT_COMP
@@ -301,6 +301,8 @@ class TarTeX:
         else:
             # If .fls exists, this assumes that all INPUT files recorded in it
             # are also included in source dir
+            self.mtime = os.path.getmtime(self.main_file.with_suffix(".fls"))
+
             if self.args.with_pdf:
                 try:
                     with open(self.main_pdf, "rb") as f:
