@@ -288,6 +288,9 @@ class TarTeX:
                     )
 
                 self.mtime = os.path.getmtime(fls_path)
+                self.main_pdf = Path(compile_dir) / self.main_pdf.name
+                if self.args.with_pdf:
+                    log.info("Add contents as BytesIO: %s", self.main_pdf)
                 for ext in SUPP_REQ:
                     if app := self._missing_supp(
                         self.main_file.with_suffix(f".{ext}"), compile_dir, deps
@@ -302,6 +305,7 @@ class TarTeX:
                 try:
                     with open(self.main_pdf, "rb") as f:
                         self.pdf_stream = f.read()
+                        log.info("Add file: %s", self.main_pdf.name)
                 except FileNotFoundError:
                     log.warning(f"Unable to find '{self.main_pdf.name}' in {self.cwd}, skipping...")
                     self.args.with_pdf = False
@@ -505,7 +509,6 @@ class TarTeX:
             log.info("Adding %s as BytesIO object", fpath.name)
             _tar_add_bytesio(byt, fpath.name)
         if self.args.with_pdf:
-            log.info("Adding final pdf as BytesIO object: %s", self.main_pdf.name)
             _tar_add_bytesio(self.pdf_stream, self.main_pdf.name)
 
     def _proc_output_path(self):
@@ -536,9 +539,9 @@ class TarTeX:
     def _print_list(self, ls):
         """helper function to print list of files in a pretty format"""
         idx_width = int(math.log10(len(ls))) + 1
-        for i, f in enumerate(ls):
+        for i, f in enumerate(sorted(ls)):
             richprint(f"{i+1:{idx_width}}. {f}")
-        for r in self.req_supfiles:
+        for r in sorted(self.req_supfiles):
             richprint(f"{'*':>{idx_width + 1}} {r.name}")
         if self.args.packages:
             richprint(f"{'*':>{idx_width + 1}} {self.pkglist_name}")
