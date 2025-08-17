@@ -182,7 +182,7 @@ class TarTeX:
             log.debug(" ".join(excl_lists))
             log.info(
                 "List of excluded files: %s",
-                ", ".join([x.as_posix() for x in self.excl_files]),
+                ", ".join([Path(x).as_posix() for x in self.excl_files]),
             )
 
         self.force_tex = self.args.latexmk_tex
