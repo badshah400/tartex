@@ -127,6 +127,7 @@ class TarTeX:
                 log.critical(f"Error: File {self.main_file.name}[.tex|.fls] not found.")
                 sys.exit(1)
 
+        self.main_pdf = self.main_file.with_suffix(".pdf")
         # Set default tar extension...
         self.tar_ext = TAR_DEFAULT_COMP
         # ..but use specified output's TAR_EXT extension if any...
@@ -274,6 +275,9 @@ class TarTeX:
                     self.force_tex,
                     compile_dir,
                 )
+                if self.args.with_pdf:
+                    with open(fls_path.with_suffix(".pdf"), "rb") as f:
+                        self.pdf_stream = f.read()
 
                 with open(fls_path, encoding="utf-8") as f:
                     deps, pkgs = _latex.fls_input_files(
@@ -293,6 +297,13 @@ class TarTeX:
         else:
             # If .fls exists, this assumes that all INPUT files recorded in it
             # are also included in source dir
+            if self.args.with_pdf:
+                try:
+                    with open(self.main_pdf, "rb") as f:
+                        self.pdf_stream = f.read()
+                except FileNotFoundError:
+                    log.warning(f"Unable to find '{self.main_pdf.name}' in {self.cwd}, skipping...")
+                    self.args.with_pdf = False
             with open(self.main_file.with_suffix(".fls"), encoding="utf8") as f:
                 deps, pkgs = _latex.fls_input_files(
                     f, self.excl_files, AUXFILES, sty_files=self.args.packages
@@ -344,7 +355,10 @@ class TarTeX:
         os.chdir(wdir)
         log.debug("Switching working dir to %s", wdir.as_posix())
         if self.args.list:
-            self._print_list(self.input_files())
+            file_list = self.input_files()
+            if self.args.with_pdf:
+                file_list += [self.main_pdf.name]
+            self._print_list(file_list)
         else:
             try:
                 f = tar.open(full_tar_name, mode=f"x:{self.tar_ext}")
@@ -495,6 +509,9 @@ class TarTeX:
         for fpath, byt in self.req_supfiles.items():
             log.info("Adding %s as BytesIO object", fpath.name)
             _tar_add_bytesio(byt, fpath.name)
+        if self.args.with_pdf:
+            log.info("Adding final pdf as BytesIO object: %s", self.main_pdf.name)
+            _tar_add_bytesio(self.pdf_stream, self.main_pdf.name)
 
     def _proc_output_path(self):
         """
