@@ -495,13 +495,14 @@ class TarTeX:
                     dep,
                 )
 
-        def _tar_add_bytesio(obj, name):
-            tinfo = tar_obj.tarinfo(name)
+        def _tar_add_bytesio(obj, file_name):
+            tinfo = tar_obj.tarinfo(file_name)
             tinfo.size = len(obj)
             tinfo.mtime = self.mtime
             tinfo.uid = tinfo.gid = 0
             tinfo.uname = tinfo.gname = ""
             tar_obj.addfile(tinfo, BytesIO(obj))
+
 
         if self.args.packages:
             log.info(
@@ -515,6 +516,7 @@ class TarTeX:
             _tar_add_bytesio(byt, fpath.name)
         if self.args.with_pdf:
             _tar_add_bytesio(self.pdf_stream, self.main_pdf.name)
+
 
     def _proc_output_path(self):
         """
