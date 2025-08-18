@@ -1,5 +1,14 @@
 # Changelog
 
+## Un-released
+
+## Added
+
+## Fixed
+
+- Clean up tarball if latexmk compilation fails.
+- Improve displayed error messages if latexmk fails.
+
 ## [0.7.0] 2025-08-17
 
 ### Added
