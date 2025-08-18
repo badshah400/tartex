@@ -32,7 +32,7 @@ def tartex_obj(datadir, flsfile):
 def test_fls_main_arg(tartex_obj, flsfile):
     """User passes a .fls filename as input"""
     t = tartex_obj
-    assert t.tar_file.name == flsfile.replace(".fls", ".tar")
+    assert t.tar_file_w_ext.stem == flsfile.replace(".fls", ".tar")
 
 
 def test_fls_main_arg_noext(datadir, flsfile):
@@ -44,8 +44,8 @@ def test_fls_main_arg_noext(datadir, flsfile):
         [str(datadir / flsfile_noext), "-o", str(datadir), "-b"],
     )
     t.tar_files()
-    assert t.tar_file.name == flsfile_noext + ".tar"
-    with tar.open(f"{t.tar_file!s}.{TAR_DEFAULT_COMP}") as f:
+    assert t.tar_file_w_ext.name == f"{flsfile_noext}.tar.{t.tar_ext}"
+    with tar.open(f"{t.tar_file_w_ext}") as f:
         assert len(f.getnames()) == 2
 
 
@@ -56,7 +56,7 @@ def test_fls_missing_bbl(tartex_obj, flsfile):
     """
     tartex_obj.tar_files()
 
-    with tar.open(f"{tartex_obj.tar_file!s}.{TAR_DEFAULT_COMP}") as f:
+    with tar.open(f"{tartex_obj.tar_file_w_ext}") as f:
         assert flsfile.replace(".fls", ".bbl") not in f.getnames()
 
 
@@ -65,5 +65,5 @@ def test_fls_recompile(datadir, flsfile):
     t = TarTeX([str(datadir / flsfile), "-o", str(datadir), "-b", "-F"])
     t.tar_files()
 
-    with tar.open(f"{t.tar_file!s}.{TAR_DEFAULT_COMP}") as f:
+    with tar.open(f"{t.tar_file_w_ext}") as f:
         assert flsfile.replace(".fls", ".bbl") in f.getnames()

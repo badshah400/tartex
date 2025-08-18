@@ -54,7 +54,7 @@ class TestMultiDir:
         t = multidir_tartex_obj
 
         t.tar_files()
-        output = t.tar_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}")
+        output = t.tar_file_w_ext
         assert output.exists()
 
         with tar.open(output, "r") as rat:
@@ -67,4 +67,4 @@ class TestMultiDir:
         t.tar_files()
 
         # Tar file must not be created with "-l"
-        assert not t.tar_file.with_suffix(".tar.{TAR_DEFAULT_COMP}").exists()
+        assert not t.tar_file_w_ext.exists()

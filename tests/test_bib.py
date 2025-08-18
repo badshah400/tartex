@@ -25,7 +25,7 @@ def test_bib(datadir, tmpdir):
         ]
     )
     t.tar_files()
-    with tar.open(t.tar_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}")) as f:
+    with tar.open(t.tar_file_w_ext) as f:
         assert "refs.bib" in f.getnames()  # Check: .bib file is in tarball
         # Check main_bib.bbl file is in tarball even though not in srcdir
         assert "main_bib.bbl" in f.getnames()

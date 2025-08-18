@@ -36,7 +36,7 @@ class TestLatexmkOpts:
         """Check: Automatic processing should use '-pdf'"""
         t = TarTeX(basic_opts)
         t.tar_files()
-        assert t.tar_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}").exists()
+        assert t.tar_file_w_ext.exists()
 
     def test_ps(self, basic_opts):
         """Check: Processing using -ps"""

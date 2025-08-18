@@ -24,7 +24,7 @@ class TestArgs:
     def test_only_file(self, sample_texfile):
         """Test success with one arg: file name"""
         assert sample_texfile.main_file.stem == "some_file"
-        assert sample_texfile.tar_file.name == "some_file.tar"
+        assert sample_texfile.tar_file_w_ext.name == f"some_file.tar.{sample_texfile.tar_ext}"
 
     def test_version(self, capsys, join_linebreaks):
         """Test version string against version from __about.py__"""

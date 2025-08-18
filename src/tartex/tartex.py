@@ -147,10 +147,10 @@ class TarTeX:
             if self.args.output
             else Path(self.main_file.stem).with_suffix(".tar")
         )
-        self.tar_file = self.cwd / tar_base  # returns tar_base when absolute
+        tar_file = self.cwd / tar_base  # returns tar_base when absolute
+        self.tar_file_w_ext = tar_file.with_suffix(f".tar.{self.tar_ext}")
         log.debug(
-            "Output tarball '%s' will be generated",
-            self.tar_file.with_suffix(f".tar.{self.tar_ext}"),
+            "Output tarball '%s' will be generated", self.tar_file_w_ext
         )
 
         self.req_supfiles = {}
@@ -356,7 +356,7 @@ class TarTeX:
         recompile your latex project.
         """
         self.check_main_file_exists()
-        full_tar_name = Path(f"{self.tar_file}.{self.tar_ext}")
+        full_tar_name = Path(f"{self.tar_file_w_ext}")
 
         wdir = self.main_file.resolve().parent
         os.chdir(wdir)

@@ -11,7 +11,7 @@ import os
 
 import pytest
 
-from tartex.tartex import TarTeX
+from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def test_output_default(sample_tex):
     Check correct tar suffix set when output arg ext is not specified
     """
     t = TarTeX([sample_tex, "-o", "main"])
-    assert t.tar_file.name == "main.tar"
+    assert t.tar_file_w_ext.name == f"main.tar.{TAR_DEFAULT_COMP}"
 
 
 def test_output_nontar(sample_tex):
@@ -37,7 +37,7 @@ def test_output_nontar(sample_tex):
     """
     out = "main.foo.bar"
     t = TarTeX([sample_tex, "-o", out])
-    assert t.tar_file.name == out + ".tar"
+    assert t.tar_file_w_ext.name == f"{out}.tar.{TAR_DEFAULT_COMP}"
 
 
 def test_output_gz_eqv(sample_tex):
@@ -50,8 +50,8 @@ def test_output_gz_eqv(sample_tex):
     t2 = TarTeX([*common_opts, out + ".gz"])
     t3 = TarTeX([*common_opts, out + ".tar.gz"])
 
-    assert t1.tar_file == t2.tar_file
-    assert t2.tar_file == t3.tar_file
+    assert t1.tar_file_w_ext == t2.tar_file_w_ext
+    assert t2.tar_file_w_ext == t3.tar_file_w_ext
 
 
 def test_tilde_exp(sample_tex):
@@ -59,4 +59,4 @@ def test_tilde_exp(sample_tex):
     Check that '~' specified for output arg expands to user home
     """
     t = TarTeX([sample_tex, "-o", "~/main.tar.xz"])
-    assert str(t.tar_file) == os.getenv("HOME") + "/main.tar"
+    assert str(t.tar_file_w_ext) == f"{os.getenv('HOME')}/main.tar.{t.tar_ext}"

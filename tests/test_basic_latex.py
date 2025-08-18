@@ -79,7 +79,7 @@ class TestBasicLaTeX:
             ]
         )
         t.tar_files()
-        assert t.tar_file.with_suffix(f".tar.{t.tar_ext}").exists()
+        assert t.tar_file_w_ext.exists()
 
     def test_verbose_debug(self, datadir):
         """
@@ -142,7 +142,7 @@ class TestTarConflict:
         # Monkeypatch empty response for input
         monkeypatch.setattr("rich.prompt.Prompt.ask", lambda _: "o")
         t_con.tar_files()
-        output = t_con.tar_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}")
+        output = t_con.tar_file_w_ext
         assert output.exists() is True
         with tar.open(output) as rat:
             assert len(rat.getnames()) == 1
