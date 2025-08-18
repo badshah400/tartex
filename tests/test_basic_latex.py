@@ -81,6 +81,23 @@ class TestBasicLaTeX:
         t.tar_files()
         assert t.tar_file_w_ext.exists()
 
+    def test_incl_pdf(self, tmpdir, datadir):
+        """
+        Test option `--with-pdf` for inclusion of pdf in tarball
+        """
+        t = TarTeX(
+            [
+                (Path(datadir) / "basic_latex.tex").as_posix(),
+                "--with-pdf",
+                "-o",
+                f"{datadir}/basic_latex_with_pdf.tar.gz"
+            ]
+        )
+        t.tar_files()
+        with tar.open(t.tar_file_w_ext) as f:
+            assert len(f.getnames()) == 2
+            assert t.main_file.with_suffix(".pdf").name in f.getnames()
+
     def test_verbose_debug(self, datadir):
         """
         Test verbose value set by -vv option
