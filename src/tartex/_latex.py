@@ -55,17 +55,19 @@ def run_latexmk(filename, mode, compdir, timeout = 300):
                 timeout=timeout,
             )
     except subprocess.TimeoutExpired:
-        log.critical("Error: latexmk process timed out after %s seconds", timeout)
+        log.critical("Error: %s process timed out after %s seconds", latexmk_bin, timeout)
         sys.exit(1)
     except OSError as err:
         log.critical("%s", err.strerror)
         sys.exit(1)
     except subprocess.CalledProcessError as err:
         log.critical(
-            "Error: %s failed with the following output:\n%s",
+            "Error: %s failed with the following output:\n%s\n%s",
             err.cmd[0],
             err.stdout,
+            "==================================================="
         )
+        log.critical("Command used was: `%s`", " ".join(latexmk_cmd))
         sys.exit(1)
 
     log.info(
