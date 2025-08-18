@@ -67,7 +67,7 @@ def run_latexmk(filename, mode, compdir, timeout = 300):
             err.stdout,
             "==================================================="
         )
-        log.critical("Command used was: `%s`", " ".join(latexmk_cmd))
+        log.critical("Latexmk command used was: `%s`", " ".join(latexmk_cmd))
         raise err
 
     log.info(
