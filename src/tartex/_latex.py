@@ -54,12 +54,12 @@ def run_latexmk(filename, mode, compdir, timeout = 300):
                 check=True,
                 timeout=timeout,
             )
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as e:
         log.critical("Error: %s process timed out after %s seconds", latexmk_bin, timeout)
-        sys.exit(1)
+        raise e
     except OSError as err:
         log.critical("%s", err.strerror)
-        sys.exit(1)
+        raise err
     except subprocess.CalledProcessError as err:
         log.critical(
             "Error: %s failed with the following output:\n%s\n%s",
@@ -68,7 +68,7 @@ def run_latexmk(filename, mode, compdir, timeout = 300):
             "==================================================="
         )
         log.critical("Command used was: `%s`", " ".join(latexmk_cmd))
-        sys.exit(1)
+        raise err
 
     log.info(
         "LaTeX project successfully compiled with: %s", " ".join(latexmk_cmd)

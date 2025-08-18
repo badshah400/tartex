@@ -270,11 +270,19 @@ class TarTeX:
                     f" {self.main_file.parent.as_posix()}"
                 )
                 log.info("LaTeX compile directory: %s", compile_dir)
-                fls_path = _latex.run_latexmk(
-                    self.main_file.with_suffix(".tex"),
-                    self.force_tex,
-                    compile_dir,
-                )
+                try:
+                    fls_path = _latex.run_latexmk(
+                        self.main_file.with_suffix(".tex"),
+                        self.force_tex,
+                        compile_dir,
+                    )
+                except Exception:
+                    # Clean-up after latexmk failure
+                    os.remove(self.tar_file_w_ext)
+                    log.debug("Cleaning up empty tarball after latexmk failure: %s",
+                              self.tar_file_w_ext.relative_to(Path.cwd()))
+                    sys.exit(1)
+
                 if self.args.with_pdf:
                     with open(fls_path.with_suffix(".pdf"), "rb") as f:
                         self.pdf_stream = f.read()
