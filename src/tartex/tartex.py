@@ -128,6 +128,7 @@ class TarTeX:
                 sys.exit(1)
 
         if self.args.git_rev:
+            log.debug("Using `git ls-tree` to determine files to include in tarball")
             try:
                 GR = GitRev(self.main_file.parent, self.args.git_rev or "HEAD")
                 self.files_from_git = GR.ls_tree_files()
@@ -198,7 +199,7 @@ class TarTeX:
             )
 
         self.force_tex = self.args.latexmk_tex
-        if not self.force_tex:
+        if not (self.force_tex or self.args.git_rev):
             # If force_tex is not set by user options,
             # set to ps if source dir contains ps/eps files
             # or to pdf otherwise
@@ -266,9 +267,16 @@ class TarTeX:
     def input_files(self):
         """
         Returns non-system input files needed to compile the main tex file.
-        Will try to compile the main tex file using `latexmk` if it cannot find
-        the fls file in the same dir.
+
+        Input files are directly taken from `git ls-tree -r` if `self.git_rev`
+        is true. In this case, user specified additional files and exclusions
+        are ignored.
+
+        Otherwise, uses `.fls` file, including trying to compile the
+        main tex file using `latexmk` if it cannot find the fls file in the
+        source dir.
         """
+
         if self.args.git_rev:
             return self.files_from_git
         if (
