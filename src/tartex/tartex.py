@@ -132,6 +132,7 @@ class TarTeX:
             try:
                 GR = GitRev(self.main_file.parent, self.args.git_rev or "HEAD")
                 self.files_from_git = GR.ls_tree_files()
+                tar_file_git_tag = f"{GR.id()}.tar"
             except Exception as err:
                 print(err)
                 sys.exit(1)
@@ -156,7 +157,7 @@ class TarTeX:
             Path(f"{self.args.output}.tar")
             if self.args.output else
             Path(
-                f"{self.main_file.stem}{f'-git{GR.short_id()}' if self.args.git_rev else ''}"
+                f"{self.main_file.stem}{f'-{tar_file_git_tag}' if self.args.git_rev else ''}"
             ).with_suffix(".tar")
         )
         tar_file = self.cwd / tar_base  # returns tar_base when absolute

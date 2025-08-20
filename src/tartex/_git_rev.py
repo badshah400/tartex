@@ -4,7 +4,6 @@ import shutil
 import subprocess
 import logging as log
 from pathlib import Path
-import os
 
 
 def _git_cmd(cmd: list[str]) -> list[str]:
@@ -16,7 +15,9 @@ def _git_cmd(cmd: list[str]) -> list[str]:
 
     """
     try:
-        out = subprocess.run(cmd, capture_output=True, encoding="utf-8", check=True)
+        out = subprocess.run(
+            cmd, capture_output=True, encoding="utf-8", check=True
+        )
     except OSError as err:
         log.critical("%s", err.strerror)
         raise err
@@ -25,14 +26,13 @@ def _git_cmd(cmd: list[str]) -> list[str]:
             "Error: %s failed with the following output:\n%s\n%s",
             err.cmd[0],
             err.stdout,
-            "==================================================="
+            "===================================================",
         )
         raise err
     return out.stdout.splitlines()
 
 
-class GitRev():
-
+class GitRev:
     """Class to set up and obtain file list from a git repo"""
 
     def __init__(self, repo: str, rev: str = "HEAD") -> None:
@@ -62,7 +62,7 @@ class GitRev():
                 "--no-color",
                 rev,
             ]
-        )[0].split()[1]
+        )[0]
 
         _files = _git_cmd(
             [
@@ -78,12 +78,29 @@ class GitRev():
 
         self.ls_tree_paths = [Path(f) for f in _files]
 
-    def short_id(self):
-        """Return commit short-id
+        try:
+            self.tag_id: str | None = _git_cmd(
+                [
+                    self.git_bin,
+                    "-C",
+                    self.repo,
+                    "describe",
+                    "--tags",
+                    "--exact-match",
+                    self.rev,
+                ]
+            )[0]
+        except Exception:
+            self.tag_id = None
+
+    def id(self) -> str:
+        """Return either tag name, if commit corresponds to a valid tag, or commit short-id
+        otherwise
+
         :returns: str
 
         """
-        return self.git_commit_id
+        return self.tag_id or f"git{self.git_commit_id.split()[1]}"
 
     def ls_tree_files(self):
         """Get list of files from ls-tree
@@ -91,4 +108,3 @@ class GitRev():
 
         """
         return self.ls_tree_paths
-
