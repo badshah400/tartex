@@ -39,6 +39,9 @@ Source = "https://github.com/badshah400/tartex"
 [tool.hatch.version]
 path = "src/tartex/__about__.py"
 
+[tool.hatch.build.targets.wheel.force-include]
+"man/tartex.1" = "tartex/man/tartex.1"
+
 [tool.hatch.envs.default]
 dependencies = [
   "coverage[toml]>=6.5",
