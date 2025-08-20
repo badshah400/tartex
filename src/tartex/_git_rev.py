@@ -1,0 +1,94 @@
+# vim: set et ai ts=4 sw=4 tw=100:
+
+import shutil
+import subprocess
+import logging as log
+from pathlib import Path
+import os
+
+
+def _git_cmd(cmd: list[str]) -> list[str]:
+    """Run specified cmd and return captured output
+
+    :cmd: git command to run
+    :returns: list of lines from output (list[str])
+    :raises: OSError, subprocess.CalledProcessError
+
+    """
+    try:
+        out = subprocess.run(cmd, capture_output=True, encoding="utf-8", check=True)
+    except OSError as err:
+        log.critical("%s", err.strerror)
+        raise err
+    except subprocess.CalledProcessError as err:
+        log.critical(
+            "Error: %s failed with the following output:\n%s\n%s",
+            err.cmd[0],
+            err.stdout,
+            "==================================================="
+        )
+        raise err
+    return out.stdout.splitlines()
+
+
+class GitRev():
+
+    """Class to set up and obtain file list from a git repo"""
+
+    def __init__(self, repo: str, rev: str = "HEAD") -> None:
+        """Initialise GitRev class
+
+        :repo: dir containing a git repo (str)
+        :rev: a valid git revision (str), default: "HEAD"
+
+        """
+        self.repo: str = repo
+        self.rev: str = rev
+        self.git_bin = shutil.which("git")
+        if not self.git_bin:
+            raise RuntimeError("Unable to find git executable in PATH")
+        # The first line of the commit is something like the following:
+        # ```
+        # commit SHORT_ID
+        # ```
+        self.git_commit_id = _git_cmd(
+            [
+                self.git_bin,
+                "-C",
+                self.repo,
+                "show",
+                "--abbrev-commit",
+                "--no-patch",
+                "--no-color",
+                rev,
+            ]
+        )[0].split()[1]
+
+        _files = _git_cmd(
+            [
+                self.git_bin,
+                "-C",
+                self.repo,
+                "ls-tree",
+                "-r",
+                "--name-only",
+                self.rev,
+            ]
+        )
+
+        self.ls_tree_paths = [Path(f) for f in _files]
+
+    def short_id(self):
+        """Return commit short-id
+        :returns: str
+
+        """
+        return self.git_commit_id
+
+    def ls_tree_files(self):
+        """Get list of files from ls-tree
+        :returns: dict[Path]
+
+        """
+        return self.ls_tree_paths
+

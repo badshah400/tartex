@@ -23,6 +23,7 @@ from rich.prompt import Prompt
 
 from tartex import _latex
 from tartex._parse_args import parse_args
+from tartex._git_rev import GitRev
 
 # Auxilliary file extensions to ignore
 # taken from latexmk manual:
@@ -126,6 +127,14 @@ class TarTeX:
                 log.critical(f"Error: File {self.main_file.name}[.tex|.fls] not found.")
                 sys.exit(1)
 
+        if self.args.git_rev:
+            try:
+                GR = GitRev(self.main_file.parent, self.args.git_rev or "HEAD")
+                self.files_from_git = GR.ls_tree_files()
+            except Exception as err:
+                print(err)
+                sys.exit(1)
+
         self.mtime: int
         self.main_pdf = self.main_file.with_suffix(".pdf")
         # Set default tar extension...
@@ -148,7 +157,11 @@ class TarTeX:
             else Path(self.main_file.stem).with_suffix(".tar")
         )
         tar_file = self.cwd / tar_base  # returns tar_base when absolute
-        self.tar_file_w_ext = tar_file.with_suffix(f".tar.{self.tar_ext}")
+
+        # Append a ".git<SHORT_ID>" tag to tarball file name if using `--git-rev`
+        self.tar_file_w_ext = tar_file.with_suffix(
+            f"{f'-git{GR.short_id()}' if self.args.git_rev else ''}.tar.{self.tar_ext}"
+        )
         log.debug(
             "Output tarball '%s' will be generated", self.tar_file_w_ext
         )
@@ -258,6 +271,8 @@ class TarTeX:
         Will try to compile the main tex file using `latexmk` if it cannot find
         the fls file in the same dir.
         """
+        if self.args.git_rev:
+            return self.files_from_git
         if (
             not self.main_file.with_suffix(".fls").exists()
             or self.args.force_recompile

@@ -271,6 +271,15 @@ def parse_args(args):
     )
 
     parser.add_argument(
+        "-g",
+        "--git-rev",
+        metavar="[REV]",
+        type=str,
+        help=("add files in git tree at revision REV (default: HEAD)"),
+        default="",
+    )
+
+    parser.add_argument(
         "-l",
         "--list",
         "--dry-run",
