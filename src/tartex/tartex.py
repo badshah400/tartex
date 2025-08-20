@@ -153,15 +153,13 @@ class TarTeX:
 
         tar_base = (
             Path(f"{self.args.output}.tar")
-            if self.args.output
-            else Path(self.main_file.stem).with_suffix(".tar")
+            if self.args.output else
+            Path(
+                f"{self.main_file.stem}{f'-git{GR.short_id()}' if self.args.git_rev else ''}"
+            ).with_suffix(".tar")
         )
         tar_file = self.cwd / tar_base  # returns tar_base when absolute
-
-        # Append a ".git<SHORT_ID>" tag to tarball file name if using `--git-rev`
-        self.tar_file_w_ext = tar_file.with_suffix(
-            f"{f'-git{GR.short_id()}' if self.args.git_rev else ''}.tar.{self.tar_ext}"
-        )
+        self.tar_file_w_ext = tar_file.with_suffix(f".tar.{self.tar_ext}")
         log.debug(
             "Output tarball '%s' will be generated", self.tar_file_w_ext
         )
