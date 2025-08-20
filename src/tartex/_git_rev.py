@@ -42,7 +42,7 @@ class GitRev():
         :rev: a valid git revision (str), default: "HEAD"
 
         """
-        self.repo: str = repo
+        self.repo: str = str(repo)
         self.rev: str = rev
         self.git_bin = shutil.which("git")
         if not self.git_bin:
