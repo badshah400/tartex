@@ -67,7 +67,7 @@ class GitRev:
         :returns: str
 
         """
-        return self.tag_id or f"git{self.git_commit_id.split()[1]}"
+        return self.tag_id or f"git.{self.git_commit_id.split()[1]}"
 
     def ls_tree_files(self):
         """Get list of files from ls-tree
