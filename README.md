@@ -29,6 +29,7 @@ elsewhere.
 * Handy options to allow edge cases.
 * Native TAB-completion for common interactive shells: bash, fish, and zsh (help welcome for others).
 * Options to add/excl extra files, do dry runs, print verbose logging, and summaries.
+* Option to process and add files from specified `git` revision.
 
 ## Installation
 
@@ -66,7 +67,7 @@ Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 usage: tartex [OPTIONS] FILENAME
 
 Build a tarball including all source files needed to compile your LaTeX project
-(version 0.7.0).
+(version 0.7.1dev).
 
 positional arguments:
   FILENAME                 input file name [.tex|.fls] (with or without suffix)
@@ -77,6 +78,8 @@ options:
   -a, --add=PATTERNS       include additional files matching glob-style
                            PATTERN; separate multiple PATTERNS using commas
   -b, --bib                find and add bib file to tarball
+  -g, --git-rev=[REV]      add files in git tree at revision REV (default:
+                           HEAD)
   -l, --list, --dry-run    print list of files to include and quit
   -o, --output=NAME[.EXT]  output tar file name; tar compression mode will be
                            inferred from .EXT, if possible (default 'gz')
@@ -117,6 +120,25 @@ latexmk -f -<texmode> -cd -outdir=<tmpdir> -interaction=nonstopmode filename
 `texmode` is one of `pdf` or `ps` by default, as detemined from the contents of
 the source dir. It may be overridden by the `--latexmk-tex` option.
 
+### Behavior with `--git-rev`
+
+When you specify a Git revision (via `--git-rev`), tartex _only_ includes files
+that are tracked by Git at _that revision_. This means:
+
+- Files ignored by `.gitignore` (e.g. `*.aux`, `*.log`, build artifacts, temp files)
+  are automatically excluded, since they are not tracked by Git.
+- You don’t need to maintain a separate exclude list, the Git tree is the source
+  of truth.
+- The tarball will exactly reflect the state of the project at the chosen revision,
+  ensuring reproducibility.
+- Unless the output tar filename is explicitly specified by the user (via
+  `-o`/`--output`), a git short-ref or tag-id will be appended to it. For example,
+  `main-git.a97023f.tar.gz` corresponding to a git rev short-ref of `a97023f`. If
+  the specified revision points to a tag, the tarfile is named `main-<TAG>.tar.gz`. 
+
+__Note__: When running without `--git-rev`, tartex applies its own LaTeX-aware
+exclusion rules (e.g. skipping `.aux`, `.log`, `.fdb_latexmk`), to avoid including
+ephemeral build files in your archive.
 
 ## License
 

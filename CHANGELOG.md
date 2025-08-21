@@ -4,6 +4,9 @@
 
 ## Added
 
+- Option `--git-rev=REV` to process and add tracked files from git repo at revision `REV`
+  (defaults to `HEAD`).
+ 
 ## Fixed
 
 - Clean up tarball if latexmk compilation fails.
