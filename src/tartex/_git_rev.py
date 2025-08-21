@@ -6,31 +6,6 @@ import logging as log
 from pathlib import Path
 
 
-def _git_cmd(cmd: list[str]) -> list[str]:
-    """Run specified cmd and return captured output
-
-    :cmd: git command to run
-    :returns: list of lines from output (list[str])
-    :raises: OSError, subprocess.CalledProcessError
-
-    """
-    try:
-        out = subprocess.run(
-            cmd, capture_output=True, encoding="utf-8", check=True
-        )
-    except OSError as err:
-        log.critical("%s", err.strerror)
-        raise err
-    except subprocess.CalledProcessError as err:
-        log.critical(
-            "Error: %s failed with the following output:\n%s\n%s",
-            err.cmd[0],
-            err.stdout,
-            "===================================================",
-        )
-        raise err
-    return out.stdout.splitlines()
-
 
 class GitRev:
     """Class to set up and obtain file list from a git repo"""
@@ -51,11 +26,8 @@ class GitRev:
         # ```
         # commit SHORT_ID
         # ```
-        self.git_commit_id = _git_cmd(
+        self.git_commit_id = self._git_cmd(
             [
-                self.git_bin,
-                "-C",
-                self.repo,
                 "show",
                 "--abbrev-commit",
                 "--no-patch",
@@ -64,11 +36,8 @@ class GitRev:
             ]
         )[0]
 
-        _files = _git_cmd(
+        _files = self._git_cmd(
             [
-                self.git_bin,
-                "-C",
-                self.repo,
                 "ls-tree",
                 "-r",
                 "--name-only",
@@ -78,12 +47,10 @@ class GitRev:
 
         self.ls_tree_paths = [Path(f) for f in _files]
 
+        self.tag_id: str | None
         try:
-            self.tag_id: str | None = _git_cmd(
+            self.tag_id = self._git_cmd(
                 [
-                    self.git_bin,
-                    "-C",
-                    self.repo,
                     "describe",
                     "--tags",
                     "--exact-match",
@@ -108,3 +75,31 @@ class GitRev:
 
         """
         return self.ls_tree_paths
+
+    def _git_cmd(self, cmd: list[str]) -> list[str]:
+        """Run specified cmd and return captured output
+
+        :cmd: git command to run (list[str])
+        :returns: list of lines from output (list[str])
+        :raises: OSError, subprocess.CalledProcessError
+
+        """
+
+        git_comm = [f"{self.git_bin!s}", "-C", f"{self.repo!s}"] + cmd
+        try:
+            out = subprocess.run(
+                git_comm, capture_output=True, encoding="utf-8", check=True
+            )
+        except OSError as err:
+            log.critical("%s", err.strerror)
+            raise err
+        except subprocess.CalledProcessError as err:
+            log.critical(
+                "Error: %s failed with the following output:\n%s\n%s",
+                err.cmd[0],
+                err.stdout,
+                "===================================================",
+            )
+            raise err
+        return out.stdout.splitlines()
+
