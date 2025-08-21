@@ -7,6 +7,14 @@ from pathlib import Path
 from contextlib import contextmanager
 
 
+# This is a context manager that modifies the user's git working tree in place, i.e., it checks out
+# the specified revision (if valid) in a `--detached` mode, yields for work to be done on the
+# working tree in this detached checkout mode, and cleans up by restoring the branch HEAD.
+#
+# While useful, this might lead to race effects if the user manages to change any files in the
+# repository while the context manager is active. Instead, consider switching to using pure git refs
+# from `ls-tree --long` and getting binary data from the refs using `git cat-file`. This approach
+# will avoid modifying anything in the user dir at all.
 @contextmanager
 def git_checkout(git_bin: str, repo: str, rev: str):
     """
