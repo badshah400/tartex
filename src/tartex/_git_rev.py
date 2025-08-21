@@ -49,6 +49,15 @@ def git_checkout(git_bin: str, repo: str, rev: str):
                 log.debug("Git: %s", line)
 
 
+def _get_short_ref(git_bin, repo, rev):
+    return subprocess.run(
+        [git_bin, "-C", repo, "rev-parse", "--short", rev],
+        capture_output=True,
+        encoding="utf-8",
+        check=True,
+    ).stdout.splitlines()[0]
+
+
 class GitRev:
     """Class to set up and obtain file list from a git repo"""
 
