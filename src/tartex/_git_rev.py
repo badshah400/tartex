@@ -20,7 +20,10 @@ def git_checkout(git_bin: str, repo: str, rev: str):
         capture_output=True,
         encoding="utf-8",
         check=True,
-    ).stderr
+    )
+    log.info("Checking out git revision %s in detached mode", rev)
+    for line in proc.stderr.splitlines():
+        log.debug("Git: %s", line)
 
     # Git's first line in stdout follows the format:
     # "Previous HEAD position was XXXXXXX ..." (if current_rev != target_rev)
@@ -28,15 +31,22 @@ def git_checkout(git_bin: str, repo: str, rev: str):
     # "HEAD is now at XXXXXXX..." (current_rev == target_rev) 
     # or even
     # "Already on XXXXXXX" (branch names)
-    init_rev: str | None = None
     try:
-        init_rev = proc.splitlines()[0].split()[4]
+        init_rev = proc.stderr.splitlines()[0].split()[4]
         yield init_rev
     except IndexError:
-        yield init_rev
+        yield
     finally:
         if init_rev:
-            subprocess.run([git_bin, "-C", repo, "checkout", init_rev])
+            subprocess.run(
+                [git_bin, "-C", repo, "checkout", init_rev],
+                capture_output=True,
+                encoding="utf-8",
+                check=True,
+            )
+            log.info("Restoring git working tree to rev %s", init_rev)
+            for line in proc.stderr.splitlines():
+                log.debug("Git: %s", line)
 
 
 class GitRev:
