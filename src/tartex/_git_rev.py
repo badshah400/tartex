@@ -14,44 +14,50 @@ def git_checkout(git_bin: str, repo: str, rev: str):
     afterwards
     """
 
-    # Note: git prints checkout msgs to stderr, not stdout
-    proc = subprocess.run(
-        [git_bin, "-C", repo, "checkout", "--detach", rev],
-        capture_output=True,
-        encoding="utf-8",
-        check=True,
-    )
-    log.info("Checking out git revision %s in detached mode", rev)
-    for line in proc.stderr.splitlines():
-        log.debug("Git: %s", line)
-
-    # Git's first line in stdout follows the format:
-    # "Previous HEAD position was XXXXXXX ..." (if current_rev != target_rev)
-    # or
-    # "HEAD is now at XXXXXXX..." (current_rev == target_rev) 
-    # or even
-    # "Already on XXXXXXX" (branch names)
+    head_full_ref = _get_ref(git_bin, repo, "HEAD")
+    head_short_ref = head_full_ref[:7]
     try:
-        init_rev = proc.stderr.splitlines()[0].split()[4]
-        yield init_rev
-    except IndexError:
-        yield
-    finally:
-        if init_rev:
-            subprocess.run(
-                [git_bin, "-C", repo, "checkout", init_rev],
+        rev_full_ref = _get_ref(git_bin, repo, rev)
+        rev_short_ref = rev_full_ref[:7]
+    except subprocess.CalledProcessError as err:  # typically for invalid rev
+        log.critical("Failed to checkout revision %s; invalid git revision?", rev)
+        log.critical("Git: %s", err.stderr.strip())
+        raise err
+
+    if head_full_ref != rev_full_ref:
+        try:
+            # Note: git prints checkout msgs to stderr, not stdout
+            rev_proc = subprocess.run(
+                [git_bin, "-C", repo, "checkout", "--detach", rev],
                 capture_output=True,
                 encoding="utf-8",
                 check=True,
             )
-            log.info("Restoring git working tree to rev %s", init_rev)
-            for line in proc.stderr.splitlines():
+            log.info("Checking out git revision %s in detached mode", rev)
+            for line in rev_proc.stderr.splitlines():
                 log.debug("Git: %s", line)
 
+            yield rev_short_ref
+        finally:
+            head_proc = subprocess.run(
+                [git_bin, "-C", repo, "checkout", "-f", head_full_ref],
+                capture_output=True,
+                encoding="utf-8",
+                check=True,
+            )
+            log.info("Restoring git working tree to rev %s", head_short_ref)
+            for line in head_proc.stderr.splitlines():
+                log.debug("Git: %s", line)
+    else:
+        log.debug("Using current git working tree at %s", head_short_ref)
+        yield rev_short_ref
 
-def _get_short_ref(git_bin, repo, rev):
+
+def _get_ref(git_bin, repo, rev):
+    """Returns the full ref for a given git revision `rev` in a git `repo`"""
+
     return subprocess.run(
-        [git_bin, "-C", repo, "rev-parse", "--short", rev],
+        [git_bin, "-C", repo, "rev-parse", rev],
         capture_output=True,
         encoding="utf-8",
         check=True,
@@ -73,7 +79,6 @@ class GitRev:
         self.git_bin = shutil.which("git")
         if not self.git_bin:
             raise RuntimeError("Unable to find git executable in PATH")
-
 
     def id(self) -> str:
         """Return either tag name, if commit corresponds to a valid tag, or commit short-id
