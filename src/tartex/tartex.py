@@ -133,7 +133,7 @@ class TarTeX:
                 GR = GitRev(self.main_file.parent, self.args.git_rev or "HEAD")
                 with git_checkout(GR.git_bin, GR.repo, GR.rev):
                     self.files_from_git = GR.ls_tree_files()
-                tar_file_git_tag = f"{GR.id()}.tar"
+                    tar_file_git_tag = f"{GR.id()}.tar"
             except Exception as err:
                 print(err)
                 sys.exit(1)

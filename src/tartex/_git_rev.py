@@ -4,7 +4,6 @@ import shutil
 import subprocess
 import logging as log
 from pathlib import Path
-
 from contextlib import contextmanager
 
 
@@ -55,6 +54,15 @@ class GitRev:
         self.git_bin = shutil.which("git")
         if not self.git_bin:
             raise RuntimeError("Unable to find git executable in PATH")
+
+
+    def id(self) -> str:
+        """Return either tag name, if commit corresponds to a valid tag, or commit short-id
+        otherwise
+
+        :returns: str
+
+        """
         # The first line of the commit is something like the following:
         # ```
         # commit SHORT_ID
@@ -65,20 +73,9 @@ class GitRev:
                 "--abbrev-commit",
                 "--no-patch",
                 "--no-color",
-                rev,
-            ]
-        )[0]
-
-        _files = self._git_cmd(
-            [
-                "ls-tree",
-                "-r",
-                "--name-only",
                 self.rev,
             ]
-        )
-
-        self.ls_tree_paths = [Path(f) for f in _files]
+        )[0]
 
         self.tag_id: str | None
         try:
@@ -93,13 +90,6 @@ class GitRev:
         except Exception:
             self.tag_id = None
 
-    def id(self) -> str:
-        """Return either tag name, if commit corresponds to a valid tag, or commit short-id
-        otherwise
-
-        :returns: str
-
-        """
         return self.tag_id or f"git.{self.git_commit_id.split()[1]}"
 
     def ls_tree_files(self):
@@ -107,6 +97,17 @@ class GitRev:
         :returns: dict[Path]
 
         """
+        _files = self._git_cmd(
+            [
+                "ls-tree",
+                "-r",
+                "--name-only",
+                self.rev,
+            ]
+        )
+
+        self.ls_tree_paths = [Path(f) for f in _files]
+
         return self.ls_tree_paths
 
     def _git_cmd(self, cmd: list[str]) -> list[str]:
