@@ -5,6 +5,39 @@ import subprocess
 import logging as log
 from pathlib import Path
 
+from contextlib import contextmanager
+
+
+@contextmanager
+def git_checkout(git_bin: str, repo: str, rev: str):
+    """
+    A context manager for git checkout that checks out `rev` and restores previous working tree
+    afterwards
+    """
+
+    # Note: git prints checkout msgs to stderr, not stdout
+    proc = subprocess.run(
+        [git_bin, "-C", repo, "checkout", "--detach", rev],
+        capture_output=True,
+        encoding="utf-8",
+        check=True,
+    ).stderr
+
+    # Git's first line in stdout follows the format:
+    # "Previous HEAD position was XXXXXXX ..." (if current_rev != target_rev)
+    # or
+    # "HEAD is now at XXXXXXX..." (current_rev == target_rev) 
+    # or even
+    # "Already on XXXXXXX" (branch names)
+    init_rev: str | None = None
+    try:
+        init_rev = proc.splitlines()[0].split()[4]
+        yield init_rev
+    except IndexError:
+        yield init_rev
+    finally:
+        if init_rev:
+            subprocess.run([git_bin, "-C", repo, "checkout", init_rev])
 
 
 class GitRev:
@@ -102,4 +135,3 @@ class GitRev:
             )
             raise err
         return out.stdout.splitlines()
-

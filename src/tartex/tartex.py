@@ -23,7 +23,7 @@ from rich.prompt import Prompt
 
 from tartex import _latex
 from tartex._parse_args import parse_args
-from tartex._git_rev import GitRev
+from tartex._git_rev import GitRev, git_checkout
 
 # Auxilliary file extensions to ignore
 # taken from latexmk manual:
@@ -131,7 +131,8 @@ class TarTeX:
             log.debug("Using `git ls-tree` to determine files to include in tarball")
             try:
                 GR = GitRev(self.main_file.parent, self.args.git_rev or "HEAD")
-                self.files_from_git = GR.ls_tree_files()
+                with git_checkout(GR.git_bin, GR.repo, GR.rev):
+                    self.files_from_git = GR.ls_tree_files()
                 tar_file_git_tag = f"{GR.id()}.tar"
             except Exception as err:
                 print(err)
