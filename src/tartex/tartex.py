@@ -86,7 +86,7 @@ def _summary_msg(nfiles, tarname=None):
 
     if tarname:
         richprint(
-            f"[cyan]Summary: [bold]{tarname}[/] generated with"
+            f"[cyan]Summary: 📦 [bold]{tarname}[/] generated with"
             f" {_num_tag(nfiles)}.[/]"
         )
     else:
