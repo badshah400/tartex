@@ -276,7 +276,7 @@ def parse_args(args):
         metavar="REV",
         type=str,
         nargs="?",
-        help=("add files in git tree at revision REV (default: HEAD)"),
+        help=("add git tree files at revision REV (default: HEAD)"),
         default="",  # used when `-g`/`--git-rev` is not used
         const="HEAD",  # used when `-g`/`--git-rev` is used with empty param
     )
