@@ -33,6 +33,7 @@ def git_checkout(git_bin: str, repo: str, rev: str):
         raise err
 
     if head_full_ref != rev_full_ref:
+        log_tgt_rev = rev if rev == rev_short_ref else f"{rev} (commit {rev_short_ref})"
         try:
             # Note: git prints checkout msgs to stderr, not stdout
             rev_proc = subprocess.run(
@@ -42,7 +43,6 @@ def git_checkout(git_bin: str, repo: str, rev: str):
                 check=True,
             )
 
-            log_tgt_rev = rev if rev == rev_short_ref else f"{rev} (@commit {rev_short_ref})"
             log.info("Checking out git revision %s in detached mode", log_tgt_rev)
             for line in rev_proc.stderr.splitlines():
                 log.debug("Git: %s", line)
@@ -50,7 +50,7 @@ def git_checkout(git_bin: str, repo: str, rev: str):
             yield rev_short_ref
 
         except subprocess.CalledProcessError as err:
-            log.critical("Failed to checkout git revision %s", rev)
+            log.critical("Failed to checkout git revision %s", log_tgt_rev)
             for line in err.stderr.splitlines():
                 log.critical("Git: %s", line)
             raise err
