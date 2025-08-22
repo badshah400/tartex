@@ -139,6 +139,7 @@ class TarTeX:
 
         self.mtime: int
         self.main_pdf = self.main_file.with_suffix(".pdf")
+        self.pdf_stream = None
         # Set default tar extension...
         self.tar_ext = TAR_DEFAULT_COMP
         # ..but use specified output's TAR_EXT extension if any...
@@ -546,7 +547,7 @@ class TarTeX:
         for fpath, byt in self.req_supfiles.items():
             log.info("Adding %s as BytesIO object", fpath.name)
             _tar_add_bytesio(byt, fpath.name)
-        if self.args.with_pdf:
+        if self.pdf_stream:
             _tar_add_bytesio(self.pdf_stream, self.main_pdf.name)
 
 
