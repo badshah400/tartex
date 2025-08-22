@@ -42,7 +42,8 @@ def git_checkout(git_bin: str, repo: str, rev: str):
                 check=True,
             )
 
-            log.info("Checking out git revision %s in detached mode", rev)
+            log_tgt_rev = rev if rev == rev_short_ref else f"{rev} (@commit {rev_short_ref})"
+            log.info("Checking out git revision %s in detached mode", log_tgt_rev)
             for line in rev_proc.stderr.splitlines():
                 log.debug("Git: %s", line)
 
@@ -60,11 +61,18 @@ def git_checkout(git_bin: str, repo: str, rev: str):
             encoding="utf-8",
             check=True,
         )
-        log.info("Restoring git working tree to rev %s", head_short_ref)
+        log.info("Restoring git working tree to revision %s", head_short_ref)
         for line in head_proc.stderr.splitlines():
             log.debug("Git: %s", line)
     else:
-        log.debug("Using current git working tree at %s", head_short_ref)
+        check_clean_git_tree = subprocess.run(
+            [git_bin, "-C", repo, "status", "--porcelain", "--untracked-files=no"],
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+        )
+        log_msg_tree = "(unclean)" if check_clean_git_tree.stdout else f"at {head_short_ref}"
+        log.info("Using current working tree %s", log_msg_tree)
         yield rev_short_ref
 
 
