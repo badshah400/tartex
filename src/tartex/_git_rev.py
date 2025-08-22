@@ -114,15 +114,21 @@ class GitRev:
         # ```
         # commit SHORT_ID
         # ```
-        self.git_commit_id = self._git_cmd(
-            [
-                "show",
-                "--abbrev-commit",
-                "--no-patch",
-                "--no-color",
-                self.rev,
-            ]
-        )[0]
+        try:
+            self.git_commit_id = self._git_cmd(
+                [
+                    "show",
+                    "--abbrev-commit",
+                    "--no-patch",
+                    "--no-color",
+                    self.rev,
+                ]
+            )[0]
+
+        except subprocess.CalledProcessError as err:
+            for line in err.stderr.splitlines():
+                log.critical("Git: %s", line)
+            raise err
 
         self.tag_id: str | None
         try:
@@ -134,7 +140,9 @@ class GitRev:
                     self.rev,
                 ]
             )[0]
-        except Exception:
+        except subprocess.CalledProcessError as err:
+            for line in err.stderr.splitlines():
+                log.debug("Git: %s", line)
             self.tag_id = None
 
         return self.tag_id or f"git.{self.git_commit_id.split()[1]}"
@@ -144,16 +152,19 @@ class GitRev:
         :returns: dict[Path]
 
         """
-        _files = self._git_cmd(
-            [
-                "ls-tree",
-                "-r",
-                "--name-only",
-                self.rev,
-            ]
-        )
+        try:
+            _files = self._git_cmd(
+                [
+                    "ls-tree",
+                    "-r",
+                    "--name-only",
+                    self.rev,
+                ]
+            )
+            self.ls_tree_paths = [Path(f) for f in _files]
 
-        self.ls_tree_paths = [Path(f) for f in _files]
+        except (OSError, subprocess.CalledProcessError):
+            self.ls_tree_paths = []
 
         return self.ls_tree_paths
 
@@ -166,20 +177,11 @@ class GitRev:
 
         """
 
-        git_comm = [f"{self.git_bin!s}", "-C", f"{self.repo!s}"] + cmd
+        git_comm: list[str] = [self.git_bin if self.git_bin else "git", "-C", self.repo] + cmd
         try:
             out = subprocess.run(
                 git_comm, capture_output=True, encoding="utf-8", check=True
             )
-        except OSError as err:
-            log.critical("%s", err.strerror)
-            raise err
-        except subprocess.CalledProcessError as err:
-            log.critical(
-                "Error: %s failed with the following output:\n%s\n%s",
-                err.cmd[0],
-                err.stdout,
-                "===================================================",
-            )
+        except (OSError, subprocess.CalledProcessError) as err:
             raise err
         return out.stdout.splitlines()
