@@ -577,11 +577,14 @@ class TarTeX:
         """helper function to print list of files in a pretty format"""
         idx_width = int(math.log10(len(ls))) + 1
         for i, f in enumerate(sorted(ls)):
-            richprint(f"{i+1:{idx_width}}. {f}")
+            richprint(f"{i+1:{idx_width}}.", end=" ")
+            print(f)
         for r in sorted(self.req_supfiles):
-            richprint(f"{'*':>{idx_width + 1}} {r.name}")
+            richprint(f"{'*':>{idx_width + 1}}", end=" ")
+            print(f"{r.name}")
         if self.args.packages:
-            richprint(f"{'*':>{idx_width + 1}} {self.pkglist_name}")
+            richprint(f"{'*':>{idx_width + 1}}", end=" ")
+            print(f"{self.pkglist_name}")
         if self.args.summary:
             _summary_msg(
                 len(ls) + len(self.req_supfiles) + (1 if self.pkglist else 0)
