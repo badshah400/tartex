@@ -192,7 +192,7 @@ class TarTeX:
                 ]
             )
 
-        if self.excl_files:
+        if self.excl_files and not self.args.git_rev:
             log.debug(" ".join(excl_lists))
             log.info(
                 "List of excluded files: %s",
@@ -223,6 +223,8 @@ class TarTeX:
         if they exist
         """
         lof = []
+        if self.args.git_rev:
+            return lof
         for fpatt in self.add_files:
             afiles = list(self.main_file.parent.glob(fpatt))
             if not afiles:
