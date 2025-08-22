@@ -579,7 +579,6 @@ class TarTeX:
     def _print_list(self, ls):
         """helper function to print list of files in a pretty format"""
         idx_width = int(math.log10(len(ls))) + 1
-        print(ls)
         for i, f in enumerate(sorted([str(i) for i in ls])):
             richprint(f"{i+1:{idx_width}}.", end=" ")
             print(f)
