@@ -41,21 +41,28 @@ def git_checkout(git_bin: str, repo: str, rev: str):
                 encoding="utf-8",
                 check=True,
             )
+
             log.info("Checking out git revision %s in detached mode", rev)
             for line in rev_proc.stderr.splitlines():
                 log.debug("Git: %s", line)
 
             yield rev_short_ref
-        finally:
-            head_proc = subprocess.run(
-                [git_bin, "-C", repo, "checkout", "-f", head_full_ref],
-                capture_output=True,
-                encoding="utf-8",
-                check=True,
-            )
-            log.info("Restoring git working tree to rev %s", head_short_ref)
-            for line in head_proc.stderr.splitlines():
-                log.debug("Git: %s", line)
+
+        except subprocess.CalledProcessError as err:
+            log.critical("Failed to checkout git revision %s", rev)
+            for line in err.stderr.splitlines():
+                log.critical("Git: %s", line)
+            raise err
+
+        head_proc = subprocess.run(
+            [git_bin, "-C", repo, "checkout", "-f", head_full_ref],
+            capture_output=True,
+            encoding="utf-8",
+            check=True,
+        )
+        log.info("Restoring git working tree to rev %s", head_short_ref)
+        for line in head_proc.stderr.splitlines():
+            log.debug("Git: %s", line)
     else:
         log.debug("Using current git working tree at %s", head_short_ref)
         yield rev_short_ref
