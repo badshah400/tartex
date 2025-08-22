@@ -1,6 +1,8 @@
 ## App features
 
 - Option to flatten sources when adding to tarball (e.g., for [arXiv.org](https://arxiv.org/) submissions).
+- Handling very large working repositories: `git checkout` may be too slow in these cases.
+- Handling git projects with submodules?
 
 ## Documentation and miscellaneous
 
