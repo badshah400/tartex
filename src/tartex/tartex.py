@@ -396,7 +396,7 @@ class TarTeX:
         log.debug("Switching working dir to %s", wdir.as_posix())
         if self.args.list:
             file_list = self.input_files()
-            if self.args.with_pdf:
+            if self.pdf_stream:
                 file_list += [self.main_pdf.name]
             self._print_list(file_list)
         else:
@@ -579,7 +579,8 @@ class TarTeX:
     def _print_list(self, ls):
         """helper function to print list of files in a pretty format"""
         idx_width = int(math.log10(len(ls))) + 1
-        for i, f in enumerate(sorted(ls)):
+        print(ls)
+        for i, f in enumerate(sorted([str(i) for i in ls])):
             richprint(f"{i+1:{idx_width}}.", end=" ")
             print(f)
         for r in sorted(self.req_supfiles):
