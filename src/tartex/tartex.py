@@ -86,11 +86,11 @@ def _summary_msg(nfiles, tarname=None):
 
     if tarname:
         richprint(
-            f"[cyan]Summary: 📦 [bold]{tarname}[/] generated with"
+            f"[cyan]Summary: :package: [bold]{tarname}[/] generated with"
             f" {_num_tag(nfiles)}.[/]"
         )
     else:
-        richprint(f"[cyan]Summary: 🗒️  {_num_tag(nfiles)} to include.[/]")
+        richprint(f"[cyan]Summary: :clipboard: {_num_tag(nfiles)} to include.[/]")
 
 
 class TarTeX:
