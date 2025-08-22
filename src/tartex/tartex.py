@@ -90,7 +90,7 @@ def _summary_msg(nfiles, tarname=None):
             f" {_num_tag(nfiles)}.[/]"
         )
     else:
-        richprint(f"[cyan]Summary: {_num_tag(nfiles)} to include.[/]")
+        richprint(f"[cyan]Summary: 🗒️  {_num_tag(nfiles)} to include.[/]")
 
 
 class TarTeX:
