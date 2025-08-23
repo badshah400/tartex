@@ -461,20 +461,26 @@ class TarTeX:
         elif owr.lower() == "c":
             new_name = Path(
                 Prompt.ask("Enter [bold]new name[/bold] for tar file")
-            )
+            ).expanduser()
             new_ext = new_name.suffix.lstrip(".")
             if new_ext in TAR_EXT:
                 self.tar_ext = new_ext
-            new_path = (
-                self.cwd
-                / (
-                    new_name
-                    if new_ext in TAR_EXT
-                    else new_name.with_name(
-                        f"{strip_tarext(new_name.name)}.tar.{self.tar_ext}"
+            new_path = (self.cwd / new_name).resolve()
+            if new_path.is_dir():
+                new_path = new_path / self.tar_file_w_ext.name
+            else:
+                new_path = (
+                    self.cwd
+                    / (
+                        new_name
+                        if new_ext in TAR_EXT
+                        else new_name.with_name(
+                            f"{strip_tarext(Path(new_name.name))}.tar.{self.tar_ext}"
+                        )
                     )
-                )
-            ).expanduser()
+                ).resolve()
+            if (self.cwd / new_path).is_dir():
+                new_path = new_path / self.tar_file_w_ext
 
             if new_path == tpath:
                 richprint(
