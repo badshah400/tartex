@@ -62,20 +62,6 @@ def strip_tarext(filename: Path):
     return filename
 
 
-def _full_if_not_rel_path(src, dest):
-    p = Path(src).resolve()
-    with suppress(ValueError):
-        p = p.relative_to(dest)
-    if p.is_absolute():
-        # Here p is only absolute if it cannot be resolved wrt to dest
-        log.debug(
-            "Cannot resolve %s relative to %s, will use full path",
-            src.as_posix(),
-            dest.as_posix(),
-        )
-    return p
-
-
 def _summary_msg(nfiles, tarname=None):
     """Return summary msg to print at end of run"""
 
@@ -417,7 +403,7 @@ class TarTeX:
                     if self.args.summary:
                         _summary_msg(
                             len(f.getmembers()),
-                            _full_if_not_rel_path(full_tar_name, self.cwd),
+                            self.cwd / full_tar_name,
                         )
             except PermissionError as err:
                 log.critical(
@@ -438,7 +424,7 @@ class TarTeX:
                         if self.args.summary:
                             _summary_msg(
                                 len(f.getmembers()),
-                                _full_if_not_rel_path(full_tar_name, self.cwd),
+                                self.cwd / full_tar_name,
                             )
                 except PermissionError as err:
                     log.critical(
@@ -456,7 +442,7 @@ class TarTeX:
             return tpath
         richprint(
             "[bold red]A tar file with the same name"
-            rf" \[{_full_if_not_rel_path(tpath, self.cwd)}]"
+            rf" \[{self.cwd / tpath}]"
             " already exists[/bold red]"
         )
 
@@ -500,7 +486,7 @@ class TarTeX:
             elif new_path.exists():
                 richprint(
                     "[bold red]Error: A tar file with the same name"
-                    rf" \[{_full_if_not_rel_path(new_path, self.cwd)!s}] also"
+                    rf" \[{(self.cwd / new_path)!s}] also"
                     " exists[/bold red]\nQuitting",
                     file=sys.stderr,
                 )
