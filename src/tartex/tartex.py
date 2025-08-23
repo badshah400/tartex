@@ -62,7 +62,9 @@ def strip_tarext(filename: Path):
     return filename
 
 
-def _summary_msg(nfiles, tarname: Union[Path,None] = None, wdir: Union[Path,None] = None):
+def _summary_msg(
+    nfiles, tarname: Union[Path, None] = None, wdir: Union[Path, None] = None
+):
     """Return summary msg to print at end of run"""
 
     def _num_tag(n: int):
@@ -470,24 +472,24 @@ class TarTeX:
                 Prompt.ask("Enter [bold]new name[/bold] for tar file")
             ).expanduser()
             new_ext = new_name.suffix.lstrip(".")
-            if new_ext in TAR_EXT:
-                self.tar_ext = new_ext
             new_path = (self.cwd / new_name).resolve()
-            if new_path.is_dir():
-                new_path = new_path / self.tar_file_w_ext.name
-            else:
-                new_path = (
-                    self.cwd
-                    / (
-                        new_name
-                        if new_ext in TAR_EXT
-                        else new_name.with_name(
-                            f"{strip_tarext(Path(new_name.name))}.tar.{self.tar_ext}"
-                        )
-                    )
-                ).resolve()
+
             if (self.cwd / new_path).is_dir():
-                new_path = new_path / self.tar_file_w_ext
+                # When user enters a new path that resolves to an existing dir,
+                # place the tarball inside it. Use original tar filename and
+                # ext.
+                new_path = new_path / self.tar_file_w_ext.name
+
+            else:
+                # Treating `new_path` as intended new filename, strip tar exts
+                # and resolve new filename with respect to working dir, if
+                # possible. If new filename has valid extension, set `tar_ext`
+                # member accordingly
+                if new_ext in TAR_EXT:
+                    self.tar_ext = new_ext
+                new_path = (
+                    self.cwd / f"{strip_tarext(new_path)}.tar.{self.tar_ext}"
+                ).resolve()
 
             if new_path == tpath:
                 richprint(
