@@ -471,25 +471,9 @@ class TarTeX:
             new_name = Path(
                 Prompt.ask("Enter [bold]new name[/bold] for tar file")
             ).expanduser()
-            new_ext = new_name.suffix.lstrip(".")
-            new_path = (self.cwd / new_name).resolve()
-
-            if (self.cwd / new_path).is_dir():
-                # When user enters a new path that resolves to an existing dir,
-                # place the tarball inside it. Use original tar filename and
-                # ext.
-                new_path = new_path / self.tar_file_w_ext.name
-
-            else:
-                # Treating `new_path` as intended new filename, strip tar exts
-                # and resolve new filename with respect to working dir, if
-                # possible. If new filename has valid extension, set `tar_ext`
-                # member accordingly
-                if new_ext in TAR_EXT:
-                    self.tar_ext = new_ext
-                new_path = (
-                    self.cwd / f"{strip_tarext(new_path)}.tar.{self.tar_ext}"
-                ).resolve()
+            new_path = Path(
+                f"{self._proc_output_path(new_name)}.tar.{self.tar_ext}"
+            ).resolve()
 
             if new_path == tpath:
                 richprint(
@@ -564,16 +548,21 @@ class TarTeX:
         if self.pdf_stream:
             _tar_add_bytesio(self.pdf_stream, self.main_pdf.name)
 
-    def _proc_output_path(self):
+    def _proc_output_path(self, user_path: Union[Path, None] = None):
         """
         Returns the output tar file path (sans any '.tar.?z' suffix) after
         resolving the value passed to '--output' as part of cmdline options.
 
         Also sets the tar ext if determined from '--output' argument.
+
+        Uses `user_path` instead of the value of `--output` argument if passed.
         """
 
         # If self.args.output is absolute, '/' simply returns it as a PosixPath
-        out = self.cwd / self.args.output.expanduser()
+        if user_path:
+            out = self.cwd / user_path.expanduser()
+        else:
+            out = self.cwd / self.args.output.expanduser()
 
         if out.is_dir():  # If dir, set to DIR/main.tar.gz
             log.debug("%s is an existing dir", out)
