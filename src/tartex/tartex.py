@@ -56,9 +56,8 @@ TAR_DEFAULT_COMP = "gz"
 
 def strip_tarext(filename: Path):
     """Strip '.tar(.EXT)' from filename"""
-    for ext in TAR_EXT + ["tar"]:
-        if filename.suffix.lstrip(".") == ext:
-            filename = filename.with_suffix("")
+    while filename.suffix.lstrip(".") in TAR_EXT + ["tar"]:
+        filename = filename.with_suffix("")
     return filename
 
 
@@ -572,7 +571,9 @@ class TarTeX:
         elif (ext := out.suffix.lstrip(".")) in TAR_EXT:
             self.tar_ext = ext
         else:
-            out = out.with_name(f"{strip_tarext(out.name)}.tar.{TAR_DEFAULT_COMP}")
+            out = out.with_name(
+                f"{out.name}.tar.{TAR_DEFAULT_COMP}"  # no tar ext stripping needed here
+            )
 
         out = strip_tarext(out)
         log.debug("Processed output target: %s", self.args.output)
