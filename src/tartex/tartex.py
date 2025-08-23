@@ -472,7 +472,7 @@ class TarTeX:
                 Prompt.ask("Enter [bold]new name[/bold] for tar file")
             ).expanduser()
             new_path = Path(
-                f"{self._proc_output_path(new_name)}.tar.{self.tar_ext}"
+                f"{self._proc_output_path(new_name)!s}.tar.{self.tar_ext}"
             ).resolve()
 
             if new_path == tpath:
@@ -560,9 +560,9 @@ class TarTeX:
 
         # If self.args.output is absolute, '/' simply returns it as a PosixPath
         if user_path:
-            out = self.cwd / user_path.expanduser()
+            out = (self.cwd / user_path.expanduser()).resolve()
         else:
-            out = self.cwd / self.args.output.expanduser()
+            out = (self.cwd / self.args.output.expanduser()).resolve()
 
         if out.is_dir():  # If dir, set to DIR/main.tar.gz
             log.debug("%s is an existing dir", out)
@@ -572,11 +572,11 @@ class TarTeX:
         elif (ext := out.suffix.lstrip(".")) in TAR_EXT:
             self.tar_ext = ext
         else:
-            out = out.with_name(f"{out.name}.tar.{TAR_DEFAULT_COMP}")
+            out = out.with_name(f"{strip_tarext(out.name)}.tar.{TAR_DEFAULT_COMP}")
 
         out = strip_tarext(out)
         log.debug("Processed output target: %s", self.args.output)
-        return out.as_posix()
+        return out
 
     def _print_list(self, ls):
         """helper function to print list of files in a pretty format"""
