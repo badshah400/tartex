@@ -62,7 +62,7 @@ def strip_tarext(filename: Path):
     return filename
 
 
-def _summary_msg(
+def summary_msg(
     nfiles, tarname: Union[Path, None] = None, wdir: Union[Path, None] = None
 ):
     """Return summary msg to print at end of run"""
@@ -408,7 +408,7 @@ class TarTeX:
                 with f:
                     self._do_tar(f)
                     if self.args.summary:
-                        _summary_msg(
+                        summary_msg(
                             len(f.getmembers()),
                             self.cwd / full_tar_name,
                             self.cwd,
@@ -430,7 +430,7 @@ class TarTeX:
                     with f:
                         self._do_tar(f)
                         if self.args.summary:
-                            _summary_msg(
+                            summary_msg(
                                 len(f.getmembers()),
                                 self.cwd / full_tar_name,
                                 self.cwd,
@@ -602,7 +602,7 @@ class TarTeX:
             richprint(f"{'*':>{idx_width + 1}}", end=" ")
             print(f"{self.pkglist_name}")
         if self.args.summary:
-            _summary_msg(
+            summary_msg(
                 len(ls) + len(self.req_supfiles) + (1 if self.pkglist else 0)
             )
 
