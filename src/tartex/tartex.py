@@ -362,7 +362,7 @@ class TarTeX:
                     log.info("Add file: %s", deps[-1])
                     if re.match(r".bst", f.suffix):
                         pkgs["Local"].add(deps[-1])
-                except:
+                except Exception:
                     pass
 
         if self.add_files:
