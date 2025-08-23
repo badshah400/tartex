@@ -13,10 +13,10 @@ import os
 import re
 import sys
 import tarfile as tar
-from contextlib import suppress
 from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Union
 
 from rich import print as richprint
 from rich.prompt import Prompt
@@ -62,17 +62,22 @@ def strip_tarext(filename: Path):
     return filename
 
 
-def _summary_msg(nfiles, tarname=None):
+def _summary_msg(nfiles, tarname: Union[Path,None] = None, wdir: Union[Path,None] = None):
     """Return summary msg to print at end of run"""
 
     def _num_tag(n: int):
         return f"[bold]{n} file" + ("s" if n > 1 else "") + "[/]"
 
     if tarname:
-        richprint(
-            f"[cyan]Summary: :package: [bold]{tarname}[/] generated with"
-            f" {_num_tag(nfiles)}.[/]"
-        )
+        try:
+            tarname_rel = tarname.relative_to(wdir if wdir else tarname.root)
+        except ValueError:
+            tarname_rel = tarname
+        finally:
+            richprint(
+                f"[cyan]Summary: :package: [bold]{tarname_rel}[/] generated with"
+                f" {_num_tag(nfiles)}.[/]"
+            )
     else:
         richprint(
             f"[cyan]Summary: :clipboard: {_num_tag(nfiles)} to include.[/]"
@@ -404,6 +409,7 @@ class TarTeX:
                         _summary_msg(
                             len(f.getmembers()),
                             self.cwd / full_tar_name,
+                            self.cwd,
                         )
             except PermissionError as err:
                 log.critical(
@@ -425,6 +431,7 @@ class TarTeX:
                             _summary_msg(
                                 len(f.getmembers()),
                                 self.cwd / full_tar_name,
+                                self.cwd,
                             )
                 except PermissionError as err:
                     log.critical(
