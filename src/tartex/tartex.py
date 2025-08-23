@@ -576,7 +576,7 @@ class TarTeX:
             )
 
         out = strip_tarext(out)
-        log.debug("Processed output target: %s", self.args.output)
+        log.debug("Processed output target basename: %s", out)
         return out
 
     def _print_list(self, ls):
