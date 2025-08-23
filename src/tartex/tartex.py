@@ -54,14 +54,12 @@ TAR_EXT = ["bz2", "gz", "xz"]
 TAR_DEFAULT_COMP = "gz"
 
 
-def strip_tarext(filename):
+def strip_tarext(filename: Path):
     """Strip '.tar(.EXT)' from filename"""
-    basename = Path(filename)
-    if basename.suffix.lstrip(".") in TAR_EXT:
-        basename = basename.with_suffix("")
-    if basename.suffix == ".tar":
-        basename = basename.with_suffix("")
-    return basename
+    for ext in TAR_EXT + ["tar"]:
+        if filename.suffix.lstrip(".") == ext:
+            filename = filename.with_suffix("")
+    return filename
 
 
 def _full_if_not_rel_path(src, dest):
