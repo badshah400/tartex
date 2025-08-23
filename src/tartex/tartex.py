@@ -90,7 +90,9 @@ def _summary_msg(nfiles, tarname=None):
             f" {_num_tag(nfiles)}.[/]"
         )
     else:
-        richprint(f"[cyan]Summary: :clipboard: {_num_tag(nfiles)} to include.[/]")
+        richprint(
+            f"[cyan]Summary: :clipboard: {_num_tag(nfiles)} to include.[/]"
+        )
 
 
 class TarTeX:
@@ -118,17 +120,21 @@ class TarTeX:
         if self.main_file.suffix not in [".fls", ".tex"]:
             found_file = False
             # Try adding the .fls/.tex suffix to main_file
-            for f in [str(self.main_file) + suff for suff in ['.fls', '.tex']]:
+            for f in [str(self.main_file) + suff for suff in [".fls", ".tex"]]:
                 if Path(f).is_file():
                     self.main_file = Path(f)
                     found_file = True
                     break
             if not found_file:
-                log.critical(f"Error: File {self.main_file.name}[.tex|.fls] not found.")
+                log.critical(
+                    f"Error: File {self.main_file.name}[.tex|.fls] not found."
+                )
                 sys.exit(1)
 
         if self.args.git_rev:
-            log.debug("Using `git ls-tree` to determine files to include in tarball")
+            log.debug(
+                "Using `git ls-tree` to determine files to include in tarball"
+            )
             try:
                 GR = GitRev(self.main_file.parent, self.args.git_rev or "HEAD")
                 with git_checkout(GR.git_bin, GR.repo, GR.rev):
@@ -156,16 +162,14 @@ class TarTeX:
 
         tar_base = (
             Path(f"{self.args.output}.tar")
-            if self.args.output else
-            Path(
+            if self.args.output
+            else Path(
                 f"{self.main_file.stem}{f'-{tar_file_git_tag}' if self.args.git_rev else ''}"
             ).with_suffix(".tar")
         )
         tar_file = self.cwd / tar_base  # returns tar_base when absolute
         self.tar_file_w_ext = tar_file.with_suffix(f".tar.{self.tar_ext}")
-        log.debug(
-            "Output tarball '%s' will be generated", self.tar_file_w_ext
-        )
+        log.debug("Output tarball '%s' will be generated", self.tar_file_w_ext)
 
         self.req_supfiles = {}
         self.add_files = self.args.add.split(",") if self.args.add else []
@@ -241,11 +245,11 @@ class TarTeX:
 
     def bib_file(self):
         """Return relative path to bib file"""
-        bibre  = re.compile(r"^\\bibliography\{.*\}")
+        bibre = re.compile(r"^\\bibliography\{.*\}")
         bib_name = None
-        bstre  = re.compile(r"^\\bibliographystyle\{.*\}")
+        bstre = re.compile(r"^\\bibliographystyle\{.*\}")
         bst_name = None
-        texf   = self.main_file.with_suffix(".tex")
+        texf = self.main_file.with_suffix(".tex")
         with open(texf, encoding="utf-8") as f:
             for line in f:
                 m_bib = bibre.search(line)
@@ -263,10 +267,14 @@ class TarTeX:
             bib_name = re.sub(r"^\\bibliography\{", "", bib_name).rstrip("}")
             bib_name += ".bib" if bib_name.split(".")[-1] != ".bib" else ""
         if bst_name:
-            bst_name = re.sub(r"^\\bibliographystyle\{", "", bst_name).rstrip("}")
+            bst_name = re.sub(r"^\\bibliographystyle\{", "", bst_name).rstrip(
+                "}"
+            )
             bst_name += ".bst" if bst_name.split(".")[-1] != ".bst" else ""
 
-        return [Path(f) if Path(f).is_file() else None for f in [bib_name, bst_name]]
+        return [
+            Path(f) if Path(f).is_file() else None for f in [bib_name, bst_name]
+        ]
 
     def input_files(self):
         """
@@ -304,8 +312,10 @@ class TarTeX:
                 except Exception:
                     # Clean-up after latexmk failure
                     os.remove(self.tar_file_w_ext)
-                    log.debug("Cleaning up empty tarball after latexmk failure: %s",
-                              self.tar_file_w_ext.relative_to(Path.cwd()))
+                    log.debug(
+                        "Cleaning up empty tarball after latexmk failure: %s",
+                        self.tar_file_w_ext.relative_to(Path.cwd()),
+                    )
                     sys.exit(1)
 
                 if self.args.with_pdf:
@@ -342,7 +352,9 @@ class TarTeX:
                         self.pdf_stream = f.read()
                         log.info("Add file: %s", self.main_pdf.name)
                 except FileNotFoundError:
-                    log.warning(f"Unable to find '{self.main_pdf.name}' in {self.cwd}, skipping...")
+                    log.warning(
+                        f"Unable to find '{self.main_pdf.name}' in {self.cwd}, skipping..."
+                    )
                     self.args.with_pdf = False
             with open(self.main_file.with_suffix(".fls"), encoding="utf8") as f:
                 deps, pkgs = _latex.fls_input_files(
@@ -377,7 +389,7 @@ class TarTeX:
         if self.args.packages:
             log.info(
                 "System TeX/LaTeX packages used: %s",
-                ", ".join(sorted(pkgs["System"]))
+                ", ".join(sorted(pkgs["System"])),
             )
 
             self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode("utf8")
@@ -540,7 +552,6 @@ class TarTeX:
             tinfo.uname = tinfo.gname = ""
             tar_obj.addfile(tinfo, BytesIO(obj))
 
-
         if self.args.packages:
             log.info(
                 "Adding list of packages as BytesIO object: %s",
@@ -553,7 +564,6 @@ class TarTeX:
             _tar_add_bytesio(byt, fpath.name)
         if self.pdf_stream:
             _tar_add_bytesio(self.pdf_stream, self.main_pdf.name)
-
 
     def _proc_output_path(self):
         """
@@ -584,7 +594,7 @@ class TarTeX:
         """helper function to print list of files in a pretty format"""
         idx_width = int(math.log10(len(ls))) + 1
         for i, f in enumerate(sorted([str(i) for i in ls])):
-            richprint(f"{i+1:{idx_width}}.", end=" ")
+            richprint(f"{i + 1:{idx_width}}.", end=" ")
             print(f)
         for r in sorted(self.req_supfiles):
             richprint(f"{'*':>{idx_width + 1}}", end=" ")
