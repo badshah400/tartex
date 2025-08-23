@@ -463,19 +463,23 @@ class TarTeX:
             )
             sys.exit(1)
         elif owr.lower() == "c":
-            new_name = Prompt.ask("Enter [bold]new name[/bold] for tar file")
-            if (new_ext := new_name.split(".")[-1]) in TAR_EXT:
+            new_name = Path(
+                Prompt.ask("Enter [bold]new name[/bold] for tar file")
+            )
+            new_ext = new_name.suffix.lstrip(".")
+            if new_ext in TAR_EXT:
                 self.tar_ext = new_ext
-            # If new file is a plain file name, interpret w.r.t. output dir
-            if self.args.output and (
-                str(Path(new_name)) == Path(new_name).name
-            ):
-                new_name = Path(self.args.output).with_name(new_name)
-            else:
-                new_name = self.cwd / Path(new_name).expanduser()
-            new_path = new_name.with_name(
-                f"{strip_tarext(new_name.name)}.tar.{self.tar_ext}"
-            ).resolve()
+            new_path = (
+                self.cwd
+                / (
+                    new_name
+                    if new_ext in TAR_EXT
+                    else new_name.with_name(
+                        f"{strip_tarext(new_name.name)}.tar.{self.tar_ext}"
+                    )
+                )
+            ).expanduser()
+
             if new_path == tpath:
                 richprint(
                     "[bold red]Error: New name entered is also the same as"
