@@ -46,7 +46,7 @@ class TestGitRev:
 
     """Test class for git-rev"""
 
-    def test_default_tar_filename(self, git_repo_clean, datadir, git_bin, gitrev_tartex):
+    def test_default_tar_filename(self, git_repo_clean, datadir, gitrev_tartex):
         git_repo, git, git_ref = git_repo_clean
         assert git_repo == datadir
         assert git_ref
@@ -55,7 +55,7 @@ class TestGitRev:
         r1 = gitrev_tartex(git_ref)
         assert f".{git_short_ref}" in Path(r1.tar_file_w_ext).suffixes
 
-    def test_tarfile_change_tag(self, git_repo_clean, datadir, git_bin, gitrev_tartex):
+    def test_tarfile_change_tag(self, git_repo_clean, datadir, gitrev_tartex):
         git_repo, git, git_ref = git_repo_clean
         git_short_ref = git_ref[:7]
         run(["sed", "-i", "s/test document/Test Document/", Path(datadir)/"git_rev.tex"])
