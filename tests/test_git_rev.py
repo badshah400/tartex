@@ -34,12 +34,16 @@ def git_repo_clean(datadir, git_bin, capsys):
 @pytest.fixture
 def gitrev_tartex(datadir):
     return lambda rev: TarTeX(
-            [
-                (Path(datadir) / "git_rev").as_posix(),
-                "-g",
-                rev,
-            ]
-        )
+        [
+            (Path(datadir) / "git_rev").as_posix(),
+            "-vv",
+            "-s",
+            "-o",
+            Path(datadir).as_posix(),
+            "-g",
+            rev,
+        ]
+    )
 
 
 class TestGitRev:
