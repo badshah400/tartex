@@ -62,9 +62,68 @@ class TestGitRev:
     def test_tarfile_change_tag(self, git_repo_clean, datadir, gitrev_tartex):
         git_repo, git, git_ref = git_repo_clean
         git_short_ref = git_ref[:7]
-        run(["sed", "-i", "s/test document/Test Document/", Path(datadir)/"git_rev.tex"])
+        run(
+            [
+                "sed",
+                "-i",
+                "s/test document/Test Document/",
+                Path(datadir) / "git_rev.tex",
+            ]
+        )
         run([*git, "commit", "-a", "-m", "Second commit"])
 
         # r2 should tarball working tree as it appears at current HEAD
         r2 = gitrev_tartex("")
         assert f".{git_short_ref}" not in Path(r2.tar_file_w_ext).suffixes
+
+    def test_final_git_branch_head(
+        self, git_repo_clean, datadir, gitrev_tartex
+    ):
+        """Test whether we restore git tree pristinely at branch tip"""
+        git_repo, git, git_ref = git_repo_clean
+        run(
+            [
+                "sed",
+                "-i",
+                "s/test document/Test Document/",
+                Path(datadir) / "git_rev.tex",
+            ]
+        )
+        run([*git, "commit", "-a", "-m", "Second commit"])
+        # Now we are at "HEAD", pointing to "main" branch tip...
+        gitrev_tartex(git_ref)
+        git_status = run(
+            [*git, "status"], capture_output=True, check=True, encoding="utf-8"
+        )
+        # ...first line should be "On branch main"
+        assert "On branch" in git_status.stdout.splitlines()[0]
+
+    def test_final_git_detach_head(
+        self, git_repo_clean, datadir, gitrev_tartex
+    ):
+        """Test whether we restore git tree back to detached head if that is
+        the initial status of the tree
+        """
+        git_repo, git, git_ref = git_repo_clean
+        run(
+            [
+                "sed",
+                "-i",
+                "s/test document/Test Document/",
+                Path(datadir) / "git_rev.tex",
+            ]
+        )
+        run([*git, "commit", "-a", "-m", "Second commit"])
+        git_ref_2 = run(
+            [*git, "rev-parse", "HEAD"], capture_output=True, encoding="utf-8",
+        ).stdout.strip()
+        run([*git, "checkout", "--detach", git_ref])
+        # Now we are at detached "HEAD", pointing to initial commit...
+        gitrev_tartex(git_ref_2)
+        git_status = run(
+            [*git, "status"], capture_output=True, check=True, encoding="utf-8"
+        )
+        # ...first line should be "HEAD detached at"
+        assert (
+            "HEAD detached at" in git_status.stdout.splitlines()[0]
+        )
