@@ -121,6 +121,7 @@ class TarTeX:
                 )
                 sys.exit(1)
 
+        self.tar_file_git_tag = ""
         if self.args.git_rev:
             log.debug(
                 "Using `git ls-tree` to determine files to include in tarball"
@@ -129,7 +130,7 @@ class TarTeX:
                 GR = GitRev(self.main_file.parent, self.args.git_rev or "HEAD")
                 with git_checkout(GR.git_bin, GR.repo, GR.rev):
                     self.files_from_git = GR.ls_tree_files()
-                    tar_file_git_tag = f"{GR.id()}.tar"
+                    self.tar_file_git_tag = f"{GR.id()}.tar"
             except Exception:
                 sys.exit(1)
 
@@ -154,7 +155,7 @@ class TarTeX:
             Path(f"{self.args.output}.tar")
             if self.args.output
             else Path(
-                f"{self.main_file.stem}{f'-{tar_file_git_tag}' if self.args.git_rev else ''}"
+                f"{self.main_file.stem}{f'-{self.tar_file_git_tag}' if self.args.git_rev else ''}"
             ).with_suffix(".tar")
         )
         tar_file = self.cwd / tar_base  # returns tar_base when absolute
@@ -565,9 +566,10 @@ class TarTeX:
 
         if out.is_dir():  # If dir, set to DIR/main.tar.gz
             log.debug("%s is an existing dir", out)
-            out = out.joinpath(
-                self.main_file.with_suffix(f".tar.{TAR_DEFAULT_COMP}").name
-            )
+            out = (out / (f"{self.main_file.stem}-{self.tar_file_git_tag}"
+                          if self.args.git_rev
+                          else self.main_file.stem)
+                   ).with_suffix(f".tar.{self.tar_ext}")
         elif (ext := out.suffix.lstrip(".")) in TAR_EXT:
             self.tar_ext = ext
         else:
