@@ -127,10 +127,8 @@ class TarTeX:
                 "Using `git ls-tree` to determine files to include in tarball"
             )
             try:
-                GR = GitRev(self.main_file.parent, self.args.git_rev or "HEAD")
-                with git_checkout(GR.git_bin, GR.repo, GR.rev):
-                    self.files_from_git = GR.ls_tree_files()
-                    self.tar_file_git_tag = f"{GR.id()}.tar"
+                self.GR = GitRev(self.main_file.parent, self.args.git_rev or "HEAD")
+                self.tar_file_git_tag = f"{self.GR.id()}.tar"
             except Exception:
                 sys.exit(1)
 
@@ -281,7 +279,7 @@ class TarTeX:
         """
 
         if self.args.git_rev:
-            return self.files_from_git
+            return []
         if (
             not self.main_file.with_suffix(".fls").exists()
             or self.args.force_recompile
@@ -510,6 +508,23 @@ class TarTeX:
             sys.exit(1)
 
     def _do_tar(self, tar_obj):
+        if self.args.git_rev:
+            # Skip any missing files from git tree, indicative of unclean working tree
+            with git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev):
+                for dep in self.GR.ls_tree_files():
+                    try:
+                        tinfo = tar_obj.gettarinfo(dep)
+                        tinfo.uid = tinfo.gid = 0
+                        tinfo.uname = tinfo.gname = ""
+                        tar_obj.addfile(tinfo, open(dep, "rb"))
+                    except FileNotFoundError:
+                        log.warning(
+                            "Skipping INPUT file '%s', not found amongst sources; try"
+                            " forcing a LaTeX recompile ('-F').",
+                            dep,
+                        )
+            return
+
         for dep in self.input_files():
             # By now, if the file is still missing, this indicates a .fls file
             # is present in source but some of its INPUT marked entries are
