@@ -129,11 +129,6 @@ class TestGitRev:
             "HEAD detached at" in git_status.stdout.splitlines()[0]
         )
 
-    # This test needs to be checked. It is failing currently, due to the tar file
-    # containing the HEAD version of the main tex file, whereas it should have a
-    # version that matches its content at the previous commit. However things are
-    # working fine when running similar checks on my own local repos.
-    @pytest.mark.xfail
     def test_tar_contents(self, git_repo_clean, datadir, gitrev_tartex, capsys):
         """validate `git_rev.tex` in tarball against `git cat-file`"""
 
@@ -176,5 +171,6 @@ class TestGitRev:
                     ],
                     capture_output=True,
                     check=True,
+                    encoding="utf-8",
                 ).stdout
                 assert tex_data == r1_tex_data
