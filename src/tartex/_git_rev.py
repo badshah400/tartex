@@ -23,14 +23,14 @@ def git_checkout(git_bin: str, repo: str, rev: str):
     """
 
     head_abbrev_ref = _get_ref(git_bin, repo, "HEAD", abbrev=True)
+    head_full_ref = _get_ref(git_bin, repo, "HEAD", abbrev=False)
     if head_abbrev_ref == "HEAD":
         # This means we are in a detached working tree to begin with
         # and will require the full hash to restore tree at the end
-        head_full_ref = _get_ref(git_bin, repo, "HEAD", abbrev=False)
         head_short_ref = head_full_ref[:7]
     else:
         # HEAD points to branch tip
-        head_full_ref = head_short_ref = head_abbrev_ref
+        head_short_ref = head_abbrev_ref
 
     try:
         rev_full_ref = _get_ref(git_bin, repo, rev)
@@ -63,8 +63,9 @@ def git_checkout(git_bin: str, repo: str, rev: str):
                 log.critical("Git: %s", line)
             raise err
 
+        restore_ref = head_full_ref if head_abbrev_ref == "HEAD" else head_abbrev_ref
         head_proc = subprocess.run(
-            [git_bin, "-C", repo, "checkout", "-f", head_full_ref],
+            [git_bin, "-C", repo, "checkout", "-f", restore_ref],
             capture_output=True,
             encoding="utf-8",
             check=True,
