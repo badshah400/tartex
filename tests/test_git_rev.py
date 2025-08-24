@@ -7,6 +7,7 @@ from pathlib import Path
 
 from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
 
+
 @pytest.fixture
 def git_bin():
     """Returns the git executable available in PATH
@@ -18,16 +19,16 @@ def git_bin():
 
 @pytest.fixture
 def git_repo_clean(datadir, git_bin, capsys):
-    """Set up a clean git repository
-
-    """
+    """Set up a clean git repository"""
     git_cmd_base = [git_bin, "-C", datadir]
     run([*git_cmd_base, "init", "-b", "main"])
     run([*git_cmd_base, "add", "."])
     run([*git_cmd_base, "commit", "-m", "Initial commit."])
-    r = run([*git_cmd_base, "rev-parse", "HEAD"],
-            capture_output=True,
-            encoding="utf-8")
+    r = run(
+        [*git_cmd_base, "rev-parse", "HEAD"],
+        capture_output=True,
+        encoding="utf-8",
+    )
     return datadir, git_cmd_base, r.stdout.splitlines()[0].strip()
 
 
@@ -47,7 +48,6 @@ def gitrev_tartex(datadir):
 
 
 class TestGitRev:
-
     """Test class for git-rev"""
 
     def test_default_tar_filename(self, git_repo_clean, datadir, gitrev_tartex):
