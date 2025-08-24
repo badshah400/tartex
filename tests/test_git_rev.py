@@ -4,6 +4,7 @@ import shutil
 from subprocess import run, CalledProcessError
 import pytest
 from pathlib import Path
+import tarfile as tar
 
 from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
 
@@ -127,3 +128,53 @@ class TestGitRev:
         assert (
             "HEAD detached at" in git_status.stdout.splitlines()[0]
         )
+
+    # This test needs to be checked. It is failing currently, due to the tar file
+    # containing the HEAD version of the main tex file, whereas it should have a
+    # version that matches its content at the previous commit. However things are
+    # working fine when running similar checks on my own local repos.
+    @pytest.mark.xfail
+    def test_tar_contents(self, git_repo_clean, datadir, gitrev_tartex, capsys):
+        """validate `git_rev.tex` in tarball against `git cat-file`"""
+
+        git_repo, git, git_ref = git_repo_clean
+        git_short_ref = git_ref[:7]
+
+        # We only have one file, so `git ls-tree --long` should be just a single line
+        r1_ls_tree = run(
+            [*git, "ls-tree", "--long", git_ref],
+            capture_output=True,
+            check=True,
+        )
+        r1_texfile_sha, r1_texfile_size = r1_ls_tree.stdout.splitlines()[
+            0
+        ].split()[2:4]
+
+        run(
+            [
+                "sed",
+                "-i",
+                "s/test document/Test Document/",
+                Path(datadir) / "git_rev.tex",
+            ]
+        )
+        run([*git, "commit", "-a", "-m", "Second commit"])
+
+        t = gitrev_tartex(git_short_ref)
+        t.tar_files()
+
+        with tar.open(t.tar_file_w_ext, "r") as tf:
+            tex_file = tf.extractfile(t.main_file.name)
+            if tex_file:
+                tex_data = tex_file.read().decode("utf-8")
+                r1_tex_data = run(
+                    [
+                        *git,
+                        "cat-file",
+                        "-p",
+                        r1_texfile_sha,
+                    ],
+                    capture_output=True,
+                    check=True,
+                ).stdout
+                assert tex_data == r1_tex_data
