@@ -117,7 +117,9 @@ class TestGitRev:
         )
         run([*git, "commit", "-a", "-m", "Second commit"])
         git_ref_2 = run(
-            [*git, "rev-parse", "HEAD"], capture_output=True, encoding="utf-8",
+            [*git, "rev-parse", "HEAD"],
+            capture_output=True,
+            encoding="utf-8",
         ).stdout.strip()
         run([*git, "checkout", "--detach", git_ref])
         # Now we are at detached "HEAD", pointing to initial commit...
@@ -126,9 +128,7 @@ class TestGitRev:
             [*git, "status"], capture_output=True, check=True, encoding="utf-8"
         )
         # ...first line should be "HEAD detached at"
-        assert (
-            "HEAD detached at" in git_status.stdout.splitlines()[0]
-        )
+        assert "HEAD detached at" in git_status.stdout.splitlines()[0]
 
     def test_tar_contents(self, git_repo_clean, datadir, gitrev_tartex, capsys):
         """validate `git_rev.tex` in tarball against `git cat-file`"""
@@ -159,4 +159,3 @@ class TestGitRev:
                 assert tex_data.decode("utf-8") == r1_tex_data.decode("utf-8")
                 tex_data_sha1 = hashlib.sha1(tex_data)
                 assert tex_data_sha1.hexdigest() == r1_texfile_sha.hexdigest()
-
