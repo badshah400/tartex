@@ -13,7 +13,7 @@ from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
 @pytest.fixture
 def git_bin():
     """Returns the git executable available in PATH
-    :returns: pathlib.Path
+    :returns: str pointing to git binary or None if `git` in not found in Path
 
     """
     return shutil.which("git")
@@ -131,7 +131,7 @@ class TestGitRev:
         assert "HEAD detached at" in git_status.stdout.splitlines()[0]
 
     def test_tar_contents(self, git_repo_clean, datadir, gitrev_tartex, capsys):
-        """validate `git_rev.tex` in tarball against `git cat-file`"""
+        """validate `git_rev.tex` in tarball against original file"""
 
         git_repo, git, git_ref = git_repo_clean
         git_short_ref = git_ref[:7]

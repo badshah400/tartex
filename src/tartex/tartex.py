@@ -123,11 +123,10 @@ class TarTeX:
 
         self.tar_file_git_tag = ""
         if self.args.git_rev:
-            log.debug(
-                "Using `git ls-tree` to determine files to include in tarball"
-            )
             try:
-                self.GR = GitRev(self.main_file.parent, self.args.git_rev or "HEAD")
+                self.GR = GitRev(
+                    self.main_file.parent, self.args.git_rev or "HEAD"
+                )
                 self.tar_file_git_tag = f"{self.GR.id()}.tar"
             except Exception:
                 sys.exit(1)
@@ -186,7 +185,7 @@ class TarTeX:
                 ]
             )
 
-        if self.excl_files and not self.args.git_rev:
+        if self.excl_files:
             log.debug(" ".join(excl_lists))
             log.info(
                 "List of excluded files: %s",
@@ -217,8 +216,6 @@ class TarTeX:
         if they exist
         """
         lof = []
-        if self.args.git_rev:
-            return lof
         for fpatt in self.add_files:
             afiles = list(self.main_file.parent.glob(fpatt))
             if not afiles:
@@ -279,11 +276,17 @@ class TarTeX:
         """
 
         if self.args.git_rev:
-            return []
+            log.debug(
+                "Using `git ls-tree` to determine files to include in tarball"
+            )
+            deps = self.GR.ls_tree_files()
+            # Process the --excl files
+            for f in self.excl_files:  # Remove the file if it exists in the set
+                deps.discard(f)
         if (
             not self.main_file.with_suffix(".fls").exists()
             or self.args.force_recompile
-        ):
+        ) and not self.args.git_rev:
             with TemporaryDirectory() as compile_dir:
                 log.info(
                     "LaTeX recompile forced"
@@ -508,25 +511,13 @@ class TarTeX:
             sys.exit(1)
 
     def _do_tar(self, tar_obj):
-        def _tar_add_file(file_name):  # helper func to add file <file_name> to <tar_obj>
+        def _tar_add_file(
+            file_name,
+        ):  # helper func to add file <file_name> to <tar_obj>
             tinfo = tar_obj.gettarinfo(file_name)
             tinfo.uid = tinfo.gid = 0
             tinfo.uname = tinfo.gname = ""
             tar_obj.addfile(tinfo, open(file_name, "rb"))
-
-        if self.args.git_rev:
-            # Skip any missing files from git tree, indicative of unclean working tree
-            with git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev):
-                for dep in self.GR.ls_tree_files():
-                    try:
-                        _tar_add_file(dep)
-                    except FileNotFoundError:
-                        log.warning(
-                            "Skipping INPUT file '%s', not found amongst sources; try"
-                            " forcing a LaTeX recompile ('-F').",
-                            dep,
-                        )
-            return
 
         for dep in self.input_files():
             # By now, if the file is still missing, this indicates a .fls file
@@ -582,10 +573,14 @@ class TarTeX:
 
         if out.is_dir():  # If dir, set to DIR/main.tar.gz
             log.debug("%s is an existing dir", out)
-            out = (out / (f"{self.main_file.stem}-{self.tar_file_git_tag}"
-                          if self.args.git_rev
-                          else self.main_file.stem)
-                   ).with_suffix(f".tar.{self.tar_ext}")
+            out = (
+                out
+                / (
+                    f"{self.main_file.stem}-{self.tar_file_git_tag}"
+                    if self.args.git_rev
+                    else self.main_file.stem
+                )
+            ).with_suffix(f".tar.{self.tar_ext}")
         elif (ext := out.suffix.lstrip(".")) in TAR_EXT:
             self.tar_ext = ext
         else:
