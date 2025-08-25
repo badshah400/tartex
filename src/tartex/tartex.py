@@ -26,6 +26,7 @@ from tartex import _latex
 from tartex._parse_args import parse_args
 from tartex._git_rev import GitRev, git_checkout
 
+
 # Auxilliary file extensions to ignore
 # taken from latexmk manual:
 # https://www.cantab.net/users/johncollins/latexmk/latexmk-480.txt
@@ -339,9 +340,24 @@ class TarTeX:
             # are also included in source dir
             if (fls_f := self.main_file.with_suffix(".fls")).exists():
                 self.mtime = os.path.getmtime(fls_f)
-            else:
-                # we may be using git ls-tree and fls file is (as expected) untracked
+                with open(self.main_file.with_suffix(".fls"), encoding="utf8") as f:
+                    deps_from_fls, pkgs = _latex.fls_input_files(
+                        f, self.excl_files, AUXFILES, sty_files=self.args.packages
+                    )
+                    if not self.args.git_rev:
+                        deps = deps_from_fls
+
+                    if self.args.packages:
+                        self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
+                            "utf8"
+                        )
+
+            else:  # perhaps using git ls-tree; fls file is (as expected) untracked or cleaned
                 self.mtime = os.path.getmtime(self.main_file)
+                if self.args.packages:
+                    log.warn("Cannot generate list of packages due to missing %s file",
+                             self.main_file.with_suffix(".fls"))
+                    self.args.packages = False
 
             if self.args.with_pdf:
                 try:
@@ -353,17 +369,6 @@ class TarTeX:
                         f"Unable to find '{self.main_pdf.name}' in {self.cwd}, skipping..."
                     )
                     self.args.with_pdf = False
-
-            if not self.args.git_rev:
-                with open(self.main_file.with_suffix(".fls"), encoding="utf8") as f:
-                    deps, pkgs = _latex.fls_input_files(
-                        f, self.excl_files, AUXFILES, sty_files=self.args.packages
-                    )
-
-            if self.args.packages:
-                self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
-                    "utf8"
-                )
 
         if self.args.bib:
             for f in self.bib_file():
@@ -554,7 +559,7 @@ class TarTeX:
             tinfo.uname = tinfo.gname = ""
             tar_obj.addfile(tinfo, BytesIO(obj))
 
-        if self.args.packages:
+        if self.pkglist:
             log.info(
                 "Adding list of packages as BytesIO object: %s",
                 self.pkglist_name,
