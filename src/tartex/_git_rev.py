@@ -173,7 +173,7 @@ class GitRev:
                     self.rev,
                 ]
             )
-            self.ls_tree_paths = [Path(f) for f in _files]
+            self.ls_tree_paths = set([Path(f).as_posix() for f in _files])
 
         except (OSError, subprocess.CalledProcessError):
             self.ls_tree_paths = []
