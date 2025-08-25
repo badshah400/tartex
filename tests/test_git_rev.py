@@ -1,9 +1,10 @@
 # vim: set ai et ts=4 sw=4 tw=100:
 
+import hashlib
 import shutil
-from subprocess import run, CalledProcessError
 import pytest
 from pathlib import Path
+from subprocess import run
 import tarfile as tar
 
 from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
@@ -19,7 +20,7 @@ def git_bin():
 
 
 @pytest.fixture
-def git_repo_clean(datadir, git_bin, capsys):
+def git_repo_clean(datadir, git_bin):
     """Set up a clean git repository"""
     git_cmd_base = [git_bin, "-C", datadir]
     run([*git_cmd_base, "init", "-b", "main"])
@@ -134,16 +135,9 @@ class TestGitRev:
 
         git_repo, git, git_ref = git_repo_clean
         git_short_ref = git_ref[:7]
-
-        # We only have one file, so `git ls-tree --long` should be just a single line
-        r1_ls_tree = run(
-            [*git, "ls-tree", "--long", git_ref],
-            capture_output=True,
-            check=True,
-        )
-        r1_texfile_sha, r1_texfile_size = r1_ls_tree.stdout.splitlines()[
-            0
-        ].split()[2:4]
+        with open(Path(datadir) / "git_rev.tex", "rb") as f:
+            r1_tex_data = f.read()
+            r1_texfile_sha = hashlib.sha1(r1_tex_data)
 
         run(
             [
@@ -161,16 +155,8 @@ class TestGitRev:
         with tar.open(t.tar_file_w_ext, "r") as tf:
             tex_file = tf.extractfile(t.main_file.name)
             if tex_file:
-                tex_data = tex_file.read().decode("utf-8")
-                r1_tex_data = run(
-                    [
-                        *git,
-                        "cat-file",
-                        "-p",
-                        r1_texfile_sha,
-                    ],
-                    capture_output=True,
-                    check=True,
-                    encoding="utf-8",
-                ).stdout
-                assert tex_data == r1_tex_data
+                tex_data = tex_file.read()
+                assert tex_data.decode("utf-8") == r1_tex_data.decode("utf-8")
+                tex_data_sha1 = hashlib.sha1(tex_data)
+                assert tex_data_sha1.hexdigest() == r1_texfile_sha.hexdigest()
+
