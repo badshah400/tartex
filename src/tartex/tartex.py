@@ -336,7 +336,11 @@ class TarTeX:
         else:
             # If .fls exists, this assumes that all INPUT files recorded in it
             # are also included in source dir
-            self.mtime = os.path.getmtime(self.main_file.with_suffix(".fls"))
+            if (fls_f := self.main_file.with_suffix(".fls")).exists():
+                self.mtime = os.path.getmtime(fls_f)
+            else:
+                # we may be using git ls-tree and fls file is (as expected) untracked
+                self.mtime = os.path.getmtime(self.main_file)
 
             if self.args.with_pdf:
                 try:
@@ -348,14 +352,17 @@ class TarTeX:
                         f"Unable to find '{self.main_pdf.name}' in {self.cwd}, skipping..."
                     )
                     self.args.with_pdf = False
-            with open(self.main_file.with_suffix(".fls"), encoding="utf8") as f:
-                deps, pkgs = _latex.fls_input_files(
-                    f, self.excl_files, AUXFILES, sty_files=self.args.packages
-                )
-                if self.args.packages:
-                    self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
-                        "utf8"
+
+            if not self.args.git_rev:
+                with open(self.main_file.with_suffix(".fls"), encoding="utf8") as f:
+                    deps, pkgs = _latex.fls_input_files(
+                        f, self.excl_files, AUXFILES, sty_files=self.args.packages
                     )
+
+            if self.args.packages:
+                self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
+                    "utf8"
+                )
 
         if self.args.bib:
             for f in self.bib_file():
@@ -525,7 +532,11 @@ class TarTeX:
             # not. That is user error and we simply omit the missing file from
             # tarball with a warning
             try:
-                _tar_add_file(dep)
+                if self.args.git_rev:  # work within git_checkout context
+                    with git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev):
+                        _tar_add_file(dep)
+                else:
+                    _tar_add_file(dep)
             except FileNotFoundError:
                 log.warning(
                     "Skipping INPUT file '%s', not found amongst sources; try"
