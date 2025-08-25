@@ -531,6 +531,7 @@ class TarTeX:
             tinfo.uid = tinfo.gid = 0
             tinfo.uname = tinfo.gname = ""
             tar_obj.addfile(tinfo, open(file_name, "rb"))
+            log.info("Add file: %s", file_name)
 
         cntxt = (
             git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev)

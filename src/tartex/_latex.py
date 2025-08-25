@@ -92,7 +92,6 @@ def fls_input_files(fls_fileobj, lof_excl, skip_files, *, sty_files=False):
                 and (p.suffix not in skip_files)
             ):
                 deps.add(p.as_posix())
-                log.info("Add file: %s", p.as_posix())
 
         if sty_files:
             if INPUT_STY.match(line):
