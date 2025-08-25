@@ -508,15 +508,18 @@ class TarTeX:
             sys.exit(1)
 
     def _do_tar(self, tar_obj):
+        def _tar_add_file(file_name):  # helper func to add file <file_name> to <tar_obj>
+            tinfo = tar_obj.gettarinfo(file_name)
+            tinfo.uid = tinfo.gid = 0
+            tinfo.uname = tinfo.gname = ""
+            tar_obj.addfile(tinfo, open(file_name, "rb"))
+
         if self.args.git_rev:
             # Skip any missing files from git tree, indicative of unclean working tree
             with git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev):
                 for dep in self.GR.ls_tree_files():
                     try:
-                        tinfo = tar_obj.gettarinfo(dep)
-                        tinfo.uid = tinfo.gid = 0
-                        tinfo.uname = tinfo.gname = ""
-                        tar_obj.addfile(tinfo, open(dep, "rb"))
+                        _tar_add_file(dep)
                     except FileNotFoundError:
                         log.warning(
                             "Skipping INPUT file '%s', not found amongst sources; try"
@@ -531,10 +534,7 @@ class TarTeX:
             # not. That is user error and we simply omit the missing file from
             # tarball with a warning
             try:
-                tinfo = tar_obj.gettarinfo(dep)
-                tinfo.uid = tinfo.gid = 0
-                tinfo.uname = tinfo.gname = ""
-                tar_obj.addfile(tinfo, open(dep, "rb"))
+                _tar_add_file(dep)
             except FileNotFoundError:
                 log.warning(
                     "Skipping INPUT file '%s', not found amongst sources; try"
@@ -543,6 +543,7 @@ class TarTeX:
                 )
 
         def _tar_add_bytesio(obj, file_name):
+            # helper func to add `obj` as BytesIO with filename <file_name> to <tar_obj>
             tinfo = tar_obj.tarinfo(file_name)
             tinfo.size = len(obj)
             tinfo.mtime = self.mtime
