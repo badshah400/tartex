@@ -13,6 +13,7 @@ import os
 import re
 import sys
 import tarfile as tar
+from contextlib import nullcontext
 from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -526,23 +527,23 @@ class TarTeX:
             tinfo.uname = tinfo.gname = ""
             tar_obj.addfile(tinfo, open(file_name, "rb"))
 
-        for dep in self.input_files():
-            # By now, if the file is still missing, this indicates a .fls file
-            # is present in source but some of its INPUT marked entries are
-            # not. That is user error and we simply omit the missing file from
-            # tarball with a warning
-            try:
-                if self.args.git_rev:  # work within git_checkout context
-                    with git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev):
-                        _tar_add_file(dep)
-                else:
+        cntxt = (
+            git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev)
+            if self.args.git_rev
+            else
+            nullcontext()
+        )
+        with cntxt:
+            for dep in self.input_files():
+                try:
                     _tar_add_file(dep)
-            except FileNotFoundError:
-                log.warning(
-                    "Skipping INPUT file '%s', not found amongst sources; try"
-                    " forcing a LaTeX recompile ('-F').",
-                    dep,
-                )
+                except FileNotFoundError:
+                    log.warning(
+                        "Skipping INPUT file '%s', not found amongst sources; try"
+                        " forcing a LaTeX recompile ('-F').",
+                        dep,
+                    )
+                    continue
 
         def _tar_add_bytesio(obj, file_name):
             # helper func to add `obj` as BytesIO with filename <file_name> to <tar_obj>
