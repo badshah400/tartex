@@ -123,6 +123,7 @@ class TarTeX:
                 )
                 sys.exit(1)
 
+        self.mtime: int
         self.tar_file_git_tag = ""
         if self.args.git_rev:
             try:
@@ -130,10 +131,10 @@ class TarTeX:
                     self.main_file.parent, self.args.git_rev or "HEAD"
                 )
                 self.tar_file_git_tag = f"{self.GR.id()}.tar"
+                self.mtime = self.GR.mtime()
             except Exception:
                 sys.exit(1)
 
-        self.mtime: int
         self.main_pdf = self.main_file.with_suffix(".pdf")
         self.pdf_stream = None
         # Set default tar extension...
