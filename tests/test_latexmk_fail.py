@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MIT
 #
 """Tests for tarball generation from basic latex files"""
+
 from pathlib import Path
 
 import pytest
@@ -54,9 +55,13 @@ class TestLaTeXmkFail:
         )
         with pytest.raises(SystemExit) as exc:
             t.tar_files()
-            assert ("latexmk failed with the following output" in
-                    join_linebreaks(capsys.readouterr().err))
+            assert (
+                "latexmk failed with the following output"
+                in join_linebreaks(capsys.readouterr().err)
+            )
             assert "command used was:" in capsys.readouterr().err
-            assert "Cleaning up empty tarball" in join_linebreaks(capsys.readouterr().err)
+            assert "Cleaning up empty tarball" in join_linebreaks(
+                capsys.readouterr().err
+            )
 
         assert exc.value.code == 1

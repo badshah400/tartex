@@ -26,7 +26,6 @@ def default_args(datadir, tmpdir):
 
 
 class TestIndex:
-
     """Test to verify handling of missing .ind file"""
 
     def test_ind(self, default_args):

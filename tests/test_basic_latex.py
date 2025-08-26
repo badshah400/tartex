@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MIT
 #
 """Tests for tarball generation from basic latex files"""
+
 import logging
 import os
 import tarfile as tar
@@ -56,7 +57,7 @@ class TestBasicLaTeX:
 
     def test_gen_tar_no_suffix(self, default_target, default_tartex_obj):
         """Should include a single file in tarball even though main file has no
-           .tex or .fls suffix
+        .tex or .fls suffix
         """
         output = default_target.with_suffix(".tar.gz")
         t = default_tartex_obj("basic_latex")
@@ -90,7 +91,7 @@ class TestBasicLaTeX:
                 (Path(datadir) / "basic_latex.tex").as_posix(),
                 "--with-pdf",
                 "-o",
-                f"{datadir}/basic_latex_with_pdf.tar.gz"
+                f"{datadir}/basic_latex_with_pdf.tar.gz",
             ]
         )
         t.tar_files()
@@ -111,8 +112,14 @@ class TestBasicLaTeX:
 class TestTarConflict:
     """Tests checking resolutions for tar file name conflicts"""
 
-    def test_sol_default(self, default_target, default_tartex_obj, capsys,
-                         monkeypatch, join_linebreaks):
+    def test_sol_default(
+        self,
+        default_target,
+        default_tartex_obj,
+        capsys,
+        monkeypatch,
+        join_linebreaks,
+    ):
         """Test default (empty) user response"""
         t_con = default_tartex_obj("basic_latex.tex")
         t_con.tar_files()
@@ -128,11 +135,19 @@ class TestTarConflict:
         # Original output must still exist
         assert default_target.with_suffix(".tar.gz").exists() is True
 
-        assert "Not overwriting existing tar file" in join_linebreaks(capsys.readouterr().err)
+        assert "Not overwriting existing tar file" in join_linebreaks(
+            capsys.readouterr().err
+        )
         assert exc.value.code == 1
 
-    def test_sol_quit(self, default_target, default_tartex_obj, capsys,
-                      monkeypatch, join_linebreaks):
+    def test_sol_quit(
+        self,
+        default_target,
+        default_tartex_obj,
+        capsys,
+        monkeypatch,
+        join_linebreaks,
+    ):
         """Test when user response is 'q'"""
         t_con = default_tartex_obj("basic_latex.tex")
         t_con.tar_files()
@@ -148,7 +163,9 @@ class TestTarConflict:
         # Original output must still exist
         assert default_target.with_suffix(".tar.gz").exists() is True
 
-        assert "Not overwriting existing tar file" in join_linebreaks(capsys.readouterr().err)
+        assert "Not overwriting existing tar file" in join_linebreaks(
+            capsys.readouterr().err
+        )
         assert exc.value.code == 1
 
     def test_sol_overwrite(self, default_tartex_obj, monkeypatch):
@@ -164,7 +181,9 @@ class TestTarConflict:
         with tar.open(output) as rat:
             assert len(rat.getnames()) == 1
 
-    def test_sol_newname_ok(self, default_target, default_tartex_obj, tmpdir, monkeypatch):
+    def test_sol_newname_ok(
+        self, default_target, default_tartex_obj, tmpdir, monkeypatch
+    ):
         """Test entering new name that works"""
         t_con = default_tartex_obj("basic_latex.tex")
         t_con.tar_files()
@@ -201,7 +220,9 @@ class TestTarConflict:
         with pytest.raises(SystemExit) as exc:
             t_con.tar_files()
 
-        assert "New name entered is also the same" in join_linebreaks(capsys.readouterr().err)
+        assert "New name entered is also the same" in join_linebreaks(
+            capsys.readouterr().err
+        )
         assert exc.value.code == 1
         # Original output must still exist
         assert Path(output).exists() is True
@@ -226,7 +247,9 @@ class TestTarConflict:
         with tar.open(output) as rat:
             assert len(rat.getnames()) == 1
 
-    def test_option_overwrite(self, caplog, datadir, default_target, default_tartex_obj):
+    def test_option_overwrite(
+        self, caplog, datadir, default_target, default_tartex_obj
+    ):
         """Should include a single file in tarball"""
         output = default_target.with_suffix(".tar.gz")
         t = default_tartex_obj("basic_latex.tex")

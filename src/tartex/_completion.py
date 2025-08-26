@@ -25,7 +25,6 @@ COMPFILE = {
 
 
 class Completion:
-
     """Methods for helping users print or install shell completion"""
 
     def __init__(self, shell_name, filename):
@@ -56,7 +55,6 @@ class Completion:
 
 
 class BashCompletion(Completion):
-
     """Completion for bash"""
 
     def __init__(self):
@@ -67,7 +65,6 @@ class BashCompletion(Completion):
 
 
 class ZshCompletion(Completion):
-
     """Completion for zsh shell"""
 
     def __init__(self):
@@ -78,7 +75,6 @@ class ZshCompletion(Completion):
 
 
 class FishCompletion(Completion):
-
     """Completion for fish shell"""
 
     def __init__(self):

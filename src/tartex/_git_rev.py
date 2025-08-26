@@ -36,12 +36,16 @@ def git_checkout(git_bin: str, repo: str, rev: str):
         rev_full_ref = _get_ref(git_bin, repo, rev)
         rev_short_ref = rev_full_ref[:7]
     except subprocess.CalledProcessError as err:  # typically for invalid rev
-        log.critical("Failed to checkout revision %s; invalid git revision?", rev)
+        log.critical(
+            "Failed to checkout revision %s; invalid git revision?", rev
+        )
         log.critical("Git: %s", err.stderr.strip())
         raise err
 
     if head_full_ref != rev_full_ref:
-        log_tgt_rev = rev if rev == rev_short_ref else f"{rev} (commit {rev_short_ref})"
+        log_tgt_rev = (
+            rev if rev == rev_short_ref else f"{rev} (commit {rev_short_ref})"
+        )
         try:
             # Note: git prints checkout msgs to stderr, not stdout
             rev_proc = subprocess.run(
@@ -51,7 +55,9 @@ def git_checkout(git_bin: str, repo: str, rev: str):
                 check=True,
             )
 
-            log.info("Checking out git revision %s in detached mode", log_tgt_rev)
+            log.info(
+                "Checking out git revision %s in detached mode", log_tgt_rev
+            )
             for line in rev_proc.stderr.splitlines():
                 log.debug("Git: %s", line)
 
@@ -63,7 +69,9 @@ def git_checkout(git_bin: str, repo: str, rev: str):
                 log.critical("Git: %s", line)
             raise err
 
-        restore_ref = head_full_ref if head_abbrev_ref == "HEAD" else head_abbrev_ref
+        restore_ref = (
+            head_full_ref if head_abbrev_ref == "HEAD" else head_abbrev_ref
+        )
         head_proc = subprocess.run(
             [git_bin, "-C", repo, "checkout", "-f", restore_ref],
             capture_output=True,
@@ -75,12 +83,23 @@ def git_checkout(git_bin: str, repo: str, rev: str):
             log.debug("Git: %s", line)
     else:
         check_clean_git_tree = subprocess.run(
-            [git_bin, "-C", repo, "status", "--porcelain", "--untracked-files=no"],
+            [
+                git_bin,
+                "-C",
+                repo,
+                "status",
+                "--porcelain",
+                "--untracked-files=no",
+            ],
             capture_output=True,
             encoding="utf-8",
             check=False,
         )
-        log_msg_tree = "(unclean)" if check_clean_git_tree.stdout else f"at {head_short_ref}"
+        log_msg_tree = (
+            "(unclean)"
+            if check_clean_git_tree.stdout
+            else f"at {head_short_ref}"
+        )
         log.info("Using current working tree %s", log_msg_tree)
         yield rev_short_ref
 
@@ -189,7 +208,11 @@ class GitRev:
 
         """
 
-        git_comm: list[str] = [self.git_bin if self.git_bin else "git", "-C", self.repo] + cmd
+        git_comm: list[str] = [
+            self.git_bin if self.git_bin else "git",
+            "-C",
+            self.repo,
+        ] + cmd
         try:
             out = subprocess.run(
                 git_comm, capture_output=True, encoding="utf-8", check=True

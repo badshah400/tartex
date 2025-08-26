@@ -29,7 +29,6 @@ def basic_opts(latex_file, tmpdir):
 
 
 class TestLatexmkOpts:
-
     """Tests to check various tex processors for latexmk"""
 
     def test_auto_pdf(self, basic_opts):

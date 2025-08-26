@@ -25,7 +25,7 @@ INPUT_FONTS = re.compile(r"^INPUT\s.*.(pfb|tfm)")
 FONT_PUBLIC = re.compile(r"/public/.*/")
 
 
-def run_latexmk(filename, mode, compdir, timeout = 300):
+def run_latexmk(filename, mode, compdir, timeout=300):
     """Helper function to actually compile the latex file in a tmpdir"""
     latexmk_bin = shutil.which("latexmk")
     if not latexmk_bin:
@@ -55,7 +55,9 @@ def run_latexmk(filename, mode, compdir, timeout = 300):
                 timeout=timeout,
             )
     except subprocess.TimeoutExpired as e:
-        log.critical("Error: %s process timed out after %s seconds", latexmk_bin, timeout)
+        log.critical(
+            "Error: %s process timed out after %s seconds", latexmk_bin, timeout
+        )
         raise e
     except OSError as err:
         log.critical("%s", err.strerror)
@@ -65,7 +67,7 @@ def run_latexmk(filename, mode, compdir, timeout = 300):
             "Error: %s failed with the following output:\n%s\n%s",
             err.cmd[0],
             err.stdout,
-            "==================================================="
+            "===================================================",
         )
         log.critical("Latexmk command used was: `%s`", " ".join(latexmk_cmd))
         raise err

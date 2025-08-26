@@ -38,6 +38,7 @@ def datadir(tmpdir, request):
 
     return tmpdir
 
+
 @pytest.fixture
 def join_linebreaks():
     """Joins lines with line breaks into one contiguous string

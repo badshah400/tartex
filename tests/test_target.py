@@ -39,4 +39,6 @@ class TestTarExt:
         assert target_tar("bz2", "-J").tar_ext != "bz2"
         # xz
         assert target_tar("xz").tar_ext == "xz"
-        assert target_tar("xz").tar_file_w_ext.with_suffix("").name == "dest.tar"
+        assert (
+            target_tar("xz").tar_file_w_ext.with_suffix("").name == "dest.tar"
+        )

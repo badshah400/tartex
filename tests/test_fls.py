@@ -39,7 +39,7 @@ def test_fls_main_arg_noext(datadir, flsfile):
     """
     User passes a file name with no extension but tartex should find .fls file
     """
-    flsfile_noext = flsfile.removesuffix('.fls')
+    flsfile_noext = flsfile.removesuffix(".fls")
     t = TarTeX(
         [str(datadir / flsfile_noext), "-o", str(datadir), "-b"],
     )
