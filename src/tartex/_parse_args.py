@@ -247,24 +247,6 @@ def parse_args(args):
     )
 
     parser.add_argument(
-        "-a",
-        "--add",
-        metavar="PATTERNS",
-        type=str,
-        help=(
-            "include additional files matching glob-style PATTERN;"
-            " separate multiple PATTERNS using commas"
-        ),
-    )
-
-    parser.add_argument(
-        "-b",
-        "--bib",
-        action="store_true",
-        help="find and add bib file to tarball",
-    )
-
-    parser.add_argument(
         "-g",
         "--git-rev",
         metavar="REV",
@@ -316,12 +298,6 @@ def parse_args(args):
     )
 
     parser.add_argument(
-        "--with-pdf",
-        action="store_true",
-        help="add existing/generated final output PDF",
-    )
-
-    parser.add_argument(
         "-v",
         "--verbose",
         help="increase verbosity (-v, -vv, etc.)",
@@ -329,7 +305,36 @@ def parse_args(args):
         default=0,
     )
 
-    parser.add_argument(
+    # File inclusion, exclusion options
+    file_opts = parser.add_argument_group(
+        "Options for fine-grained file inclusion/exclusion in tar"
+    )
+
+    file_opts.add_argument(
+        "-a",
+        "--add",
+        metavar="PATTERNS",
+        type=str,
+        help=(
+            "include additional files matching glob-style PATTERN;"
+            " separate multiple PATTERNS using commas"
+        ),
+    )
+
+    file_opts.add_argument(
+        "-b",
+        "--bib",
+        action="store_true",
+        help="find and add bib file to tarball",
+    )
+
+    file_opts.add_argument(
+        "--with-pdf",
+        action="store_true",
+        help="add existing/generated final output PDF",
+    )
+
+    file_opts.add_argument(
         "-x",
         "--excl",
         metavar="PATTERNS",
@@ -338,23 +343,25 @@ def parse_args(args):
     )
 
     # Latexmk options
-    latexmk_opts = parser.add_argument_group("Options for latexmk processing")
+    latexmk_opts = parser.add_argument_group(
+        "Options for latexmk processing (ignored for `git-rev`)"
+    )
+    latexmk_opts.add_argument(
+        "-F",
+        "--force-recompile",
+        action="store_true",
+        help="force (La)TeX re-compile even if `.fls` found",
+    )
+
     latexmk_opts.add_argument(
         "--latexmk-tex",
         metavar="TEXMODE",
         choices=LATEXMK_TEX,
         default=None,
         help=(
-            "force TeX processing mode used by latexmk;"
-            f" TEXMODE must be one of: {', '.join(LATEXMK_TEX)}"
+            "force latexmk processing mode;"
+            f" TEXMODE is one of: {', '.join(LATEXMK_TEX)}"
         ),
-    )
-
-    latexmk_opts.add_argument(
-        "-F",
-        "--force-recompile",
-        action="store_true",
-        help="force recompilation even if .fls exists",
     )
 
     # Tar recompress options
