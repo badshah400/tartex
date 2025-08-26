@@ -194,8 +194,8 @@ class TarTeX:
                 ", ".join([Path(x).as_posix() for x in self.excl_files]),
             )
 
-        self.force_tex = self.args.latexmk_tex
-        if not (self.force_tex or self.args.git_rev):
+        self.force_tex = False if self.args.git_rev else self.args.latexmk_tex
+        if not self.force_tex:
             # If force_tex is not set by user options,
             # set to ps if source dir contains ps/eps files
             # or to pdf otherwise
