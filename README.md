@@ -67,38 +67,41 @@ Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 usage: tartex [OPTIONS] FILENAME
 
 Build a tarball including all source files needed to compile your LaTeX project
-(version 0.7.1dev).
+(version 0.8.0).
 
 positional arguments:
-  FILENAME                 input file name [.tex|.fls] (with or without suffix)
+  FILENAME                 input file name [.tex|.fls] (with/without file ext.)
 
-options:
+common options:
   -h, --help               show this help message and exit
   -V, --version            print tartex version and exit
-  -a, --add=PATTERNS       include additional files matching glob-style
-                           PATTERN; separate multiple PATTERNS using commas
-  -b, --bib                find and add bib file to tarball
   -g, --git-rev=[REV]      add git tree files at revision REV (default: HEAD)
   -l, --list, --dry-run    print list of files to include and quit
-  -o, --output=NAME[.EXT]  output tar file name; tar compression mode will be
-                           inferred from .EXT, if possible (default 'gz')
+  -o, --output=NAME[.EXT]  output tar filename; 'EXT' sets re-compression mode,
+                           if one of 'bz2', 'gz' (default), or 'xz'
   --overwrite              overwrite output tarball if necessary
-  -p, --packages           add names of used (La)TeX packages as a json file
+  -p, --packages           add used (La)TeX package names as json file
   -s, --summary            print a summary at the end
+  -v, --verbose            increase log verbosity (-v, -vv, etc.)
+
+options for additional file inclusion/exclusion in tar:
+  -a, --add=PATTERNS       include additional files matching glob PATTERN;
+                           separate multiple PATTERNs using commas
+  -b, --bib                find and add bib file to tarball
   --with-pdf               add existing/generated final output PDF
-  -v, --verbose            increase verbosity (-v, -vv, etc.)
   -x, --excl=PATTERNS      exclude file names matching PATTERNS
-  -j, --bzip2              recompress with bzip2 (.bz2); override .EXT in '-o'
-  -J, --xz                 recompress with lzma (.xz); override .EXT in '-o'
-  -z, --gzip               recompress with gzip (.gz); override .EXT in '-o'
 
-Options for latexmk processing:
-  --latexmk-tex=TEXMODE    force TeX processing mode used by latexmk; TEXMODE
-                           must be one of: dvi, lualatex, luatex, pdf, pdflua,
-                           ps, xdv, xelatex
-  -F, --force-recompile    force recompilation even if .fls exists
+options for latexmk processing (ignored for 'git-rev'):
+  -F, --force-recompile    force (La)TeX re-compile even if '.fls' found
+  --latexmk-tex=TEXMODE    force latexmk processing mode; TEXMODE is one of:
+                           dvi, lualatex, luatex, pdf, pdflua, ps, xdv, xelatex
 
-Shell completion options:
+options for tar re-compression (mutually conflicting); over-rides .EXT in '-o':
+  -j, --bzip2              bzip2 (.bz2) re-compression
+  -J, --xz                 lzma (.xz) re-compression
+  -z, --gzip               gzip (.gz) re-compression
+
+options for shell TAB completion:
   --completion             print shell completion guides for tartex
   --bash-completions       install bash completions for tartex
   --fish-completions       install fish completions for tartex

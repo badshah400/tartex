@@ -1,16 +1,19 @@
 # Changelog
 
-## Un-released
+## [0.8.0] 2025-08-26
 
 ## Added
 
-- Option `--git-rev=REV` to process and add tracked files from git repo at revision `REV`
-  (defaults to `HEAD`).
+- Option `--git-rev=REV` to process and add tracked files from git repo at revision `REV` (default: `HEAD`).
+- Add initial man file built using `help2man` and ship it in wheel/source.
  
 ## Fixed
 
 - Clean up tarball if latexmk compilation fails.
 - Improve displayed error messages if latexmk fails.
+- Flash-ier summary messages using emoji unicode characters.
+- Clean up blank tarball if latexmk fails.
+- Improved, re-organised help message.
 
 ## [0.7.0] 2025-08-17
 
