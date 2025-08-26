@@ -134,6 +134,17 @@ class GitRev:
         if not self.git_bin:
             raise RuntimeError("Unable to find git executable in PATH")
 
+    def mtime(self) -> int:
+        """Return the target commit's unix timestamp"""
+        try:
+            return int(
+                self._git_cmd(
+                    ["show", "--no-patch", r"--format=%ct", self.rev],
+                )[0].strip()
+            )
+        except Exception as err:
+            raise err
+
     def id(self) -> str:
         """Return either tag name, if commit corresponds to a valid tag, or commit short-id
         otherwise
