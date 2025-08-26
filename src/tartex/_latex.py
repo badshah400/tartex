@@ -114,4 +114,4 @@ def fls_input_files(fls_fileobj, lof_excl, skip_files, *, sty_files=False):
                         fontdir = p.parent.name
                     pkgs["System"].add(fontdir)
 
-    return list(deps), pkgs
+    return deps, pkgs

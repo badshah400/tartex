@@ -264,6 +264,8 @@ class TarTeX:
             Path(f) if Path(f).is_file() else None for f in [bib_name, bst_name]
         ]
 
+    # TODO: Re-structure function to make it readable, currently it is a bit of
+    # a hodge-podge of `if...else` branches.
     def input_files(self):
         """
         Returns non-system input files needed to compile the main tex file.
@@ -373,7 +375,7 @@ class TarTeX:
         if self.args.bib:
             for f in self.bib_file():
                 try:
-                    deps.append(f.as_posix())
+                    deps.add(f.as_posix())
                     log.info("Add file: %s", deps[-1])
                     if re.match(r".bst", f.suffix):
                         pkgs["Local"].add(deps[-1])
@@ -388,7 +390,7 @@ class TarTeX:
                         "Manually included file %s already added", f_relpath_str
                     )
                     continue
-                deps.append(f_relpath_str)
+                deps.add(f_relpath_str)
                 log.info("Add user specified file: %s", f_relpath_str)
 
         if self.args.packages:
