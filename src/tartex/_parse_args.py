@@ -229,16 +229,25 @@ def parse_args(args):
         ),
         formatter_class=GnuStyleHelpFormatter,
         usage="%(prog)s [OPTIONS] FILENAME",
+        add_help=False,
     )
 
     parser.add_argument(
         "fname",
         metavar="FILENAME",
         type=Path,
-        help="input file name [.tex|.fls] (with or without suffix)",
+        help="input file name [.tex|.fls] (with/without file ext.)",
     )
 
-    parser.add_argument(
+    general_opts = parser.add_argument_group("common options")
+    general_opts.add_argument(
+        "-h",
+        "--help",
+        help="show this help message and exit",
+        action="help",
+    )
+
+    general_opts.add_argument(
         "-V",
         "--version",
         help="print %(prog)s version and exit",
@@ -246,7 +255,7 @@ def parse_args(args):
         version=f"%(prog)s {__version__}",
     )
 
-    parser.add_argument(
+    general_opts.add_argument(
         "-g",
         "--git-rev",
         metavar="REV",
@@ -257,7 +266,7 @@ def parse_args(args):
         const="HEAD",  # used when `-g`/`--git-rev` is used with empty param
     )
 
-    parser.add_argument(
+    general_opts.add_argument(
         "-l",
         "--list",
         "--dry-run",
@@ -266,48 +275,48 @@ def parse_args(args):
         help="print list of files to include and quit",
     )
 
-    parser.add_argument(
+    general_opts.add_argument(
         "-o",
         "--output",
         metavar="NAME[.EXT]",
         type=Path,
         help=(
-            "output tar file name; tar compression mode will be inferred from"
-            " .EXT, if possible (default 'gz')"
+            "output tar filename; 'EXT' sets re-compression mode,"
+            " if one of 'bz2', 'gz' (default), or 'xz'"
         ),
     )
 
-    parser.add_argument(
+    general_opts.add_argument(
         "--overwrite",
         action="store_true",
         help="overwrite output tarball if necessary",
     )
 
-    parser.add_argument(
+    general_opts.add_argument(
         "-p",
         "--packages",
         action="store_true",
-        help="add names of used (La)TeX packages as a json file",
+        help="add used (La)TeX package names as json file",
     )
 
-    parser.add_argument(
+    general_opts.add_argument(
         "-s",
         "--summary",
         action="store_true",
         help="print a summary at the end",
     )
 
-    parser.add_argument(
+    general_opts.add_argument(
         "-v",
         "--verbose",
-        help="increase verbosity (-v, -vv, etc.)",
+        help="increase log verbosity (-v, -vv, etc.)",
         action="count",
         default=0,
     )
 
     # File inclusion, exclusion options
     file_opts = parser.add_argument_group(
-        "Options for fine-grained file inclusion/exclusion in tar"
+        "options for additional file inclusion/exclusion in tar"
     )
 
     file_opts.add_argument(
@@ -316,8 +325,8 @@ def parse_args(args):
         metavar="PATTERNS",
         type=str,
         help=(
-            "include additional files matching glob-style PATTERN;"
-            " separate multiple PATTERNS using commas"
+            "include additional files matching glob PATTERN;"
+            " separate multiple PATTERNs using commas"
         ),
     )
 
@@ -344,13 +353,13 @@ def parse_args(args):
 
     # Latexmk options
     latexmk_opts = parser.add_argument_group(
-        "Options for latexmk processing (ignored for `git-rev`)"
+        "options for latexmk processing (ignored for 'git-rev')"
     )
     latexmk_opts.add_argument(
         "-F",
         "--force-recompile",
         action="store_true",
-        help="force (La)TeX re-compile even if `.fls` found",
+        help="force (La)TeX re-compile even if '.fls' found",
     )
 
     latexmk_opts.add_argument(
@@ -365,10 +374,13 @@ def parse_args(args):
     )
 
     # Tar recompress options
-    tar_opts = parser.add_mutually_exclusive_group()
+    tar_opts_grp = parser.add_argument_group(
+        "options for tar re-compression (mutually conflicting); over-rides .EXT in '-o'"
+    )
+    tar_opts = tar_opts_grp.add_mutually_exclusive_group()
 
     def cmp_str(cmp, ext):
-        return f"recompress with {cmp} (.{ext}); override .EXT in '-o'"
+        return f"{cmp} (.{ext}) re-compression"
 
     tar_opts.add_argument(
         "-j",
@@ -391,26 +403,26 @@ def parse_args(args):
         help=cmp_str("gzip", "gz"),
     )
 
-    misc_opts = parser.add_argument_group("Shell completion options")
-    misc_opts.add_argument(
+    shcomp_opts = parser.add_argument_group("options for shell TAB completion")
+    shcomp_opts.add_argument(
         "--completion",
         help="print shell completion guides for %(prog)s",
         action=CompletionPrintAction,
     )
 
-    misc_opts.add_argument(
+    shcomp_opts.add_argument(
         "--bash-completions",
         help="install bash completions for %(prog)s",
         action=BashCompletionInstall,
     )
 
-    misc_opts.add_argument(
+    shcomp_opts.add_argument(
         "--fish-completions",
         help="install fish completions for %(prog)s",
         action=FishCompletionInstall,
     )
 
-    misc_opts.add_argument(
+    shcomp_opts.add_argument(
         "--zsh-completions",
         help="install zsh completions for %(prog)s",
         action=ZshCompletionInstall,
