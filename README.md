@@ -67,7 +67,7 @@ Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 usage: tartex [OPTIONS] FILENAME
 
 Build a tarball including all source files needed to compile your LaTeX project
-(version 0.8.0).
+(version 0.9.0dev0).
 
 positional arguments:
   FILENAME                 input file name [.tex|.fls] (with/without file ext.)
