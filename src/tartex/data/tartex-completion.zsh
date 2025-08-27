@@ -35,31 +35,43 @@
 # 
 # ------------------------------------------------------------------------------
 #
+
+_git_refs()
+  {
+    vals="`git tag --oneline | awk '{ printf $1\" \"; }' || true`"
+    vals+="`git branch --no-color | sed -E 's/[*]//g' | awk { 'print $1\" \"; }' || true`"
+    return vals
+  }
+
 typeset -A opt_args
 tar_ext="*.tar.(bz2|gz|xz)"
 _arguments -s -S \
   '(completions):INPUT_FILE:_files -g "*.(fls|tex)"' \
   '(- : *)'{-h,--help}'[show this help message and exit]' \
   '(- : *)'{-V,--version}'[print tartex version and exit]' \
-  '(completions -a --add)'{-a,--add=}'[include additional file names matching glob-style PATTERNS]:PATTERNS:_files' \
+  '(completions -a --add)'{-a,--add=}'[include additional files matching glob PATTERN]:PATTERNS:_files' \
   '(completions -b --bib)'{-b,--bib}'[find and add bib file to tarball]' \
   '(completions -p --packages)'{-p,--packages}'[add names of used (La)TeX packages as a json file]' \
   '(completions -s --summary)'{-s,--summary}'[print a summary at the end]' \
-  '*'{-v,--verbose}'[increase verbosity (-v, -vv, etc.)]' \
+  '*'{-v,--verbose}'[increase log verbosity (-v, -vv, etc.)]' \
   '(completions -x --excl)'{-x,--excl=}'[exclude file names matching PATTERNS]:PATTERNS:_files' \
-  '(completions --latexmk-tex)--latexmk-tex=[force TeX processing mode used by latexmk]:TEXMODE:(dvi lualatex luatex pdf pdflua ps xdv xelatex)' \
+  '(completions --latexmk-tex)'--latexmk-tex='[force latexmk processing mode]:TEXMODE:(dvi lualatex luatex pdf pdflua ps xdv xelatex)' \
   '(completions -F --force-recompile)'{-F,--force-recompile}'[force recompilation even if .fls exists]' \
+  '(completions --with-pdf)'--with-pdf'[add final output PDF]' \
   + '(completions)' \
   '(- : *)--completion[print shell completion guides for tartex]' \
   '(- : *)--bash-completions[install bash completions for tartex]' \
   '(- : *)--fish-completions[install fish completions for tartex]' \
   '(- : *)--zsh-completions[install zsh completions for tartex]' \
-  + '(compression)' \
-  '(completions -l --list)'{-j,--bzip2}'[compress output with bzip2 (.bz2)]' \
-  '(completions -l --list)'{-z,--gzip}'[compress output with gzip (.gz)]' \
-  '(completions -l --list)'{-J,--xz}'[compress output with lzma (.xz)]' \
+  + '(recompression)' \
+  '(completions -j --bzip2)'{-j,--bzip2}'[recompress tarball with bzip2 (.bz2)]' \
+  '(completions -z --gzip)'{-z,--gzip}'[recompress tarball with gzip (.gz)]' \
+  '(completions -J --xz)'{-J,--xz}'[recompress tarball with lzma (.xz)]' \
   + '(output)' \
-  '(completions compression -l --list)'{-l,--list}'[print a list of files to include and quit]' \
-  '(completions -o --output)'{-o,--output=}'[name of output tar file]:FILENAME:_files -g "$tar_ext"' \
+  '(completions -l --list)'{-l,--list}'[print a list of files to include and quit]' \
+  '(completions -o --output)'{-o,--output=}'[output tar filename]:FILENAME:_files -g "$tar_ext"' \
+  '(completions --overwrite)'--overwrite'[overwrite existing tarfile]' \
+  + '(git)' \
+  '(completions -g --git-rev)'{-g,--git-rev=}'[add files at git revision]:PATTERNS:_git_refs' \
   && ret=0
 return ret

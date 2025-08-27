@@ -23,6 +23,12 @@ _tartex_completions()
       return
       ;;
 
+    --git-rev | -!(-*)g)
+      COMPREPLY=( $(compgen -W "`git tag 2>/dev/null | awk '{ printf $1\" \"; }' || true`" -- "$cur") )
+      COMPREPLY+=( $(compgen -W "`git branch 2>/dev/null | sed -E 's/[*]//' | awk '{ printf $1\" \"; }' || true`" -- "$cur") )
+      return
+      ;;
+
     --output | -!(-*)o)
       _filedir "$tarext"
       return
