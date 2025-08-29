@@ -25,67 +25,21 @@ from rich.prompt import Prompt
 from tartex import _latex
 from tartex._parse_args import parse_args
 from tartex._git_rev import GitRev, git_checkout
+from tartex._utils import *
 
 
-# Auxilliary file extensions to ignore
-# taken from latexmk manual:
-# https://www.cantab.net/users/johncollins/latexmk/latexmk-480.txt
-AUXFILES = [
-    ".aux",
-    ".bcf",
-    ".fls",
-    ".idx",
-    ".lof",
-    ".lot",
-    ".out",
-    ".toc",
-    ".blg",
-    ".ilg",
-    ".log",
-    ".xdv",
-    ".fdb_latexmk",
-]
-
-# Supplementary files that are usually required as part of tarball
-SUPP_REQ = ["bbl", "ind"]
-
-# Allowed tar extensions
-TAR_EXT = ["bz2", "gz", "xz"]
-
-# Default compression
-TAR_DEFAULT_COMP = "gz"
-
-
-def strip_tarext(filename: Path):
-    """Strip '.tar(.EXT)' from filename"""
-    while filename.suffix.lstrip(".") in TAR_EXT + ["tar"]:
-        filename = filename.with_suffix("")
-    return filename
-
-
-def summary_msg(
-    nfiles, tarname: Union[Path, None] = None, wdir: Union[Path, None] = None
-):
-    """Return summary msg to print at end of run"""
-
-    def _num_tag(n: int):
-        return f"[bold]{n} file" + ("s" if n > 1 else "") + "[/]"
-
-    if tarname:
-        try:
-            tarname_rel = tarname.relative_to(wdir if wdir else tarname.root)
-        except ValueError:
-            tarname_rel = tarname
-        finally:
-            richprint(
-                f"[cyan]Summary: :package: [bold]{tarname_rel}[/] generated with"
-                f" {_num_tag(nfiles)}.[/]"
-            )
+def _set_main_file(name: str) -> Path:
+    main_file = Path(name).resolve()
+    if main_file.suffix in [".fls", ".tex"]:
+        return main_file
+    # ...otherwise try adding the .fls/.tex suffix to main_file
+    for f in [str(main_file) + suff for suff in [".fls", ".tex"]]:
+        if Path(f).is_file():
+            main_file = Path(f)
+            break
     else:
-        richprint(
-            f"[cyan]Summary: :clipboard: {_num_tag(nfiles)} to include.[/]"
-        )
-
+        raise FileNotFoundError(f"File {main_file.name}[.tex|.fls] not found.")
+    return main_file
 
 class TarTeX:
     """
@@ -108,20 +62,11 @@ class TarTeX:
             ),
         )
         self.cwd = Path.cwd()
-        self.main_file = self.args.fname.resolve()
-        if self.main_file.suffix not in [".fls", ".tex"]:
-            found_file = False
-            # Try adding the .fls/.tex suffix to main_file
-            for f in [str(self.main_file) + suff for suff in [".fls", ".tex"]]:
-                if Path(f).is_file():
-                    self.main_file = Path(f)
-                    found_file = True
-                    break
-            if not found_file:
-                log.critical(
-                    f"Error: File {self.main_file.name}[.tex|.fls] not found."
-                )
-                sys.exit(1)
+        try:
+            self.main_file = _set_main_file(self.args.fname)
+        except FileNotFoundError as err:
+            log.critical(f"Error: {err}")
+            sys.exit(1)
 
         self.mtime: int
         self.tar_file_git_tag = ""
