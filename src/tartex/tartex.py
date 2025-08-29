@@ -85,7 +85,6 @@ class TarTeX:
             self.tar_file_git_tag = ""
 
 
-        self.main_pdf = self.main_file.with_suffix(".pdf")
         self.pdf_stream = None
         # Set default tar extension...
         self.tar_ext = TAR_DEFAULT_COMP
@@ -226,9 +225,9 @@ class TarTeX:
                     )
 
                 self.mtime = os.path.getmtime(fls_path)
-                self.main_pdf = Path(compile_dir) / self.main_pdf.name
+                main_pdf = Path(compile_dir) / self.main_file.with_suffix(".pdf")
                 if self.args.with_pdf:
-                    log.info("Add contents as BytesIO: %s", self.main_pdf)
+                    log.info("Add contents as BytesIO: %s", main_pdf)
                 for ext in SUPP_REQ:
                     if app := self._missing_supp(
                         self.main_file.with_suffix(f".{ext}"), compile_dir, deps
@@ -261,13 +260,14 @@ class TarTeX:
                     self.args.packages = False
 
             if self.args.with_pdf:
+                main_pdf = self.main_file.with_suffix(".pdf")
                 try:
-                    with open(self.main_pdf, "rb") as f:
+                    with open(main_pdf, "rb") as f:
                         self.pdf_stream = f.read()
-                        log.info("Add file: %s", self.main_pdf.name)
+                        log.info("Add file: %s", main_pdf.relative_to(self.cwd))
                 except FileNotFoundError:
                     log.warning(
-                        f"Unable to find '{self.main_pdf.name}' in {self.cwd}, skipping..."
+                        f"Unable to find '{main_pdf}' in {self.cwd}, skipping..."
                     )
                     self.args.with_pdf = False
 
@@ -314,7 +314,7 @@ class TarTeX:
         if self.args.list:
             file_list = self.input_files()
             if self.pdf_stream:
-                file_list += [self.main_pdf.name]
+                file_list += [self.main_file.with_suffix(".pdf").name]
             self._print_list(file_list)
         else:
             try:
@@ -465,7 +465,7 @@ class TarTeX:
             log.info("Adding %s as BytesIO object", fpath.name)
             _tar_add_bytesio(byt, fpath.name)
         if self.pdf_stream:
-            _tar_add_bytesio(self.pdf_stream, self.main_pdf.name)
+            _tar_add_bytesio(self.pdf_stream, self.main_file.with_suffix(".pdf").name)
 
     def _proc_output_path(self, user_path: Union[Path, None] = None):
         """
