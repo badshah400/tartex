@@ -71,7 +71,6 @@ class TarTeX:
             log.critical(f"Error: {err}")
             sys.exit(1)
 
-        self.mtime: int
         if self.args.git_rev:
             try:
                 self.GR = GitRev(
