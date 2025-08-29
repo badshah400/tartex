@@ -36,17 +36,22 @@
 # ------------------------------------------------------------------------------
 #
 
-_git_refs()
-  {
-    vals="`git tag --oneline | awk '{ printf $1\" \"; }' || true`"
-    vals+="`git branch --no-color | sed -E 's/[*]//g' | awk { 'print $1\" \"; }' || true`"
-    return vals
-  }
+# Helper function to get a list of git branches and tags
+_tartex_get_git_refs() {
+  git for-each-ref --format='%(refname:short)' refs/heads refs/tags
+}
+
+# Helper function to list only git branches and tags
+_tartex_git_revs() {
+  local -a refs
+  refs=( $(_tartex_get_git_refs) )
+  _describe 'git revisions' refs
+}
 
 typeset -A opt_args
 tar_ext="*.tar.(bz2|gz|xz)"
 _arguments -s -S \
-  '(completions):INPUT_FILE:_files -g "*.(fls|tex)"' \
+  '1:input_file:_files -g "*.(fls|tex)"' \
   '(- : *)'{-h,--help}'[show this help message and exit]' \
   '(- : *)'{-V,--version}'[print tartex version and exit]' \
   '(completions -a --add)'{-a,--add=}'[include additional files matching glob PATTERN]:PATTERNS:_files' \
@@ -72,6 +77,6 @@ _arguments -s -S \
   '(completions -o --output)'{-o,--output=}'[output tar filename]:FILENAME:_files -g "$tar_ext"' \
   '(completions --overwrite)'--overwrite'[overwrite existing tarfile]' \
   + '(git)' \
-  '(completions -g --git-rev)'{-g,--git-rev=}'[add files at git revision]:PATTERNS:_git_refs' \
+  '(completions -g --git-rev)'{-g,--git-rev=}'[add files at git revision]:git-revs:_tartex_git_revs' \
   && ret=0
 return ret
