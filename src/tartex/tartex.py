@@ -72,7 +72,6 @@ class TarTeX:
             sys.exit(1)
 
         self.mtime: int
-        self.tar_file_git_tag = ""
         if self.args.git_rev:
             try:
                 self.GR = GitRev(
@@ -82,6 +81,9 @@ class TarTeX:
                 self.mtime = self.GR.mtime()
             except Exception:
                 sys.exit(1)
+        else:
+            self.tar_file_git_tag = ""
+
 
         self.main_pdf = self.main_file.with_suffix(".pdf")
         self.pdf_stream = None
