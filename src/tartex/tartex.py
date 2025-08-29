@@ -304,7 +304,6 @@ class TarTeX:
         Generates a tarball consisting of non-system input files needed to
         recompile your latex project.
         """
-        self.check_main_file_exists()
         full_tar_name = Path(f"{self.tar_file_w_ext}")
 
         wdir = self.main_file.resolve().parent
