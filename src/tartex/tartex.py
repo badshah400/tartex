@@ -158,39 +158,6 @@ class TarTeX:
 
         self.pkglist = None
 
-    def bib_file(self):
-        """Return relative path to bib file"""
-        bibre = re.compile(r"^\\bibliography\{.*\}")
-        bib_name = None
-        bstre = re.compile(r"^\\bibliographystyle\{.*\}")
-        bst_name = None
-        texf = self.main_file.with_suffix(".tex")
-        with open(texf, encoding="utf-8") as f:
-            for line in f:
-                m_bib = bibre.search(line)
-                m_bst = bstre.search(line)
-                if m_bib:
-                    bib_name = m_bib.group()
-                    continue
-                if m_bst:
-                    bst_name = m_bst.group()
-                    continue
-                if bib_name and bst_name:
-                    break
-
-        if bib_name:
-            bib_name = re.sub(r"^\\bibliography\{", "", bib_name).rstrip("}")
-            bib_name += ".bib" if bib_name.split(".")[-1] != ".bib" else ""
-        if bst_name:
-            bst_name = re.sub(r"^\\bibliographystyle\{", "", bst_name).rstrip(
-                "}"
-            )
-            bst_name += ".bst" if bst_name.split(".")[-1] != ".bst" else ""
-
-        return [
-            Path(f) if Path(f).is_file() else None for f in [bib_name, bst_name]
-        ]
-
     # TODO: Re-structure function to make it readable, currently it is a bit of
     # a hodge-podge of `if...else` branches.
     def input_files(self):
@@ -300,7 +267,7 @@ class TarTeX:
                     self.args.with_pdf = False
 
         if self.args.bib:
-            for f in self.bib_file():
+            for f in bib_file(self.main_file.with_suffix(".tex")):
                 try:
                     deps.add(f.as_posix())
                     log.info("Add file: %s", deps[-1])
