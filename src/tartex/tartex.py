@@ -158,25 +158,6 @@ class TarTeX:
 
         self.pkglist = None
 
-    def add_user_files(self):
-        """
-        Return list of additional user specified/globbed file paths,
-        if they exist
-        """
-        lof = []
-        for fpatt in self.add_files:
-            afiles = list(self.main_file.parent.glob(fpatt))
-            if not afiles:
-                log.warning(
-                    "No match corresponding to user specified pattern '%s' for"
-                    " additional files",
-                    fpatt,
-                )
-                continue
-            lof.extend(afiles)
-
-        return lof
-
     def bib_file(self):
         """Return relative path to bib file"""
         bibre = re.compile(r"^\\bibliography\{.*\}")
@@ -329,7 +310,7 @@ class TarTeX:
                     pass
 
         if self.add_files:
-            for f in self.add_user_files():
+            for f in add_files(self.add_files, self.main_file.parent):
                 f_relpath_str = f.relative_to(self.main_file.parent).as_posix()
                 if f_relpath_str in deps:
                     log.warning(
