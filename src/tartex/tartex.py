@@ -28,18 +28,17 @@ from tartex._git_rev import GitRev, git_checkout
 from tartex._utils import *
 
 
-def _set_main_file(name: str) -> Path:
+def _set_main_file(name: str) -> Union[Path, None]:
     main_file = Path(name).resolve()
-    if main_file.suffix in [".fls", ".tex"]:
-        return main_file
-    # ...otherwise try adding the .fls/.tex suffix to main_file
-    for f in [str(main_file) + suff for suff in [".fls", ".tex"]]:
-        if Path(f).is_file():
-            main_file = Path(f)
-            break
-    else:
-        raise FileNotFoundError(f"File {main_file.name}[.tex|.fls] not found.")
-    return main_file
+    if main_file.suffix not in [".fls", ".tex"]:
+        # ...otherwise try adding the .fls/.tex suffix to main_file
+        for f in [str(main_file) + suff for suff in [".fls", ".tex"]]:
+            if Path(f).is_file():
+                main_file = Path(f)
+                break
+        else:
+            raise FileNotFoundError(f"File {main_file.name}[.tex|.fls] not found.")
+    return main_file if main_file.is_file() else None
 
 class TarTeX:
     """
@@ -64,6 +63,10 @@ class TarTeX:
         self.cwd = Path.cwd()
         try:
             self.main_file = _set_main_file(self.args.fname)
+            if not self.main_file:
+                log.critical("Error: File not found - %s", self.args.fname)
+                sys.exit(1)
+
         except FileNotFoundError as err:
             log.critical(f"Error: {err}")
             sys.exit(1)
@@ -411,12 +414,6 @@ class TarTeX:
                 "[bold red]Error: Invalid response[/]\nQuitting.",
                 file=sys.stderr,
             )
-            sys.exit(1)
-
-    def check_main_file_exists(self):
-        """Check for the existence of the main tex/fls file."""
-        if not Path(self.main_file).exists():
-            log.critical("File not found - %s", self.main_file)
             sys.exit(1)
 
     def _do_tar(self, tar_obj):
