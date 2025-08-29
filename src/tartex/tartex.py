@@ -76,7 +76,7 @@ class TarTeX:
                 self.GR = GitRev(
                     self.main_file.parent, self.args.git_rev or "HEAD"
                 )
-                self.tar_file_git_tag = f"{self.GR.id()}.tar"
+                self.tar_file_git_tag = f"-{self.GR.id()}.tar"
                 self.mtime = self.GR.mtime()
             except Exception:
                 sys.exit(1)
@@ -99,15 +99,16 @@ class TarTeX:
         if self.args.xz:
             self.tar_ext = "xz"
 
-        tar_base = (
+        tar_file = (
             Path(f"{self.args.output}.tar")
             if self.args.output
             else Path(
-                f"{self.main_file.stem}{f'-{self.tar_file_git_tag}' if self.args.git_rev else ''}"
+                f"{self.main_file.stem}{self.tar_file_git_tag}"
             ).with_suffix(".tar")
         )
-        tar_file = self.cwd / tar_base  # returns tar_base when absolute
-        self.tar_file_w_ext = tar_file.with_suffix(f".tar.{self.tar_ext}")
+
+        # Note: if tar_file is already an abs path, 'foo/tar_file' simply returns 'tar_file'
+        self.tar_file_w_ext = self.cwd / tar_file.with_suffix(f".tar.{self.tar_ext}")
         log.debug("Output tarball '%s' will be generated", self.tar_file_w_ext)
 
         self.req_supfiles = {}
