@@ -6,16 +6,29 @@
 """Common fixtures"""
 
 import os
+from pathlib import Path
 import shutil
 
 import pytest
 
-from tartex.tartex import TarTeX
-
+from tartex.tartex import _set_main_file, TarTeX
 
 @pytest.fixture
-def sample_texfile():
+def monkeypatch_set_main_file(monkeypatch):
+    return lambda foo: monkeypatch.setattr("tartex.tartex._set_main_file", lambda _: Path(foo))
+
+@pytest.fixture
+def sample_texfile(monkeypatch_set_main_file):
     """Pytest fixture: TarTeX with just a tex file for parameter"""
+
+    # "some_file.tex" does not actually exist, but we use the dummy tartex
+    # object to test class member variables anyway.
+    #
+    # For this dummy object to not cause early exit of TarTeX, we monkeypatch
+    # `_set_main_file` to just return a path to the non-existent
+    # "some_file.tex" instead of returning None. The latter would cause the
+    # TarTeX object to hit sys.exit early, raising test errors.
+    monkeypatch_set_main_file("some_file.tex")
     return TarTeX(["some_file.tex"])
 
 

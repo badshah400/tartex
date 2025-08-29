@@ -8,14 +8,16 @@ Test sanitisation of --output arg
 """
 
 import os
-
+from pathlib import Path
 import pytest
 
 from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
 
 
 @pytest.fixture
-def sample_tex():
+def sample_tex(monkeypatch_set_main_file):
+    # See explanation if conftest.py for monkeypatch
+    monkeypatch_set_main_file("sample.tex")
     return "sample.tex"
 
 

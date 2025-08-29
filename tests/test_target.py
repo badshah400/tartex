@@ -5,13 +5,16 @@
 
 """Tests for different tar compression methods"""
 
+from pathlib import Path
 import pytest
 
 from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
 
 
 @pytest.fixture
-def target_tar():
+def target_tar(monkeypatch_set_main_file):
+    # See conftest.py for explanation of monkeypatching _set_main_file
+    monkeypatch_set_main_file("some_file.tex")
     def _target(tar_ext, cmp_opt=""):
         ttx_opts = ["-v", "-s", "-o", f"dest.tar.{tar_ext}", "some_file.tex"]
         if cmp_opt:
