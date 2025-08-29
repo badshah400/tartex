@@ -1,8 +1,6 @@
 # helper func for returning git tags and branches
-function _git_refs
-	set refs "(git tag 2>/dev/null | awk '{ printf $1" "; }' || true)"
-	set -a refs "(git branch 2>/dev/null | sed 's/[*]//g' | awk '{ print $1" "; }' || true)"
-	return set
+function _tartex_git_refs
+    git for-each-ref --format='%(refname:short)' refs/heads refs/tags
 end
 
 # Main input
@@ -16,7 +14,7 @@ complete -c tartex -f -l latexmk-tex -ra "dvi lualatex luatex pdf pdflua ps xdv 
 	-d "force TeX processing mode used by latexmk"
 complete -c tartex -s a -l add -F -r -d "file names or patterns (comma separated) to include additionally"
 complete -c tartex -s x -l excl -F -r -d "file names or patterns to exclude"
-complete -c tartex -f -s g -l git-rev -a "(_git_refs)" -d "git revision to tarball"
+complete -c tartex -f -s g -l git-rev -a "(_tartex_git_refs)" -d "git revision to tarball"
 
 # Help/Version options
 complete -c tartex -s h -l help -d "display help for tartex and exit"
