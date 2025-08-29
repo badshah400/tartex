@@ -24,8 +24,10 @@ _tartex_completions()
       ;;
 
     --git-rev | -!(-*)g)
-      COMPREPLY=( $(compgen -W "`git tag 2>/dev/null | awk '{ printf $1\" \"; }' || true`" -- "$cur") )
-      COMPREPLY+=( $(compgen -W "`git branch 2>/dev/null | sed -E 's/[*]//' | awk '{ printf $1\" \"; }' || true`" -- "$cur") )
+      local git_refs
+      # Use a single, more robust command to get branches and tags
+      git_refs=$(git for-each-ref --format='%(refname:short)' refs/heads refs/tags)
+      COMPREPLY=( $(compgen -W "$git_refs" -- "$cur") )
       return
       ;;
 
