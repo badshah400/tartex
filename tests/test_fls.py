@@ -12,7 +12,8 @@ import tarfile as tar
 
 import pytest
 
-from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
+from tartex.tartex import TarTeX
+from tartex.utils.tar_utils import TAR_DEFAULT_COMP
 
 
 @pytest.fixture

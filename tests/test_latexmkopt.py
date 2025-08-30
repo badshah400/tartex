@@ -9,7 +9,8 @@ Tests for passing various TeX processors to latexmk
 
 import pytest
 
-from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
+from tartex.tartex import TarTeX
+from tartex.utils.tar_utils import TAR_DEFAULT_COMP
 
 
 @pytest.fixture

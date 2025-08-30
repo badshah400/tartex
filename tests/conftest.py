@@ -27,7 +27,7 @@ def sample_texfile(monkeypatch_set_main_file):
     # For this dummy object to not cause early exit of TarTeX, we monkeypatch
     # `_set_main_file` to just return a path to the non-existent
     # "some_file.tex" instead of returning None. The latter would cause the
-    # TarTeX object to hit sys.exit early, raising test errors.
+    # TarTeX object to hit sys.exit during __init__(), raising test errors.
     monkeypatch_set_main_file("some_file.tex")
     return TarTeX(["some_file.tex"])
 

@@ -25,7 +25,9 @@ from rich.prompt import Prompt
 from tartex import _latex
 from tartex._parse_args import parse_args
 from tartex._git_rev import GitRev, git_checkout
-from tartex._utils import *
+import tartex.utils.msg_utils as _tartex_msg_utils
+import tartex.utils.tex_utils as _tartex_tex_utils
+import tartex.utils.tar_utils as _tartex_tar_utils
 
 
 def _set_main_file(name: str) -> Union[Path, None]:
@@ -86,7 +88,7 @@ class TarTeX:
 
         self.pdf_stream = None
         # Set default tar extension...
-        self.tar_ext = TAR_DEFAULT_COMP
+        self.tar_ext = _tartex_tar_utils.TAR_DEFAULT_COMP
         # ..but use specified output's TAR_EXT extension if any...
         if self.args.output:
             self.args.output = self._proc_output_path()
@@ -131,7 +133,7 @@ class TarTeX:
                 [
                     f
                     for f in [
-                        self.main_file.with_suffix(f".{g}") for g in SUPP_REQ
+                        self.main_file.with_suffix(f".{g}") for g in _tartex_tex_utils.SUPP_REQ
                     ]
                     if fnmatch.fnmatch(f.name, glb)
                 ]
@@ -220,7 +222,7 @@ class TarTeX:
                     deps, pkgs = _latex.fls_input_files(
                         f,
                         self.excl_files,
-                        AUXFILES,
+                        _tartex_tex_utils.AUXFILES,
                         sty_files=self.args.packages,
                     )
 
@@ -228,7 +230,7 @@ class TarTeX:
                 main_pdf = Path(compile_dir) / self.main_file.with_suffix(".pdf")
                 if self.args.with_pdf:
                     log.info("Add contents as BytesIO: %s", main_pdf)
-                for ext in SUPP_REQ:
+                for ext in _tartex_tex_utils.SUPP_REQ:
                     if app := self._missing_supp(
                         self.main_file.with_suffix(f".{ext}"), compile_dir, deps
                     ):
@@ -242,7 +244,7 @@ class TarTeX:
                 self.mtime = os.path.getmtime(fls_f)
                 with open(self.main_file.with_suffix(".fls"), encoding="utf8") as f:
                     deps_from_fls, pkgs = _latex.fls_input_files(
-                        f, self.excl_files, AUXFILES, sty_files=self.args.packages
+                        f, self.excl_files, _tartex_tex_utils.AUXFILES, sty_files=self.args.packages
                     )
                     if not self.args.git_rev:
                         deps = deps_from_fls
@@ -272,7 +274,7 @@ class TarTeX:
                     self.args.with_pdf = False
 
         if self.args.bib:
-            for f in bib_file(self.main_file.with_suffix(".tex")):
+            for f in _tartex_tex_utils.bib_file(self.main_file.with_suffix(".tex")):
                 try:
                     deps.add(f.as_posix())
                     log.info("Add file: %s", deps[-1])
@@ -282,7 +284,7 @@ class TarTeX:
                     pass
 
         if self.add_files:
-            for f in add_files(self.add_files, self.main_file.parent):
+            for f in _tartex_tex_utils.add_files(self.add_files, self.main_file.parent):
                 f_relpath_str = f.relative_to(self.main_file.parent).as_posix()
                 if f_relpath_str in deps:
                     log.warning(
@@ -322,7 +324,7 @@ class TarTeX:
                 with f:
                     self._do_tar(f)
                     if self.args.summary:
-                        summary_msg(
+                        _tartex_msg_utils.summary_msg(
                             len(f.getmembers()),
                             self.cwd / full_tar_name,
                             self.cwd,
@@ -344,7 +346,7 @@ class TarTeX:
                     with f:
                         self._do_tar(f)
                         if self.args.summary:
-                            summary_msg(
+                            _tartex_msg_utils.summary_msg(
                                 len(f.getmembers()),
                                 self.cwd / full_tar_name,
                                 self.cwd,
@@ -493,14 +495,14 @@ class TarTeX:
                     else self.main_file.stem
                 )
             ).with_suffix(f".tar.{self.tar_ext}")
-        elif (ext := out.suffix.lstrip(".")) in TAR_EXT:
+        elif (ext := out.suffix.lstrip(".")) in _tartex_tar_utils.TAR_EXT:
             self.tar_ext = ext
         else:
             out = out.with_name(
-                f"{out.name}.tar.{TAR_DEFAULT_COMP}"  # no tar ext stripping needed here
+                f"{out.name}.tar.{_tartex_tar_utils.TAR_DEFAULT_COMP}"  # no tar ext stripping needed here
             )
 
-        out = strip_tarext(out)
+        out = _tartex_tar_utils.strip_tarext(out)
         log.debug("Processed output target basename: %s", out)
         return out
 
@@ -517,7 +519,7 @@ class TarTeX:
             richprint(f"{'*':>{idx_width + 1}}", end=" ")
             print(f"{self.pkglist_name}")
         if self.args.summary:
-            summary_msg(
+            _tartex_msg_utils.summary_msg(
                 len(ls) + len(self.req_supfiles) + (1 if self.pkglist else 0)
             )
 

@@ -11,7 +11,8 @@ Tests for package list inclusion
 import json
 import tarfile as tar
 
-from tartex.tartex import TAR_DEFAULT_COMP, TarTeX
+from tartex.tartex import TarTeX
+from tartex.utils.tar_utils import TAR_DEFAULT_COMP
 
 
 def test_float_pkg(datadir, tmpdir, capsys, join_linebreaks):

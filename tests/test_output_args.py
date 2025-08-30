@@ -11,7 +11,8 @@ import os
 from pathlib import Path
 import pytest
 
-from tartex.tartex import TarTeX, TAR_DEFAULT_COMP
+from tartex.tartex import TarTeX
+from tartex.utils.tar_utils import TAR_DEFAULT_COMP
 
 
 @pytest.fixture
