@@ -65,6 +65,7 @@ class TestTarDir:
         with pytest.raises(SystemExit) as exc:
             t.tar_files()
 
+        assert "critical" in caplog.text.lower()
         assert "permission denied" in caplog.text.lower()
         assert exc.value.code == 1
         assert not t.tar_file_w_ext.exists()
