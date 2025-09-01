@@ -477,13 +477,11 @@ class TarTeX:
                     if self.args.git_rev
                     else self.main_file.stem
                 )
-            ).with_suffix(f".tar.{self.tar_ext}")
-        elif (ext := out.suffix.lstrip(".")) in _tartex_tar_utils.TAR_EXT:
+            )
+        elif (ext:=out.suffix.lstrip(".")) in _tartex_tar_utils.TAR_EXT:
             self.tar_ext = ext
         else:
-            out = out.with_name(
-                f"{out.name}.tar.{_tartex_tar_utils.TAR_DEFAULT_COMP}"  # no tar ext stripping needed here
-            )
+            out = out.with_name(out.name)
 
         out = _tartex_tar_utils.strip_tarext(out)
         log.debug("Processed output target basename: %s", out)
