@@ -87,30 +87,13 @@ class TarTeX:
 
 
         self.pdf_stream = None
-        # Set default tar extension...
-        self.tar_ext = _tartex_tar_utils.TAR_DEFAULT_COMP
-        # ..but use specified output's TAR_EXT extension if any...
+        #..but use use specified output's TAR_EXT extension if any...
+        self.tar_ext = ""
         if self.args.output:
             self.args.output = self._proc_output_path()
 
-        # ...but overwrite TAR_EXT if tar compression option passed
-        if self.args.bzip2:
-            self.tar_ext = "bz2"
-        if self.args.gzip:
-            self.tar_ext = "gz"
-        if self.args.xz:
-            self.tar_ext = "xz"
-
-        tar_file = (
-            Path(f"{self.args.output}.tar")
-            if self.args.output
-            else Path(
-                f"{self.main_file.stem}{self.tar_file_git_tag}"
-            ).with_suffix(".tar")
-        )
-
-        # Note: if tar_file is already an abs path, 'foo/tar_file' simply returns 'tar_file'
-        self.tar_file_w_ext = self.cwd / tar_file.with_suffix(f".tar.{self.tar_ext}")
+        self.tar_file_w_ext = self._tar_filename()
+        self.tar_ext = self.tar_file_w_ext.suffix.lstrip(".")
         log.debug("Output tarball '%s' will be generated", self.tar_file_w_ext)
 
         self.req_supfiles = {}
@@ -538,6 +521,32 @@ class TarTeX:
             return (Path(tmpdir) / fpath.name).read_bytes()
 
         return None
+
+    def _tar_filename(self):
+        """Set member variables for tar output
+        :returns: full tarball file name
+
+        """
+        _tar_ext = self.tar_ext if self.tar_ext else _tartex_tar_utils.TAR_DEFAULT_COMP
+        # ...but overwrite TAR_EXT if a specific tar compression option passed
+        if self.args.bzip2:
+            _tar_ext = "bz2"
+        if self.args.gzip:
+            _tar_ext = "gz"
+        if self.args.xz:
+            _tar_ext = "xz"
+
+        tar_file = (
+            Path(f"{self.args.output}.tar")
+            if self.args.output
+            else Path(
+                f"{self.main_file.stem}{self.tar_file_git_tag}"
+            ).with_suffix(".tar")
+        )
+
+        # Note: if tar_file is already an abs path, 'foo/tar_file' simply returns 'tar_file'
+        return self.cwd / tar_file.with_suffix(f".tar.{_tar_ext}")
+
 
 
 def make_tar():
