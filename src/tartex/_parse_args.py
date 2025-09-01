@@ -220,7 +220,7 @@ class GnuStyleHelpFormatter(argparse.HelpFormatter):
         return wrap(text, width=52, break_on_hyphens=False)
 
 
-def parse_args(args):
+def parse_args(args) -> argparse.Namespace:
     """Set up argparse options and parse input args accordingly"""
     parser = argparse.ArgumentParser(
         description=(
