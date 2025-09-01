@@ -29,6 +29,21 @@ import tartex.utils.msg_utils as _tartex_msg_utils
 import tartex.utils.tex_utils as _tartex_tex_utils
 import tartex.utils.tar_utils as _tartex_tar_utils
 
+try:
+    from contextlib import chdir
+# contextlib.chdir is only available from Python 3.10 onwards
+except ImportError:
+    from contextlib import contextmanager
+    @contextmanager  # type: ignore [no-redef]
+    def chdir(p: Path):
+        cwd = Path.cwd()
+        try:
+            os.chdir(p)
+            yield p
+        except Exception as err:
+            raise err
+        finally:
+            os.chdir(cwd)
 
 def _set_main_file(name: str) -> Union[Path, None]:
     main_file = Path(name).resolve()
@@ -294,38 +309,16 @@ class TarTeX:
         full_tar_name = Path(f"{self.tar_file_w_ext}")
 
         wdir = self.main_file.resolve().parent
-        os.chdir(wdir)
-        log.debug("Switching working dir to %s", wdir.as_posix())
-        if self.args.list:
-            file_list = self.input_files()
-            if self.pdf_stream:
-                file_list += [self.main_file.with_suffix(".pdf").name]
-            self._print_list(file_list)
-        else:
-            try:
-                f = tar.open(full_tar_name, mode=f"x:{self.tar_ext}")
-                with f:
-                    self._do_tar(f)
-                    if self.args.summary:
-                        _tartex_msg_utils.summary_msg(
-                            len(f.getmembers()),
-                            self.cwd / full_tar_name,
-                            self.cwd,
-                        )
-            except PermissionError as err:
-                log.critical(
-                    "Cannot write to %s, %s",
-                    full_tar_name.parent,
-                    err.strerror.lower(),
-                )
-                sys.exit(1)
-            except FileExistsError:
+        with chdir(wdir):
+            log.debug("Switching working dir to %s", wdir.as_posix())
+            if self.args.list:
+                file_list = self.input_files()
+                if self.pdf_stream:
+                    file_list += [self.main_file.with_suffix(".pdf").name]
+                self._print_list(file_list)
+            else:
                 try:
-                    full_tar_name = self._tar_name_conflict(full_tar_name)
-                    # At this stage, there is either a new name for the tar
-                    # file or user wants to overwrite existing file. In either
-                    # case, calling tar.open() with 'w' mode should be OK.
-                    f = tar.open(full_tar_name, mode=f"w:{self.tar_ext}")
+                    f = tar.open(full_tar_name, mode=f"x:{self.tar_ext}")
                     with f:
                         self._do_tar(f)
                         if self.args.summary:
@@ -341,8 +334,29 @@ class TarTeX:
                         err.strerror.lower(),
                     )
                     sys.exit(1)
-        os.chdir(self.cwd)
-        log.debug("Reset working dir to %s", os.getcwd())
+                except FileExistsError:
+                    try:
+                        full_tar_name = self._tar_name_conflict(full_tar_name)
+                        # At this stage, there is either a new name for the tar
+                        # file or user wants to overwrite existing file. In either
+                        # case, calling tar.open() with 'w' mode should be OK.
+                        f = tar.open(full_tar_name, mode=f"w:{self.tar_ext}")
+                        with f:
+                            self._do_tar(f)
+                            if self.args.summary:
+                                _tartex_msg_utils.summary_msg(
+                                    len(f.getmembers()),
+                                    self.cwd / full_tar_name,
+                                    self.cwd,
+                                )
+                    except PermissionError as err:
+                        log.critical(
+                            "Cannot write to %s, %s",
+                            full_tar_name.parent,
+                            err.strerror.lower(),
+                        )
+                        sys.exit(1)
+            log.debug("Reset working dir to %s", os.getcwd())
 
     def _tar_name_conflict(self, tpath):
         if self.args.overwrite:
