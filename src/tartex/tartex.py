@@ -477,10 +477,7 @@ class TarTeX:
         """
 
         # If self.args.output is absolute, '/' simply returns it as a PosixPath
-        if user_path:
-            out = (self.cwd / user_path.expanduser()).resolve()
-        else:
-            out = (self.cwd / self.args.output.expanduser()).resolve()
+        out = (self.cwd / (user_path if user_path else self.args.output).expanduser()).resolve()
 
         if out.is_dir():  # If dir, set to DIR/main.tar.gz
             log.debug("%s is an existing dir", out)
