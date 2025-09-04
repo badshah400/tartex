@@ -306,7 +306,7 @@ class TarTeX:
         Generates a tarball consisting of non-system input files needed to
         recompile your latex project.
         """
-        full_tar_name = Path(f"{self.tar_file_w_ext}")
+        full_tar_name = self.tar_file_w_ext
 
         wdir = self.main_file.resolve().parent
         with chdir(wdir):
@@ -479,7 +479,7 @@ class TarTeX:
         # If self.args.output is absolute, '/' simply returns it as a PosixPath
         out = (self.cwd / (user_path if user_path else self.args.output).expanduser()).resolve()
 
-        if out.is_dir():  # If dir, set to DIR/main.tar.gz
+        if out.is_dir():  # If dir, set to DIR/${main_file}.tar.gz
             log.debug("%s is an existing dir", out)
             out = (
                 out
