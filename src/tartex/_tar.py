@@ -8,12 +8,19 @@ from pathlib import Path
 from typing import Union
 from .utils.tar_utils import strip_tarext, TAR_DEFAULT_COMP, TAR_EXT
 
-class TarFiles(object):
+class TarFiles:
 
     """Class that handles tarballing a list of objects (file Paths, BytesIO, etc.)"""
 
+    # set of actual, accessible files to include
     _files: set
+
+    # dict of objects to include whose contents are only available as BytesIO
+    # key: name to use; val: object contents as BytesIO
     _streams: dict[str, BytesIO]
+
+    # dict of strings to use for logging when adding `key` object to tarball
+    # key: file or stream object name; val: logging string
     _comments: dict[str, str]
 
     def __init__(self, curr_dir: Path, main_input_file: Path, target: Path = Path('.')):
@@ -45,7 +52,8 @@ class TarFiles(object):
 
     def app_files(self, *args: Path, comm: str = ""):
         """Update set of files to add to tarball with args
-        :*args: files to add to `self._files` as args
+
+        :*args: files to append to `self._files` as args
         :returns: None
 
         """
@@ -55,7 +63,7 @@ class TarFiles(object):
                 self._comments[f.as_posix()] = comm
 
     def app_stream(self, name: str, content: BytesIO, comm: str = ""):
-        """Add a BytesIO content to list of streams
+        """Append a single BytesIO content to list of streams
 
         :name: file name to use for stream (str)
         :content: stream content corresponding to `name` (BytesIO)
