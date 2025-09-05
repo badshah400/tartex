@@ -53,3 +53,15 @@ class TarFiles(object):
         for f in args:
             if comm:
                 self._comments[f.as_posix()] = comm
+
+    def app_stream(self, name: str, content: BytesIO, comm: str = ""):
+        """Add a BytesIO content to list of streams
+
+        :name: file name to use for stream (str)
+        :content: stream content corresponding to `name` (BytesIO)
+        :returns: None
+
+        """
+        self._streams[name] = content
+        if comm:
+            self._comments[name] = comm
