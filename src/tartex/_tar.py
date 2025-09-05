@@ -1,0 +1,55 @@
+# module _tar
+"""
+Helper class TarFiles
+"""
+
+from io import BytesIO
+from pathlib import Path
+from typing import Union
+from .utils.tar_utils import strip_tarext, TAR_DEFAULT_COMP, TAR_EXT
+
+class TarFiles(object):
+
+    """Class that handles tarballing a list of objects (file Paths, BytesIO, etc.)"""
+
+    _files: set
+    _streams: dict[str, BytesIO]
+    _comments: dict[str, str]
+
+    def __init__(self, curr_dir: Path, main_input_file: Path, target: Path = Path('.')):
+        """Init class for TarFiles"""
+        self.main_file: Path = main_input_file
+        self.working_dir: Path = self.main_file.parent
+        target_path: Path = self.working_dir / target
+        self.target: Path
+        if target_path.is_dir():
+            self.tar_ext: str = TAR_DEFAULT_COMP
+            self.target = target_path / main_input_file.with_suffix(f".tar.{self.tar_ext}")
+        else:
+            if target_path.suffix not in TAR_EXT:
+                self.tar_ext = TAR_DEFAULT_COMP
+                self.target = strip_tarext(target_path).with_suffix(f'.tar.{self.tar_ext}')
+            else:
+                self.tar_ext = target_path.suffix
+                self.target = target_path
+
+    def compression_mode(self, recomp: str):
+        """Set re-compression mode for tarball
+
+        :recomp: one of "bz2", "gz", or "xz" (str)
+        :returns: None
+
+        """
+        self.tar_ext = recomp if recomp in TAR_EXT else "gz"
+        self.target = self.target.with_suffix(self.tar_ext)
+
+    def add_to_files(self, *args: Path, comm: str = ""):
+        """Update set of files to add to tarball with args
+        :*args: files to add to `self._files` as args
+        :returns: None
+
+        """
+        for f in args:
+            self._files.add(f)
+            if comm:
+                self._comments[f.as_posix()] = comm
