@@ -5,11 +5,10 @@ Helper class TarFiles
 
 from io import BytesIO
 from pathlib import Path
-from typing import Union
 from .utils.tar_utils import strip_tarext, TAR_DEFAULT_COMP, TAR_EXT
 
-class TarFiles:
 
+class TarFiles:
     """Class that handles tarballing a list of objects (file Paths, BytesIO, etc.)"""
 
     # set of actual, accessible files to include
@@ -23,7 +22,9 @@ class TarFiles:
     # key: file or stream object name; val: logging string
     _comments: dict[str, str]
 
-    def __init__(self, curr_dir: Path, main_input_file: Path, target: Path = Path('.')):
+    def __init__(
+        self, curr_dir: Path, main_input_file: Path, target: Path = Path(".")
+    ):
         """Init class for TarFiles"""
         self.main_file: Path = main_input_file
         self.working_dir: Path = self.main_file.parent
@@ -31,11 +32,15 @@ class TarFiles:
         self.target: Path
         if target_path.is_dir():
             self.tar_ext: str = TAR_DEFAULT_COMP
-            self.target = target_path / main_input_file.with_suffix(f".tar.{self.tar_ext}")
+            self.target = target_path / main_input_file.with_suffix(
+                f".tar.{self.tar_ext}"
+            )
         else:
             if target_path.suffix not in TAR_EXT:
                 self.tar_ext = TAR_DEFAULT_COMP
-                self.target = strip_tarext(target_path).with_suffix(f'.tar.{self.tar_ext}')
+                self.target = strip_tarext(target_path).with_suffix(
+                    f".tar.{self.tar_ext}"
+                )
             else:
                 self.tar_ext = target_path.suffix
                 self.target = target_path
