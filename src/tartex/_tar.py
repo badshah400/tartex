@@ -11,21 +11,22 @@ from .utils.tar_utils import strip_tarext, TAR_DEFAULT_COMP, TAR_EXT
 class TarFiles:
     """Class that handles tarballing a list of objects (file Paths, BytesIO, etc.)"""
 
-    # set of actual, accessible files to include
-    _files: set
-
-    # dict of objects to include whose contents are only available as BytesIO
-    # key: name to use; val: object contents as BytesIO
-    _streams: dict[str, BytesIO]
-
-    # dict of strings to use for logging when adding `key` object to tarball
-    # key: file or stream object name; val: logging string
-    _comments: dict[str, str]
-
     def __init__(
         self, curr_dir: Path, main_input_file: Path, target: Path = Path(".")
     ):
         """Init class for TarFiles"""
+
+        # set of actual, accessible files to include
+        self._files: set = set()
+
+        # dict of objects to include whose contents are only available as BytesIO
+        # key: name to use; val: object contents as BytesIO
+        self._streams: dict[str, BytesIO]  = {}
+
+        # dict of strings to use for logging when adding `key` object to tarball
+        # key: file or stream object name; val: logging string
+        self._comments: dict[str, str] = {}
+
         self.main_file: Path = main_input_file
         self.working_dir: Path = self.main_file.parent
         target_path: Path = self.working_dir / target
