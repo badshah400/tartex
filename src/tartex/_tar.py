@@ -43,13 +43,13 @@ class TarFiles(object):
         self.tar_ext = recomp if recomp in TAR_EXT else "gz"
         self.target = self.target.with_suffix(self.tar_ext)
 
-    def add_to_files(self, *args: Path, comm: str = ""):
+    def app_files(self, *args: Path, comm: str = ""):
         """Update set of files to add to tarball with args
         :*args: files to add to `self._files` as args
         :returns: None
 
         """
+        self._files.update(args)
         for f in args:
-            self._files.add(f)
             if comm:
                 self._comments[f.as_posix()] = comm
