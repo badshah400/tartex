@@ -8,17 +8,22 @@
 import os
 from pathlib import Path
 import shutil
-
+import time
 import pytest
 
 from tartex.tartex import _set_main_file, TarTeX
+
+
+@pytest.fixture
+def monkeypatch_mtime(monkeypatch):
+    return lambda _: monkeypatch.setattr("os.path.getmtime", lambda _: time.time())
 
 @pytest.fixture
 def monkeypatch_set_main_file(monkeypatch):
     return lambda foo: monkeypatch.setattr("tartex.tartex._set_main_file", lambda _: Path(foo))
 
 @pytest.fixture
-def sample_texfile(monkeypatch_set_main_file):
+def sample_texfile(monkeypatch_set_main_file, monkeypatch):
     """Pytest fixture: TarTeX with just a tex file for parameter"""
 
     # "some_file.tex" does not actually exist, but we use the dummy tartex
@@ -28,6 +33,9 @@ def sample_texfile(monkeypatch_set_main_file):
     # `_set_main_file` to just return a path to the non-existent
     # "some_file.tex" instead of returning None. The latter would cause the
     # TarTeX object to hit sys.exit during __init__(), raising test errors.
+    def mock_time(_):
+       return time.time()
+    monkeypatch.setattr("os.path.getmtime", mock_time)
     monkeypatch_set_main_file("some_file.tex")
     return TarTeX(["some_file.tex"])
 

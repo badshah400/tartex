@@ -3,7 +3,7 @@
 Helper class TarFiles
 """
 
-from os.path import getmtime
+import os
 from io import BytesIO
 from pathlib import Path
 from .utils.tar_utils import strip_tarext, TAR_DEFAULT_COMP, TAR_EXT
@@ -29,7 +29,7 @@ class TarFiles:
         self._comments: dict[str, str] = {}
 
         self._main_file: Path = main_input_file
-        self._mtime = getmtime(self._main_file)
+        self._mtime = os.path.getmtime(self._main_file)
 
         self._work_dir: Path = self._main_file.parent
         target_path: Path = self._work_dir / target

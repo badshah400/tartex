@@ -10,14 +10,16 @@ Test sanitisation of --output arg
 import os
 from pathlib import Path
 import pytest
+import time
 
 from tartex.tartex import TarTeX
 from tartex.utils.tar_utils import TAR_DEFAULT_COMP
 
 
 @pytest.fixture
-def sample_tex(monkeypatch_set_main_file):
+def sample_tex(monkeypatch_set_main_file, monkeypatch_mtime):
     # See explanation if conftest.py for monkeypatch
+    monkeypatch_mtime("sample.tex")
     monkeypatch_set_main_file("sample.tex")
     return "sample.tex"
 

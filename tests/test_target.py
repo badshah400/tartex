@@ -14,9 +14,10 @@ from tartex.utils.tar_utils import TAR_DEFAULT_COMP
 
 
 @pytest.fixture
-def target_tar(monkeypatch_set_main_file):
+def target_tar(monkeypatch_set_main_file, monkeypatch_mtime):
     # See conftest.py for explanation of monkeypatching _set_main_file
     monkeypatch_set_main_file("some_file.tex")
+    monkeypatch_mtime("some_file.tex")
 
     def _target(tar_ext, cmp_opt=""):
         ttx_opts = ["-v", "-s", "-o", f"dest.tar.{tar_ext}", "some_file.tex"]
@@ -56,11 +57,12 @@ class TestTarDir:
     main_file = "some_file.tex"
     tartex_args = [main_file, "-s", "-v", "-o"]
 
-    def test_root_dir(self, monkeypatch_set_main_file, caplog):
+    def test_root_dir(self, monkeypatch_set_main_file, monkeypatch_mtime, caplog):
         """
         Test permission error when trying to write to '/'
         """
         monkeypatch_set_main_file(self.main_file)
+        monkeypatch_mtime(self.main_file)
         t = TarTeX([*self.tartex_args, "/"])
         with pytest.raises(SystemExit) as exc:
             t.tar_files()
@@ -70,9 +72,10 @@ class TestTarDir:
         assert exc.value.code == 1
         assert not t.tar_file_w_ext.exists()
 
-    def test_output_dir(self, monkeypatch_set_main_file):
+    def test_output_dir(self, monkeypatch_set_main_file, monkeypatch_mtime):
         """Test tarball output when -o is existing dir"""
         monkeypatch_set_main_file(self.main_file)
+        monkeypatch_mtime(self.main_file)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             t = TarTeX([*self.tartex_args, f"{tmpdir!s}"])
@@ -81,12 +84,13 @@ class TestTarDir:
                 (Path(tmpdir) / self.main_file).with_suffix(".tar.gz")
             )
 
-    def test_output_dir_filename(self, monkeypatch_set_main_file):
+    def test_output_dir_filename(self, monkeypatch_set_main_file, monkeypatch_mtime):
         """
         Test tarball output when -o is file name in existing dir (default
         compression)
         """
         monkeypatch_set_main_file(self.main_file)
+        monkeypatch_mtime(self.main_file)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             t = TarTeX([*self.tartex_args, f"{tmpdir!s}/foo"])
@@ -95,12 +99,13 @@ class TestTarDir:
                 (Path(tmpdir) / "foo").with_suffix(".tar.gz")
             )
 
-    def test_output_dir_xz(self, monkeypatch_set_main_file):
+    def test_output_dir_xz(self, monkeypatch_set_main_file, monkeypatch_mtime):
         """
         Test tarball output when -o is dir but '-J' is passed
         for xz compression
         """
         monkeypatch_set_main_file(self.main_file)
+        monkeypatch_mtime(self.main_file)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             t = TarTeX([*self.tartex_args, f"{tmpdir!s}", "-J"])
