@@ -3,6 +3,7 @@
 Helper class TarFiles
 """
 
+from os.path import getmtime
 from io import BytesIO
 from pathlib import Path
 from .utils.tar_utils import strip_tarext, TAR_DEFAULT_COMP, TAR_EXT
@@ -27,24 +28,26 @@ class TarFiles:
         # key: file or stream object name; val: logging string
         self._comments: dict[str, str] = {}
 
-        self.main_file: Path = main_input_file
-        self.working_dir: Path = self.main_file.parent
-        target_path: Path = self.working_dir / target
-        self.target: Path
+        self._main_file: Path = main_input_file
+        self._mtime = getmtime(self._main_file)
+
+        self._work_dir: Path = self._main_file.parent
+        target_path: Path = self._work_dir / target
+        self._target: Path
         if target_path.is_dir():
-            self.tar_ext: str = TAR_DEFAULT_COMP
-            self.target = target_path / main_input_file.with_suffix(
-                f".tar.{self.tar_ext}"
+            self._ext: str = TAR_DEFAULT_COMP
+            self._target = target_path / main_input_file.with_suffix(
+                f".tar.{self._ext}"
             )
         else:
             if target_path.suffix not in TAR_EXT:
-                self.tar_ext = TAR_DEFAULT_COMP
-                self.target = strip_tarext(target_path).with_suffix(
-                    f".tar.{self.tar_ext}"
+                self._ext = TAR_DEFAULT_COMP
+                self._target = strip_tarext(target_path).with_suffix(
+                    f".tar.{self._ext}"
                 )
             else:
-                self.tar_ext = target_path.suffix
-                self.target = target_path
+                self._ext = target_path.suffix
+                self._target = target_path
 
     def recomp_mode(self, recomp: str):
         """Set re-compression mode for tarball
@@ -53,8 +56,12 @@ class TarFiles:
         :returns: None
 
         """
-        self.tar_ext = recomp if recomp in TAR_EXT else "gz"
-        self.target = self.target.with_suffix(self.tar_ext)
+        self._ext = recomp if recomp in TAR_EXT else "gz"
+        self._target = self._target.with_suffix(self._ext)
+
+    def set_mtime(self, mtime: int):
+        """Set mtime for bytesio objects, for which mtime is not available otherwise"""
+        self._mtime = mtime
 
     def app_files(self, *args: Path, comm: str = ""):
         """Update set of files to add to tarball with args
