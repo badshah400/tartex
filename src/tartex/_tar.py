@@ -33,7 +33,7 @@ class TarFiles(object):
                 self.tar_ext = target_path.suffix
                 self.target = target_path
 
-    def compression_mode(self, recomp: str):
+    def recomp_mode(self, recomp: str):
         """Set re-compression mode for tarball
 
         :recomp: one of "bz2", "gz", or "xz" (str)
