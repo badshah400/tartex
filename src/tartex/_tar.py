@@ -56,20 +56,6 @@ class TarFiles:
         self._target: Path
         self._ext = target_path.suffix.lstrip(".")
         self._target = target_path.with_suffix(f".{self._ext}")
-        # if target_path.is_dir():
-        #     self._ext: str = TAR_DEFAULT_COMP
-        #     self._target = target_path / main_input_file.with_suffix(
-        #         f".tar.{self._ext}"
-        #     )
-        # else:
-        #     if target_path.suffix not in TAR_EXT:
-        #         self._ext = TAR_DEFAULT_COMP
-        #         self._target = strip_tarext(target_path).with_suffix(
-        #             f".tar.{self._ext}"
-        #         )
-        #     else:
-        #         self._ext = target_path.suffix
-        #         self._target = target_path
 
     def recomp_mode(self, recomp: str):
         """Set re-compression mode for tarball
