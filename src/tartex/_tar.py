@@ -86,3 +86,44 @@ class TarFiles:
         self._streams[name] = content
         if comm:
             self._comments[name] = comm
+
+    def do_tar(self):
+        def _tar_add_file(
+            tar_obj, file_name,
+        ):  # helper func to add file <file_name> to <tar_obj>
+            tinfo = tar_obj.gettarinfo(file_name)
+            tinfo.uid = tinfo.gid = 0
+            tinfo.uname = tinfo.gname = ""
+            tar_obj.addfile(tinfo, open(file_name, "rb"))
+            log.info("Add file: %s", file_name)
+
+        def _tar_add_bytesio(tar_obj, file_name, obj):
+            # helper func to add `obj` as BytesIO with filename <file_name> to <tar_obj>
+            tinfo = tar_obj.tarinfo(file_name)
+            tinfo.size = len(obj)
+            tinfo.mtime = self._mtime
+            tinfo.uid = tinfo.gid = 0
+            tinfo.uname = tinfo.gname = ""
+            tar_obj.addfile(tinfo, BytesIO(obj))
+            log.info("Add contents as BytesIO: %s", file_name)
+
+        print(self._files)
+        with chdir(self._work_dir):
+        # with nullcontext():
+            # At this point, output tar name conflicts, if any, has been
+            # resolved one way or another, and we should simply over-write
+            # tarball if it exists. So, it is safe to use 'w:'
+            with tar.open(self._target, mode=f"w:{self._ext}") as tar_obj:
+                for dep in self._files:
+                    try:
+                        _tar_add_file(tar_obj, dep)
+                    except FileNotFoundError:
+                        log.warning(
+                            "Skipping INPUT file '%s', not found amongst sources; try"
+                            " forcing a LaTeX recompile ('-F').",
+                            dep,
+                        )
+                        continue
+                for key, val in self._streams.items():
+                    _tar_add_bytesio(tar_obj, key, val)
+
