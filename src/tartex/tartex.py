@@ -28,7 +28,7 @@ from tartex._git_rev import GitRev, git_checkout
 import tartex.utils.msg_utils as _tartex_msg_utils
 import tartex.utils.tex_utils as _tartex_tex_utils
 import tartex.utils.tar_utils as _tartex_tar_utils
-from tartex._tar import TarFiles
+from tartex._tar import Tarballer
 
 try:
     from contextlib import chdir
@@ -118,7 +118,7 @@ class TarTeX:
             self.tar_file_w_ext = self._tar_name_conflict(self.tar_file_w_ext)
         # sys.exit(100)
         log.debug("Output tarball '%s' will be generated", self.tar_file_w_ext)
-        self.tar = TarFiles(self.cwd, self.main_file, self.tar_file_w_ext)
+        self.tar = Tarballer(self.cwd, self.main_file, self.tar_file_w_ext)
 
         self.req_supfiles = {}
         self.add_files = self.args.add.split(",") if self.args.add else []

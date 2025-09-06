@@ -29,7 +29,7 @@ except ImportError:
             os.chdir(cwd)
 
 
-class TarFiles:
+class Tarballer:
     """Class that handles tarballing a list of objects (file Paths, BytesIO, etc.)"""
 
     def __init__(
