@@ -124,7 +124,7 @@ class Tarballer:
                         continue
                     self._num_objects += 1
                 for key, val in self._streams.items():
-                    _tar_add_bytesio(tar_obj, key.name, val)
+                    _tar_add_bytesio(tar_obj, key, val)
                     self._num_objects += 1
         except PermissionError as e:
             log.critical(e)

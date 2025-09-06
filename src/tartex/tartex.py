@@ -240,15 +240,17 @@ class TarTeX:
                     )
                     with open(fls_path.with_suffix(".pdf"), "rb") as f:
                         self.pdf_stream = f.read()
-                    self.tar.app_stream(main_pdf, self.pdf_stream)
+                    self.tar.app_stream(main_pdf.name, self.pdf_stream)
 
                 for ext in _tartex_tex_utils.SUPP_REQ:
+                    supp_filename = self.main_file.with_suffix(f".{ext}")
                     if app := self._missing_supp(
                         self.main_file.with_suffix(f".{ext}"), compile_dir, deps
                     ):
                         self.req_supfiles[
                             self.main_file.with_suffix(f".{ext}")
                         ] = app
+                        self.tar.app_stream(supp_filename.name, app)
 
         else:
             # If .fls exists, this assumes that all INPUT files recorded in it
@@ -264,7 +266,6 @@ class TarTeX:
                         _tartex_tex_utils.AUXFILES,
                         sty_files=self.args.packages,
                     )
-                    print(deps_from_fls)
                     self.tar.app_files(*deps_from_fls)
                     if not self.args.git_rev:
                         deps = deps_from_fls
@@ -288,7 +289,7 @@ class TarTeX:
                 try:
                     with open(main_pdf, "rb") as f:
                         self.pdf_stream = f.read()
-                        self.tar.app_stream(main_pdf, self.pdf_stream,
+                        self.tar.app_stream(main_pdf.name, self.pdf_stream,
                                             f"Add compiled PDF: {main_pdf.relative_to(self.cwd)}")
                         log.info("Add file: %s", main_pdf.relative_to(self.cwd))
                 except FileNotFoundError:
