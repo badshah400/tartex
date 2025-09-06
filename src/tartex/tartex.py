@@ -552,10 +552,10 @@ class TarTeX:
                 f"{self.main_file.stem}{self.tar_file_git_tag}"
             ).with_suffix(".tar")
         )
-        self.tar_ext = _tar_ext
 
         # Note: if tar_file is already an abs path, 'foo/tar_file' simply returns 'tar_file'
         return self.cwd / tar_file.with_suffix(f".tar.{_tar_ext}")
+
 
 
 def make_tar():
