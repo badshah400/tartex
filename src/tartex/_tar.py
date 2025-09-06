@@ -54,7 +54,7 @@ class Tarballer:
         self._main_file: Path = main_input_file
         self._mtime = os.path.getmtime(self._main_file)
 
-        self._work_dir: Path = self._main_file.parent
+        self._work_dir: Path = curr_dir
         target_path: Path = self._work_dir / target
         self._target: Path
         self._ext = target_path.suffix.lstrip(".")
@@ -107,7 +107,7 @@ class Tarballer:
 
     def do_tar(self):
         def _tar_add_file(
-            tar_obj, file_name,
+            tar_obj: tar.TarFile, file_name: Path,
         ):  # helper func to add file <file_name> to <tar_obj>
             tinfo = tar_obj.gettarinfo(file_name)
             tinfo.uid = tinfo.gid = 0
