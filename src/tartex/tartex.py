@@ -354,8 +354,18 @@ class TarTeX:
         Generates a tarball consisting of non-system input files needed to
         recompile your latex project.
         """
-        self.input_files()
-        self.tar.do_tar()
+        log.info("Switching to TeX file source dir: %s", self.main_file.parent)
+        with chdir(self.main_file.parent):
+            _ls = self.input_files()
+            if self.args.list:
+                self._print_list([f for f in _ls if f.exists()])
+            else:
+                self.tar.do_tar()
+                if self.args.summary:
+                    _tartex_msg_utils.summary_msg(
+                        self.tar._num_objects, self.tar_file_w_ext, self.cwd,
+                    )
+        log.info("Switching back to working dir: %s", self.cwd)
 
 
     def _tar_name_conflict(self, tpath):

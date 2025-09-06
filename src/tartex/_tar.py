@@ -3,31 +3,13 @@
 Helper class TarFiles
 """
 
-from contextlib import nullcontext
 import logging as log
 import os
+import sys
 from io import BytesIO
 from pathlib import Path
-from .utils.tar_utils import strip_tarext, TAR_DEFAULT_COMP, TAR_EXT
+from .utils.tar_utils import TAR_EXT
 import tarfile as tar
-
-try:
-    from contextlib import chdir
-# contextlib.chdir is only available from Python 3.10 onwards
-except ImportError:
-    from contextlib import contextmanager
-
-    @contextmanager  # type: ignore [no-redef]
-    def chdir(p: Path):
-        cwd = Path.cwd()
-        try:
-            os.chdir(p)
-            yield p
-        except Exception as err:
-            raise err
-        finally:
-            os.chdir(cwd)
-
 
 class Tarballer:
     """Class that handles tarballing a list of objects (file Paths, BytesIO, etc.)"""
@@ -125,11 +107,10 @@ class Tarballer:
             tar_obj.addfile(tinfo, BytesIO(obj))
             log.info("Add contents as BytesIO: %s", file_name)
 
-        with chdir(self._work_dir):
-        # with nullcontext():
-            # At this point, output tar name conflicts, if any, has been
-            # resolved one way or another, and we should simply over-write
-            # tarball if it exists. So, it is safe to use 'w:'
+        # At this point, output tar name conflicts, if any, has been
+        # resolved one way or another, and we should simply over-write
+        # tarball if it exists. So, it is safe to use 'w:'
+        try:
             with tar.open(self._target, mode=f"w:{self._ext}") as tar_obj:
                 for dep in self._files:
                     try:
@@ -145,3 +126,8 @@ class Tarballer:
                 for key, val in self._streams.items():
                     _tar_add_bytesio(tar_obj, key.name, val)
                     self._num_objects += 1
+        except PermissionError as e:
+            log.critical(e)
+            sys.exit(1)
+        except Exception as e:
+            raise e
