@@ -3,10 +3,30 @@
 Helper class TarFiles
 """
 
+from contextlib import nullcontext
+import logging as log
 import os
 from io import BytesIO
 from pathlib import Path
 from .utils.tar_utils import strip_tarext, TAR_DEFAULT_COMP, TAR_EXT
+import tarfile as tar
+
+try:
+    from contextlib import chdir
+# contextlib.chdir is only available from Python 3.10 onwards
+except ImportError:
+    from contextlib import contextmanager
+
+    @contextmanager  # type: ignore [no-redef]
+    def chdir(p: Path):
+        cwd = Path.cwd()
+        try:
+            os.chdir(p)
+            yield p
+        except Exception as err:
+            raise err
+        finally:
+            os.chdir(cwd)
 
 
 class TarFiles:
@@ -34,20 +54,22 @@ class TarFiles:
         self._work_dir: Path = self._main_file.parent
         target_path: Path = self._work_dir / target
         self._target: Path
-        if target_path.is_dir():
-            self._ext: str = TAR_DEFAULT_COMP
-            self._target = target_path / main_input_file.with_suffix(
-                f".tar.{self._ext}"
-            )
-        else:
-            if target_path.suffix not in TAR_EXT:
-                self._ext = TAR_DEFAULT_COMP
-                self._target = strip_tarext(target_path).with_suffix(
-                    f".tar.{self._ext}"
-                )
-            else:
-                self._ext = target_path.suffix
-                self._target = target_path
+        self._ext = target_path.suffix.lstrip(".")
+        self._target = target_path.with_suffix(f".{self._ext}")
+        # if target_path.is_dir():
+        #     self._ext: str = TAR_DEFAULT_COMP
+        #     self._target = target_path / main_input_file.with_suffix(
+        #         f".tar.{self._ext}"
+        #     )
+        # else:
+        #     if target_path.suffix not in TAR_EXT:
+        #         self._ext = TAR_DEFAULT_COMP
+        #         self._target = strip_tarext(target_path).with_suffix(
+        #             f".tar.{self._ext}"
+        #         )
+        #     else:
+        #         self._ext = target_path.suffix
+        #         self._target = target_path
 
     def recomp_mode(self, recomp: str):
         """Set re-compression mode for tarball
@@ -97,7 +119,7 @@ class TarFiles:
             tar_obj.addfile(tinfo, open(file_name, "rb"))
             log.info("Add file: %s", file_name)
 
-        def _tar_add_bytesio(tar_obj, file_name, obj):
+        def _tar_add_bytesio(tar_obj: tar.TarFile, file_name: str, obj):
             # helper func to add `obj` as BytesIO with filename <file_name> to <tar_obj>
             tinfo = tar_obj.tarinfo(file_name)
             tinfo.size = len(obj)
@@ -107,7 +129,6 @@ class TarFiles:
             tar_obj.addfile(tinfo, BytesIO(obj))
             log.info("Add contents as BytesIO: %s", file_name)
 
-        print(self._files)
         with chdir(self._work_dir):
         # with nullcontext():
             # At this point, output tar name conflicts, if any, has been
@@ -125,5 +146,5 @@ class TarFiles:
                         )
                         continue
                 for key, val in self._streams.items():
-                    _tar_add_bytesio(tar_obj, key, val)
+                    _tar_add_bytesio(tar_obj, key.name, val)
 

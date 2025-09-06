@@ -28,12 +28,14 @@ from tartex._git_rev import GitRev, git_checkout
 import tartex.utils.msg_utils as _tartex_msg_utils
 import tartex.utils.tex_utils as _tartex_tex_utils
 import tartex.utils.tar_utils as _tartex_tar_utils
+from tartex._tar import TarFiles
 
 try:
     from contextlib import chdir
 # contextlib.chdir is only available from Python 3.10 onwards
 except ImportError:
     from contextlib import contextmanager
+
     @contextmanager  # type: ignore [no-redef]
     def chdir(p: Path):
         cwd = Path.cwd()
@@ -45,6 +47,7 @@ except ImportError:
         finally:
             os.chdir(cwd)
 
+
 def _set_main_file(name: str) -> Union[Path, None]:
     main_file = Path(name).resolve()
     if main_file.suffix not in [".fls", ".tex"]:
@@ -54,8 +57,11 @@ def _set_main_file(name: str) -> Union[Path, None]:
                 main_file = Path(f)
                 break
         else:
-            raise FileNotFoundError(f"File {main_file.name}[.tex|.fls] not found.")
+            raise FileNotFoundError(
+                f"File {main_file.name}[.tex|.fls] not found."
+            )
     return main_file if main_file.is_file() else None
+
 
 class TarTeX:
     """
@@ -100,16 +106,19 @@ class TarTeX:
         else:
             self.tar_file_git_tag = ""
 
-
         self.pdf_stream = None
-        #..but use use specified output's TAR_EXT extension if any...
+        # ..but use use specified output's TAR_EXT extension if any...
         self.tar_ext = ""
         if self.args.output:
             self.args.output = self._proc_output_path()
 
         self.tar_file_w_ext = self._tar_filename()
         self.tar_ext = self.tar_file_w_ext.suffix.lstrip(".")
+        if self.tar_file_w_ext.exists():
+            self.tar_file_w_ext = self._tar_name_conflict(self.tar_file_w_ext)
+        # sys.exit(100)
         log.debug("Output tarball '%s' will be generated", self.tar_file_w_ext)
+        self.tar = TarFiles(self.cwd, self.main_file, self.tar_file_w_ext)
 
         self.req_supfiles = {}
         self.add_files = self.args.add.split(",") if self.args.add else []
@@ -131,7 +140,8 @@ class TarTeX:
                 [
                     f
                     for f in [
-                        self.main_file.with_suffix(f".{g}") for g in _tartex_tex_utils.SUPP_REQ
+                        self.main_file.with_suffix(f".{g}")
+                        for g in _tartex_tex_utils.SUPP_REQ
                     ]
                     if fnmatch.fnmatch(f.name, glb)
                 ]
@@ -185,6 +195,7 @@ class TarTeX:
             # Process the --excl files
             for f in self.excl_files:  # Remove the file if it exists in the set
                 deps.discard(f)
+            self.tar.app_files(*deps)
         if (
             not self.main_file.with_suffix(".fls").exists()
             or self.args.force_recompile
@@ -212,10 +223,6 @@ class TarTeX:
                     )
                     sys.exit(1)
 
-                if self.args.with_pdf:
-                    with open(fls_path.with_suffix(".pdf"), "rb") as f:
-                        self.pdf_stream = f.read()
-
                 with open(fls_path, encoding="utf-8") as f:
                     deps, pkgs = _latex.fls_input_files(
                         f,
@@ -223,11 +230,18 @@ class TarTeX:
                         _tartex_tex_utils.AUXFILES,
                         sty_files=self.args.packages,
                     )
+                self.tar.app_files(*deps)
 
-                self.mtime = os.path.getmtime(fls_path)
-                main_pdf = Path(compile_dir) / self.main_file.with_suffix(".pdf")
+                self.tar.set_mtime(os.path.getmtime(fls_path))
+                self.mtime = self.tar._mtime
                 if self.args.with_pdf:
-                    log.info("Add contents as BytesIO: %s", main_pdf)
+                    main_pdf = Path(compile_dir) / self.main_file.with_suffix(
+                        ".pdf"
+                    )
+                    with open(fls_path.with_suffix(".pdf"), "rb") as f:
+                        self.pdf_stream = f.read()
+                    self.tar.app_stream(main_pdf, self.pdf_stream)
+
                 for ext in _tartex_tex_utils.SUPP_REQ:
                     if app := self._missing_supp(
                         self.main_file.with_suffix(f".{ext}"), compile_dir, deps
@@ -235,15 +249,23 @@ class TarTeX:
                         self.req_supfiles[
                             self.main_file.with_suffix(f".{ext}")
                         ] = app
+
         else:
             # If .fls exists, this assumes that all INPUT files recorded in it
             # are also included in source dir
             if (fls_f := self.main_file.with_suffix(".fls")).exists():
                 self.mtime = os.path.getmtime(fls_f)
-                with open(self.main_file.with_suffix(".fls"), encoding="utf8") as f:
+                with open(
+                    self.main_file.with_suffix(".fls"), encoding="utf8"
+                ) as f:
                     deps_from_fls, pkgs = _latex.fls_input_files(
-                        f, self.excl_files, _tartex_tex_utils.AUXFILES, sty_files=self.args.packages
+                        f,
+                        self.excl_files,
+                        _tartex_tex_utils.AUXFILES,
+                        sty_files=self.args.packages,
                     )
+                    print(deps_from_fls)
+                    self.tar.app_files(*deps_from_fls)
                     if not self.args.git_rev:
                         deps = deps_from_fls
 
@@ -255,8 +277,10 @@ class TarTeX:
             else:  # perhaps using git ls-tree; fls file is (as expected) untracked or cleaned
                 self.mtime = os.path.getmtime(self.main_file)
                 if self.args.packages:
-                    log.warn("Cannot generate list of packages due to missing %s file",
-                             self.main_file.with_suffix(".fls"))
+                    log.warn(
+                        "Cannot generate list of packages due to missing %s file",
+                        self.main_file.with_suffix(".fls"),
+                    )
                     self.args.packages = False
 
             if self.args.with_pdf:
@@ -264,6 +288,8 @@ class TarTeX:
                 try:
                     with open(main_pdf, "rb") as f:
                         self.pdf_stream = f.read()
+                        self.tar.app_stream(main_pdf, self.pdf_stream,
+                                            f"Add compiled PDF: {main_pdf.relative_to(self.cwd)}")
                         log.info("Add file: %s", main_pdf.relative_to(self.cwd))
                 except FileNotFoundError:
                     log.warning(
@@ -272,7 +298,17 @@ class TarTeX:
                     self.args.with_pdf = False
 
         if self.args.bib:
-            for f in _tartex_tex_utils.bib_file(self.main_file.with_suffix(".tex")):
+            self.tar.app_files(
+                *[
+                    f
+                    for f in _tartex_tex_utils.bib_file(
+                        self.main_file.with_suffix(".tex")
+                    )
+                ]
+            )
+            for f in _tartex_tex_utils.bib_file(
+                self.main_file.with_suffix(".tex")
+            ):
                 try:
                     deps.add(f.as_posix())
                     log.info("Add file: %s", deps[-1])
@@ -282,7 +318,17 @@ class TarTeX:
                     pass
 
         if self.add_files:
-            for f in _tartex_tex_utils.add_files(self.add_files, self.main_file.parent):
+            self.tar.app_files(
+                *[
+                    f.relative_to(self.main_file.parent)
+                    for f in _tartex_tex_utils.add_files(
+                        self.add_files, self.main_file.parent
+                    )
+                ]
+            )
+            for f in _tartex_tex_utils.add_files(
+                self.add_files, self.main_file.parent
+            ):
                 f_relpath_str = f.relative_to(self.main_file.parent).as_posix()
                 if f_relpath_str in deps:
                     log.warning(
@@ -299,6 +345,8 @@ class TarTeX:
             )
 
             self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode("utf8")
+            self.tar.app_stream(self.pkglist_name, self.pkglist,
+                                comm=f"Adding list of used LaTeX packages: {self.pkglist_name}")
         return deps
 
     def tar_files(self):
@@ -306,57 +354,9 @@ class TarTeX:
         Generates a tarball consisting of non-system input files needed to
         recompile your latex project.
         """
-        full_tar_name = self.tar_file_w_ext
+        self.input_files()
+        self.tar.do_tar()
 
-        wdir = self.main_file.resolve().parent
-        with chdir(wdir):
-            log.debug("Switching working dir to %s", wdir.as_posix())
-            if self.args.list:
-                file_list = self.input_files()
-                if self.pdf_stream:
-                    file_list += [self.main_file.with_suffix(".pdf").name]
-                self._print_list(file_list)
-            else:
-                try:
-                    f = tar.open(full_tar_name, mode=f"x:{self.tar_ext}")
-                    with f:
-                        self._do_tar(f)
-                        if self.args.summary:
-                            _tartex_msg_utils.summary_msg(
-                                len(f.getmembers()),
-                                self.cwd / full_tar_name,
-                                self.cwd,
-                            )
-                except PermissionError as err:
-                    log.critical(
-                        "Cannot write to %s, %s",
-                        full_tar_name.parent,
-                        err.strerror.lower(),
-                    )
-                    sys.exit(1)
-                except FileExistsError:
-                    try:
-                        full_tar_name = self._tar_name_conflict(full_tar_name)
-                        # At this stage, there is either a new name for the tar
-                        # file or user wants to overwrite existing file. In either
-                        # case, calling tar.open() with 'w' mode should be OK.
-                        f = tar.open(full_tar_name, mode=f"w:{self.tar_ext}")
-                        with f:
-                            self._do_tar(f)
-                            if self.args.summary:
-                                _tartex_msg_utils.summary_msg(
-                                    len(f.getmembers()),
-                                    self.cwd / full_tar_name,
-                                    self.cwd,
-                                )
-                    except PermissionError as err:
-                        log.critical(
-                            "Cannot write to %s, %s",
-                            full_tar_name.parent,
-                            err.strerror.lower(),
-                        )
-                        sys.exit(1)
-            log.debug("Reset working dir to %s", os.getcwd())
 
     def _tar_name_conflict(self, tpath):
         if self.args.overwrite:
@@ -429,8 +429,7 @@ class TarTeX:
         cntxt = (
             git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev)
             if self.args.git_rev
-            else
-            nullcontext()
+            else nullcontext()
         )
         with cntxt:
             for dep in self.input_files():
@@ -464,7 +463,9 @@ class TarTeX:
             log.info("Adding %s as BytesIO object", fpath.name)
             _tar_add_bytesio(byt, fpath.name)
         if self.pdf_stream:
-            _tar_add_bytesio(self.pdf_stream, self.main_file.with_suffix(".pdf").name)
+            _tar_add_bytesio(
+                self.pdf_stream, self.main_file.with_suffix(".pdf").name
+            )
 
     def _proc_output_path(self, user_path: Union[Path, None] = None):
         """
@@ -477,19 +478,19 @@ class TarTeX:
         """
 
         # If self.args.output is absolute, '/' simply returns it as a PosixPath
-        out = (self.cwd / (user_path if user_path else self.args.output).expanduser()).resolve()
+        out = (
+            self.cwd
+            / (user_path if user_path else self.args.output).expanduser()
+        ).resolve()
 
         if out.is_dir():  # If dir, set to DIR/${main_file}.tar.gz
             log.debug("%s is an existing dir", out)
-            out = (
-                out
-                / (
-                    f"{self.main_file.stem}-{self.tar_file_git_tag}"
-                    if self.args.git_rev
-                    else self.main_file.stem
-                )
+            out = out / (
+                f"{self.main_file.stem}-{self.tar_file_git_tag}"
+                if self.args.git_rev
+                else self.main_file.stem
             )
-        elif (ext:=out.suffix.lstrip(".")) in _tartex_tar_utils.TAR_EXT:
+        elif (ext := out.suffix.lstrip(".")) in _tartex_tar_utils.TAR_EXT:
             self.tar_ext = ext
         else:
             out = out.with_name(out.name)
@@ -536,7 +537,9 @@ class TarTeX:
         :returns: full tarball file name
 
         """
-        _tar_ext = self.tar_ext if self.tar_ext else _tartex_tar_utils.TAR_DEFAULT_COMP
+        _tar_ext = (
+            self.tar_ext if self.tar_ext else _tartex_tar_utils.TAR_DEFAULT_COMP
+        )
         # ...but overwrite TAR_EXT if a specific tar compression option passed
         if self.args.bzip2:
             _tar_ext = "bz2"
