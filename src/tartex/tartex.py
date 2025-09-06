@@ -215,12 +215,6 @@ class TarTeX:
                         compile_dir,
                     )
                 except Exception:
-                    # Clean-up after latexmk failure
-                    os.remove(self.tar_file_w_ext)
-                    log.debug(
-                        "Cleaning up empty tarball after latexmk failure: %s",
-                        self.tar_file_w_ext.relative_to(Path.cwd()),
-                    )
                     sys.exit(1)
 
                 with open(fls_path, encoding="utf-8") as f:
@@ -426,57 +420,6 @@ class TarTeX:
                 file=sys.stderr,
             )
             sys.exit(1)
-
-    def _do_tar(self, tar_obj):
-        def _tar_add_file(
-            file_name,
-        ):  # helper func to add file <file_name> to <tar_obj>
-            tinfo = tar_obj.gettarinfo(file_name)
-            tinfo.uid = tinfo.gid = 0
-            tinfo.uname = tinfo.gname = ""
-            tar_obj.addfile(tinfo, open(file_name, "rb"))
-            log.info("Add file: %s", file_name)
-
-        cntxt = (
-            git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev)
-            if self.args.git_rev
-            else nullcontext()
-        )
-        with cntxt:
-            for dep in self.input_files():
-                try:
-                    _tar_add_file(dep)
-                except FileNotFoundError:
-                    log.warning(
-                        "Skipping INPUT file '%s', not found amongst sources; try"
-                        " forcing a LaTeX recompile ('-F').",
-                        dep,
-                    )
-                    continue
-
-        def _tar_add_bytesio(obj, file_name):
-            # helper func to add `obj` as BytesIO with filename <file_name> to <tar_obj>
-            tinfo = tar_obj.tarinfo(file_name)
-            tinfo.size = len(obj)
-            tinfo.mtime = self.mtime
-            tinfo.uid = tinfo.gid = 0
-            tinfo.uname = tinfo.gname = ""
-            tar_obj.addfile(tinfo, BytesIO(obj))
-
-        if self.pkglist:
-            log.info(
-                "Adding list of packages as BytesIO object: %s",
-                self.pkglist_name,
-            )
-            _tar_add_bytesio(self.pkglist, self.pkglist_name)
-
-        for fpath, byt in self.req_supfiles.items():
-            log.info("Adding %s as BytesIO object", fpath.name)
-            _tar_add_bytesio(byt, fpath.name)
-        if self.pdf_stream:
-            _tar_add_bytesio(
-                self.pdf_stream, self.main_file.with_suffix(".pdf").name
-            )
 
     def _proc_output_path(self, user_path: Union[Path, None] = None):
         """
