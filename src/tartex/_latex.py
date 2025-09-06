@@ -93,7 +93,7 @@ def fls_input_files(fls_fileobj, lof_excl, skip_files, *, sty_files=False):
                 and (p.as_posix() not in lof_excl)
                 and (p.suffix not in skip_files)
             ):
-                deps.add(p.as_posix())
+                deps.add(p)
 
         if sty_files:
             if INPUT_STY.match(line):

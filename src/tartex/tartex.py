@@ -310,7 +310,7 @@ class TarTeX:
                 self.main_file.with_suffix(".tex")
             ):
                 try:
-                    deps.add(f.as_posix())
+                    deps.add(f)
                     log.info("Add file: %s", deps[-1])
                     if re.match(r".bst", f.suffix):
                         pkgs["Local"].add(deps[-1])
@@ -329,14 +329,14 @@ class TarTeX:
             for f in _tartex_tex_utils.add_files(
                 self.add_files, self.main_file.parent
             ):
-                f_relpath_str = f.relative_to(self.main_file.parent).as_posix()
-                if f_relpath_str in deps:
+                f_relpath = f.relative_to(self.main_file.parent)
+                if f_relpath in deps:
                     log.warning(
-                        "Manually included file %s already added", f_relpath_str
+                        "Manually included file %s already added", f_relpath.name
                     )
                     continue
-                deps.add(f_relpath_str)
-                log.info("Add user specified file: %s", f_relpath_str)
+                deps.add(f_relpath)
+                log.info("Add user specified file: %s", f_relpath)
 
         if self.args.packages:
             log.info(
