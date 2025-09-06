@@ -37,8 +37,11 @@ class Tarballer:
     ):
         """Init class for TarFiles"""
 
+        # Count of objects included in tarball
+        self._num_objects: int = 0
+
         # set of actual, accessible files to include
-        self._files: set = set()
+        self._files: set[Path] = set()
 
         # dict of objects to include whose contents are only available as BytesIO
         # key: name to use; val: object contents as BytesIO
@@ -56,6 +59,13 @@ class Tarballer:
         self._target: Path
         self._ext = target_path.suffix.lstrip(".")
         self._target = target_path.with_suffix(f".{self._ext}")
+
+    def num_objects(self) -> int:
+        """Returns the total number of files and bytes objects added to tarball
+        :returns: int
+
+        """
+        return self._num_objects
 
     def recomp_mode(self, recomp: str):
         """Set re-compression mode for tarball
@@ -131,6 +141,7 @@ class Tarballer:
                             dep,
                         )
                         continue
+                    self._num_objects += 1
                 for key, val in self._streams.items():
                     _tar_add_bytesio(tar_obj, key.name, val)
-
+                    self._num_objects += 1
