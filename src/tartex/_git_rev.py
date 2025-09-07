@@ -14,7 +14,8 @@ from contextlib import contextmanager
 # While useful, this might lead to race effects if the user manages to change any files in the
 # repository while the context manager is active. Instead, consider switching to using pure git refs
 # from `ls-tree --long` and getting binary data from the refs using `git cat-file`. This approach
-# will avoid modifying anything in the user dir at all.
+# will avoid modifying anything in the user dir at all, rather than the current checkout-and-restore
+# approach.
 @contextmanager
 def git_checkout(git_bin: str, repo: str, rev: str):
     """
@@ -183,6 +184,7 @@ class GitRev:
                 ]
             )[0]
         except subprocess.CalledProcessError as err:
+            log.info("Git: No tag corresponding to ref: %s", self.rev)
             for line in err.stderr.splitlines():
                 log.debug("Git: %s", line)
             self.tag_id = None
