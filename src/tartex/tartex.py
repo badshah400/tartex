@@ -293,7 +293,7 @@ class TarTeX:
                     f
                     for f in _tartex_tex_utils.bib_file(
                         self.main_file.with_suffix(".tex")
-                    )
+                    ) if f
                 ]
             )
             for f in _tartex_tex_utils.bib_file(
@@ -301,9 +301,9 @@ class TarTeX:
             ):
                 try:
                     deps.add(f)
-                    log.info("Add file: %s", deps[-1])
-                    if re.match(r".bst", f.suffix):
-                        pkgs["Local"].add(deps[-1])
+                    log.info("Add file: %s", f)
+                    if f and re.match(r".bst", f.suffix):
+                        pkgs["Local"].add(f)
                 except Exception:
                     pass
 
