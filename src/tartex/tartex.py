@@ -260,7 +260,6 @@ class TarTeX:
                         _tartex_tex_utils.AUXFILES,
                         sty_files=self.args.packages,
                     )
-                    self.tar.app_files(*deps_from_fls)
                     if not self.args.git_rev:
                         deps = deps_from_fls
 
@@ -268,6 +267,7 @@ class TarTeX:
                         self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
                             "utf8"
                         )
+                    self.tar.app_files(*deps)
 
             else:  # perhaps using git ls-tree; fls file is (as expected) untracked or cleaned
                 self.mtime = os.path.getmtime(self.main_file)
