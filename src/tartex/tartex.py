@@ -368,7 +368,7 @@ class TarTeX:
                     tarball.do_tar()
                     if self.args.summary:
                         _tartex_msg_utils.summary_msg(
-                            tarball._num_objects, self.tar_file_w_ext, self.cwd,
+                            tarball.num_objects, self.tar_file_w_ext, self.cwd,
                         )
         log.info("Switching back to working dir: %s", self.cwd)
 
