@@ -91,19 +91,19 @@ def tar_name_conflict(
         " already exists[/bold red]"
     )
 
-    owr = Prompt.ask(
+    ocq = Prompt.ask(
         "What would you like to do "
         r"([bold blue]\[O][/bold blue]verwrite /"
         r" [bold green]\[C][/bold green]hoose new name /"
         r" *[bold red]\[Q][/bold red]uit)?"
     )
-    if owr.lower() in ["", "q"]:
+    if ocq.lower() in ["", "q"]:
         richprint(
             "[bold]Not overwriting existing tar file[/bold]\nQuitting",
             file=sys.stderr,
         )
         sys.exit(1)
-    elif owr.lower() == "c":
+    elif ocq.lower() == "c":
         new_name = Path(
             Prompt.ask("Enter [bold]new name[/bold] for tar file")
         ).expanduser()
@@ -134,7 +134,7 @@ def tar_name_conflict(
         else:
             log.info("Tar file %s will be generated", new_path.as_posix())
             return new_path, ext
-    elif owr.lower() == "o":
+    elif ocq.lower() == "o":
         log.warning(f"Overwriting existing tar file {tpath}")
         return tpath, ext
     else:
