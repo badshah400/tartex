@@ -4,8 +4,11 @@
 # SPDX-License-Identifier: MIT
 #
 
+import sys
 from pathlib import Path
 import logging as log
+from rich import print as richprint
+from rich.prompt import Prompt
 
 # Allowed tar extensions
 TAR_EXT = ["bz2", "gz", "xz"]
@@ -54,4 +57,89 @@ def proc_output_path(
     log.debug("Processed output target basename: %s", out)
     return out, tar_ext
 
+def tar_name_conflict(
+    wdir: Path,  # calling dir
+    filename: Path,  # main .tex/.fls filename
+    tpath: str,  # full path to initial tarball name
+    overwrite: bool = False,  # whether to overwrite tarball or not
+    git_tag: str = ""  # full tag to be used for git-rev
+):
+    """
+    Resolves conflict in case output tarball file already exists by either of
+    the following options offered to user:
 
+    * Overwriting existing file (automatically chosen if `overwrite` is `True`).
+    * Asking for new tarball name (if tarball with new name already exists, exit with error).
+    * Quit directly.
+
+    :wdir: dir from which `tar_files()` is called (Path)
+    :filename: main .tex/.fls file path (Path)
+    :tpath: full filename of initial tarball (str)
+    :overwrite: whether to overwrite existing tarball (optional; bool)
+    :git_tag: full tag to be appended to tarball filename when `git-rev` is used (optional; str)
+
+    :returns: new_tar_file and new extension if any (otherwise "") (tuple)
+    """
+    ext = Path(tpath).suffix
+
+    if overwrite:
+        log.warning(f"Overwriting existing tar file {tpath}")
+        return tpath, ext
+    richprint(
+        "[bold red]A tar file with the same name"
+        rf" \[{wdir / tpath}]"
+        " already exists[/bold red]"
+    )
+
+    owr = Prompt.ask(
+        "What would you like to do "
+        r"([bold blue]\[O][/bold blue]verwrite /"
+        r" [bold green]\[C][/bold green]hoose new name /"
+        r" *[bold red]\[Q][/bold red]uit)?"
+    )
+    if owr.lower() in ["", "q"]:
+        richprint(
+            "[bold]Not overwriting existing tar file[/bold]\nQuitting",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    elif owr.lower() == "c":
+        new_name = Path(
+            Prompt.ask("Enter [bold]new name[/bold] for tar file")
+        ).expanduser()
+        new_path, new_ext = proc_output_path(
+            wdir, filename, new_name, git_tag
+        )
+        if new_ext:
+            ext = new_ext
+        new_path = Path(
+            f"{new_path!s}.tar.{ext}"
+        ).resolve()
+
+        if new_path == tpath:
+            richprint(
+                "[bold red]Error: New name entered is also the same as"
+                " existing tar file name[/bold red]\nQuitting",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        elif new_path.exists():
+            richprint(
+                "[bold red]Error: A tar file with the same name"
+                rf" \[{(wdir / new_path)!s}] also"
+                " exists[/bold red]\nQuitting",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        else:
+            log.info("Tar file %s will be generated", new_path.as_posix())
+            return new_path, ext
+    elif owr.lower() == "o":
+        log.warning(f"Overwriting existing tar file {tpath}")
+        return tpath, ext
+    else:
+        richprint(
+            "[bold red]Error: Invalid response[/]\nQuitting.",
+            file=sys.stderr,
+        )
+        sys.exit(1)

@@ -18,9 +18,7 @@ from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Union
-
 from rich import print as richprint
-from rich.prompt import Prompt
 
 from tartex import _latex
 from tartex._parse_args import parse_args
@@ -347,7 +345,13 @@ class TarTeX:
         recompile your latex project.
         """
         if self.tar_file_w_ext.exists():
-            self.tar_file_w_ext = self._tar_name_conflict(self.tar_file_w_ext)
+            self.tar_file_w_ext, self.tar_ext = _tartex_tar_utils.tar_name_conflict(
+                self.cwd,
+                self.main_file,
+                self.tar_file_w_ext,
+                self.args.overwrite,
+                self.tar_file_git_tag
+            )
         tarball = Tarballer(self.cwd, self.main_file, self.tar_file_w_ext)
         _git_cntxt = (
             git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev)
@@ -368,69 +372,6 @@ class TarTeX:
                         )
         log.info("Switching back to working dir: %s", self.cwd)
 
-
-    def _tar_name_conflict(self, tpath):
-        if self.args.overwrite:
-            log.warning(f"Overwriting existing tar file {tpath}")
-            return tpath
-        richprint(
-            "[bold red]A tar file with the same name"
-            rf" \[{self.cwd / tpath}]"
-            " already exists[/bold red]"
-        )
-
-        owr = Prompt.ask(
-            "What would you like to do "
-            r"([bold blue]\[O][/bold blue]verwrite /"
-            r" [bold green]\[C][/bold green]hoose new name /"
-            r" *[bold red]\[Q][/bold red]uit)?"
-        )
-        if owr.lower() in ["", "q"]:
-            richprint(
-                "[bold]Not overwriting existing tar file[/bold]\nQuitting",
-                file=sys.stderr,
-            )
-            sys.exit(1)
-        elif owr.lower() == "c":
-            new_name = Path(
-                Prompt.ask("Enter [bold]new name[/bold] for tar file")
-            ).expanduser()
-            new_path, new_ext = _tartex_tar_utils.proc_output_path(
-                self.cwd, self.main_file, new_name, self.tar_file_git_tag
-            )
-            if new_ext:
-                self.tar_ext = new_ext
-            new_path = Path(
-                f"{new_path!s}.tar.{self.tar_ext}"
-            ).resolve()
-
-            if new_path == tpath:
-                richprint(
-                    "[bold red]Error: New name entered is also the same as"
-                    " existing tar file name[/bold red]\nQuitting",
-                    file=sys.stderr,
-                )
-                sys.exit(1)
-            elif new_path.exists():
-                richprint(
-                    "[bold red]Error: A tar file with the same name"
-                    rf" \[{(self.cwd / new_path)!s}] also"
-                    " exists[/bold red]\nQuitting",
-                    file=sys.stderr,
-                )
-                sys.exit(1)
-            else:
-                log.info("Tar file %s will be generated", new_path.as_posix())
-                return new_path
-        elif owr.lower() == "o":
-            log.warning(f"Overwriting existing tar file {tpath}")
-            return tpath
-        else:
-            richprint(
-                "[bold red]Error: Invalid response[/]\nQuitting.",
-                file=sys.stderr,
-            )
-            sys.exit(1)
 
     def _print_list(self, ls):
         """helper function to print list of files in a pretty format"""
