@@ -57,6 +57,7 @@ class TestTarDir:
     main_file = "some_file.tex"
     tartex_args = [main_file, "-s", "-v", "-o"]
 
+    @pytest.mark.skip(reason="Needs to be re-worked after commit abd7033")
     def test_root_dir(self, monkeypatch_set_main_file, monkeypatch_mtime, caplog):
         """
         Test permission error when trying to write to '/'

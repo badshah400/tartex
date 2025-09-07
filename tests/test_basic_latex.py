@@ -128,7 +128,7 @@ class TestTarConflict:
         # Monkeypatch empty response for input
         monkeypatch.setattr("rich.prompt.Prompt.ask", lambda _: "")
 
-        # Trying to create tar file again will lead to conflic res dialog
+        # Trying to create tar file again will lead to conflict res dialog
         # Blank user input (from monkeypatch) will raise SystemExit
         with pytest.raises(SystemExit) as exc:
             t_con.tar_files()
