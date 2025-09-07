@@ -60,7 +60,9 @@ class TestGitRev:
         git_short_ref = git_ref[:7]
         # r1 should tarball working tree as it appeared at first commit
         r1 = gitrev_tartex(git_ref)
-        assert f".{git_short_ref}" in Path(r1.tar_file_w_ext).suffixes
+        assert (
+            r1.main_file.stem + f"-git.{git_short_ref}.tar.{r1.tar_ext}"
+        ) == r1.tar_file_w_ext.name
 
     def test_tarfile_change_tag(self, git_repo_clean, datadir, gitrev_tartex):
         git_repo, git, git_ref = git_repo_clean
