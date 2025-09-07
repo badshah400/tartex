@@ -106,7 +106,12 @@ class TarTeX:
         # ..but use use specified output's TAR_EXT extension if any...
         self.tar_ext = ""
         if self.args.output:
-            self.args.output = self._proc_output_path()
+            self.args.output, self.tar_ext = _tartex_tar_utils.proc_output_path(
+                self.cwd,
+                self.main_file,
+                self.args.output,
+                self.tar_file_git_tag
+            )
 
         self.tar_file_w_ext = self._tar_filename()
         self.tar_ext = self.tar_file_w_ext.suffix.lstrip(".")
@@ -390,8 +395,13 @@ class TarTeX:
             new_name = Path(
                 Prompt.ask("Enter [bold]new name[/bold] for tar file")
             ).expanduser()
+            new_path, new_ext = _tartex_tar_utils.proc_output_path(
+                self.cwd, self.main_file, new_name, self.tar_file_git_tag
+            )
+            if new_ext:
+                self.tar_ext = new_ext
             new_path = Path(
-                f"{self._proc_output_path(new_name)!s}.tar.{self.tar_ext}"
+                f"{new_path!s}.tar.{self.tar_ext}"
             ).resolve()
 
             if new_path == tpath:
@@ -421,38 +431,6 @@ class TarTeX:
                 file=sys.stderr,
             )
             sys.exit(1)
-
-    def _proc_output_path(self, user_path: Union[Path, None] = None):
-        """
-        Returns the output tar file path (sans any '.tar.?z' suffix) after
-        resolving the value passed to '--output' as part of cmdline options.
-
-        Also sets the tar ext if determined from '--output' argument.
-
-        Uses `user_path` instead of the value of `--output` argument if passed.
-        """
-
-        # If self.args.output is absolute, '/' simply returns it as a PosixPath
-        out = (
-            self.cwd
-            / (user_path if user_path else self.args.output).expanduser()
-        ).resolve()
-
-        if out.is_dir():  # If dir, set to DIR/${main_file}.tar.gz
-            log.debug("%s is an existing dir", out)
-            out = out / (
-                f"{self.main_file.stem}-{self.tar_file_git_tag}"
-                if self.args.git_rev
-                else self.main_file.stem
-            )
-        elif (ext := out.suffix.lstrip(".")) in _tartex_tar_utils.TAR_EXT:
-            self.tar_ext = ext
-        else:
-            out = out.with_name(out.name)
-
-        out = _tartex_tar_utils.strip_tarext(out)
-        log.debug("Processed output target basename: %s", out)
-        return out
 
     def _print_list(self, ls):
         """helper function to print list of files in a pretty format"""
