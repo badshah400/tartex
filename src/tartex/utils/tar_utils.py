@@ -46,7 +46,7 @@ def proc_output_path(
     if out.is_dir():  # If dir, set to DIR/${main_file}.tar.gz
         log.debug("%s is an existing dir", out)
         out = out / (
-            f"{main_file.stem}{f'-{git_tag}' if git_tag else ''}"
+            f"{main_file.stem}{git_tag}"
         )
     elif (ext := out.suffix.lstrip(".")) in TAR_EXT:
         tar_ext = ext
