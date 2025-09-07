@@ -86,10 +86,6 @@ class TarTeX:
         self.cwd = Path.cwd()
         try:
             self.main_file = _set_main_file(self.args.fname)
-            if not self.main_file:
-                log.critical("Error: File not found - %s", self.args.fname)
-                sys.exit(1)
-
         except FileNotFoundError as err:
             log.critical(f"Error: {err}")
             sys.exit(1)
