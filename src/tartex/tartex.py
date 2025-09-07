@@ -190,6 +190,7 @@ class TarTeX:
             # Process the --excl files
             for f in self.excl_files:  # Remove the file if it exists in the set
                 deps.discard(f)
+            tarf.set_mtime(self.GR.mtime())
             tarf.app_files(*deps)
         if (
             not self.main_file.with_suffix(".fls").exists()
@@ -265,7 +266,8 @@ class TarTeX:
                     tarf.app_files(*deps)
 
             else:  # perhaps using git ls-tree; fls file is (as expected) untracked or cleaned
-                self.mtime = os.path.getmtime(self.main_file)
+                if not self.args.git_rev:
+                    self.mtime = os.path.getmtime(self.main_file)
                 if self.args.packages:
                     log.warn(
                         "Cannot generate list of packages due to missing %s file",
