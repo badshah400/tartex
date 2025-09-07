@@ -114,11 +114,7 @@ class TarTeX:
 
         self.tar_file_w_ext = self._tar_filename()
         self.tar_ext = self.tar_file_w_ext.suffix.lstrip(".")
-        if self.tar_file_w_ext.exists():
-            self.tar_file_w_ext = self._tar_name_conflict(self.tar_file_w_ext)
-        # sys.exit(100)
         log.debug("Output tarball '%s' will be generated", self.tar_file_w_ext)
-        self.tar = Tarballer(self.cwd, self.main_file, self.tar_file_w_ext)
 
         self.req_supfiles = {}
         self.add_files = self.args.add.split(",") if self.args.add else []
@@ -174,7 +170,7 @@ class TarTeX:
 
     # TODO: Re-structure function to make it readable, currently it is a bit of
     # a hodge-podge of `if...else` branches.
-    def input_files(self):
+    def input_files(self, tarf: Tarballer):
         """
         Returns non-system input files needed to compile the main tex file.
 
@@ -195,7 +191,7 @@ class TarTeX:
             # Process the --excl files
             for f in self.excl_files:  # Remove the file if it exists in the set
                 deps.discard(f)
-            self.tar.app_files(*deps)
+            tarf.app_files(*deps)
         if (
             not self.main_file.with_suffix(".fls").exists()
             or self.args.force_recompile
@@ -224,17 +220,17 @@ class TarTeX:
                         _tartex_tex_utils.AUXFILES,
                         sty_files=self.args.packages,
                     )
-                self.tar.app_files(*deps)
+                tarf.app_files(*deps)
 
-                self.tar.set_mtime(os.path.getmtime(fls_path))
-                self.mtime = self.tar._mtime
+                tarf.set_mtime(os.path.getmtime(fls_path))
+                self.mtime = tarf._mtime
                 if self.args.with_pdf:
                     main_pdf = Path(compile_dir) / self.main_file.with_suffix(
                         ".pdf"
                     )
                     with open(fls_path.with_suffix(".pdf"), "rb") as f:
                         self.pdf_stream = f.read()
-                    self.tar.app_stream(main_pdf.name, self.pdf_stream)
+                    tarf.app_stream(main_pdf.name, self.pdf_stream)
 
                 for ext in _tartex_tex_utils.SUPP_REQ:
                     supp_filename = self.main_file.with_suffix(f".{ext}")
@@ -244,7 +240,7 @@ class TarTeX:
                         self.req_supfiles[
                             self.main_file.with_suffix(f".{ext}")
                         ] = app
-                        self.tar.app_stream(supp_filename.name, app)
+                        tarf.app_stream(supp_filename.name, app)
 
         else:
             # If .fls exists, this assumes that all INPUT files recorded in it
@@ -267,7 +263,7 @@ class TarTeX:
                         self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
                             "utf8"
                         )
-                    self.tar.app_files(*deps)
+                    tarf.app_files(*deps)
 
             else:  # perhaps using git ls-tree; fls file is (as expected) untracked or cleaned
                 self.mtime = os.path.getmtime(self.main_file)
@@ -283,7 +279,7 @@ class TarTeX:
                 try:
                     with open(main_pdf, "rb") as f:
                         self.pdf_stream = f.read()
-                        self.tar.app_stream(main_pdf.name, self.pdf_stream,
+                        tarf.app_stream(main_pdf.name, self.pdf_stream,
                                             f"Add compiled PDF: {main_pdf.relative_to(self.cwd)}")
                         log.info("Add file: %s", main_pdf.relative_to(self.cwd))
                 except FileNotFoundError:
@@ -293,7 +289,7 @@ class TarTeX:
                     self.args.with_pdf = False
 
         if self.args.bib:
-            self.tar.app_files(
+            tarf.app_files(
                 *[
                     f
                     for f in _tartex_tex_utils.bib_file(
@@ -313,7 +309,7 @@ class TarTeX:
                     pass
 
         if self.add_files:
-            self.tar.app_files(
+            tarf.app_files(
                 *[
                     f.relative_to(self.main_file.parent)
                     for f in _tartex_tex_utils.add_files(
@@ -340,7 +336,7 @@ class TarTeX:
             )
 
             self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode("utf8")
-            self.tar.app_stream(self.pkglist_name, self.pkglist,
+            tarf.app_stream(self.pkglist_name, self.pkglist,
                                 comm=f"Adding list of used LaTeX packages: {self.pkglist_name}")
         return deps
 
@@ -349,17 +345,26 @@ class TarTeX:
         Generates a tarball consisting of non-system input files needed to
         recompile your latex project.
         """
+        if self.tar_file_w_ext.exists():
+            self.tar_file_w_ext = self._tar_name_conflict(self.tar_file_w_ext)
+        tarball = Tarballer(self.cwd, self.main_file, self.tar_file_w_ext)
+        _git_cntxt = (
+            git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev)
+            if self.args.git_rev
+            else nullcontext()
+        )
         log.info("Switching to TeX file source dir: %s", self.main_file.parent)
         with chdir(self.main_file.parent):
-            _ls = self.input_files()
-            if self.args.list:
-                self._print_list([f for f in _ls if f.exists()])
-            else:
-                self.tar.do_tar()
-                if self.args.summary:
-                    _tartex_msg_utils.summary_msg(
-                        self.tar._num_objects, self.tar_file_w_ext, self.cwd,
-                    )
+            with _git_cntxt:
+                _ls = self.input_files(tarball)
+                if self.args.list:
+                    self._print_list([f for f in _ls if f.exists()])
+                else:
+                    tarball.do_tar()
+                    if self.args.summary:
+                        _tartex_msg_utils.summary_msg(
+                            tarball._num_objects, self.tar_file_w_ext, self.cwd,
+                        )
         log.info("Switching back to working dir: %s", self.cwd)
 
 
