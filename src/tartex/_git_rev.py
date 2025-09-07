@@ -189,7 +189,7 @@ class GitRev:
 
         return self.tag_id or f"git.{self.git_commit_id.split()[1]}"
 
-    def ls_tree_files(self):
+    def ls_tree_files(self) -> set[Path]:
         """Get list of files from ls-tree
         :returns: dict[Path]
 
@@ -203,10 +203,10 @@ class GitRev:
                     self.rev,
                 ]
             )
-            self.ls_tree_paths = set([Path(f).as_posix() for f in _files])
+            self.ls_tree_paths = set([Path(f) for f in _files])
 
         except (OSError, subprocess.CalledProcessError):
-            self.ls_tree_paths = []
+            self.ls_tree_paths = set()
 
         return self.ls_tree_paths
 
