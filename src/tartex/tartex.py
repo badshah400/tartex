@@ -8,17 +8,13 @@
 import fnmatch
 import json
 import logging as log
-import math
 import os
 import re
 import sys
-import tarfile as tar
 from contextlib import nullcontext
-from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Union
-from rich import print as richprint
 
 from tartex import _latex
 from tartex._parse_args import parse_args
@@ -166,8 +162,6 @@ class TarTeX:
 
         self.pkglist = None
 
-    # TODO: Re-structure function to make it readable, currently it is a bit of
-    # a hodge-podge of `if...else` branches.
     def input_files(self, tarf: Tarballer):
         """
         Returns non-system input files needed to compile the main tex file.
@@ -181,22 +175,25 @@ class TarTeX:
         source dir.
         """
 
-        pkgs = []
+        pkgs: dict[str, set] = {}
         if self.args.git_rev:
             log.debug(
                 "Using `git ls-tree` to determine files to include in tarball"
             )
-            _ = self.input_files_from_git(tarf)
+            deps, pkgs = self.input_files_from_git(tarf)
 
-        if (
+        # Either missing '.fls' file in source or recompile forced by user
+        # option (`--force-recompile`)
+        elif (
             not self.main_file.with_suffix(".fls").exists()
             or self.args.force_recompile
         ):
-            self.input_files_from_recompile(tarf)
-            return
+            deps, pkgs = self.input_files_from_recompile(tarf)
 
         # If .fls exists, this assumes that all INPUT files recorded in it
         # are also included in source dir
+        else:
+            deps, pkgs = self.input_files_from_srcfls(tarf)
 
         if self.args.bib:
             tarf.app_files(
@@ -212,10 +209,10 @@ class TarTeX:
                 self.main_file.with_suffix(".tex")
             ):
                 try:
-                    tarf.app_files(f)
+                    tarf.app_files(f)  # type: ignore [arg-type]
                     log.info("Add file: %s", f)
                     if f and re.match(r".bst", f.suffix):
-                        pkgs["Local"].add(f)
+                        pkgs["Local"].add(f.as_posix())
                 except Exception:
                     pass
 
@@ -238,7 +235,7 @@ class TarTeX:
                         f_relpath.name,
                     )
                     continue
-                deps.add(f_relpath)
+                tarf.app_files(f_relpath)
                 log.info("Add user specified file: %s", f_relpath)
 
         if self.args.packages:
@@ -260,35 +257,41 @@ class TarTeX:
         :returns: TODO
 
         """
-        deps = self.GR.ls_tree_files()
+        _deps = self.GR.ls_tree_files()
+        _pkgs: dict[str, set] = {}
         # Process the --excl files
         for f in self.excl_files:  # Remove the file if it exists in the set
-            deps.discard(f)
-        tarf.app_files(*deps)
+            _deps.discard(f)
+        tarf.app_files(*_deps)
         tarf.set_mtime(self.GR.mtime())
         if self.args.packages:
             try:
                 with open(
                     self.main_file.with_suffix(".fls"), encoding="utf-8"
                 ) as f:
-                    _, pkgs = _latex.fls_input_files(
+                    _, _pkgs = _latex.fls_input_files(
                         f,
                         self.excl_files,
                         _tartex_tex_utils.AUXFILES,
                         sty_files=self.args.packages,
                     )
-                self._add_pkglist_json(pkgs, tarf)
-            except FileNotFoundError as _:
-                self._log_missing_fls()
+            except FileNotFoundError:
+                log.warn(
+                    "Missing .fls file in source dir; %s will not be saved",
+                    self.pkglist_name,
+                )
+                self.args.packages = False
             except Exception as err:
                 raise err
-        return deps
+        return _deps, _pkgs
 
     def input_files_from_recompile(self, tarf: Tarballer):
         """TODO: Docstring for input_files_from_recompile.
         :returns: TODO
 
         """
+        _deps: set = set()
+        _pkgs: dict[str, set] = {}
         with TemporaryDirectory() as compile_dir:
             log.info(
                 "LaTeX recompile forced"
@@ -308,40 +311,54 @@ class TarTeX:
 
             tarf.set_mtime(os.path.getmtime(fls_path))
             with open(fls_path, encoding="utf-8") as f:
-                deps, pkgs = _latex.fls_input_files(
+                _deps, _pkgs = _latex.fls_input_files(
                     f,
                     self.excl_files,
                     _tartex_tex_utils.AUXFILES,
                     sty_files=self.args.packages,
                 )
-                tarf.app_files(*deps)
+                tarf.app_files(*_deps)
 
                 # Supplementary files, pkg lists are all transient — they only
                 # live in the temporary `compile_dir`; so we need to save them
                 # as streams inside this file-open context.
 
-                if self.args.packages:
-                    self._add_pkglist_json(pkgs, tarf)
                 if self.args.with_pdf:
-                    self._add_pdf_stream(
-                        Path(compile_dir) / self.main_file.with_suffix(".pdf"),
-                        tarf
-                    )
+                    self._add_pdf_stream(fls_path.with_suffix(".pdf"), tarf)
 
-                self._add_supplement_streams(compile_dir, deps, tarf)
+                self._add_supplement_streams(Path(compile_dir), _deps, tarf)
+                return _deps, _pkgs
 
-    def _log_missing_fls(self):
+    def input_files_from_srcfls(self, _t: Tarballer):
         """
-        Log warning about missing .fls file leading to packagelist being
-        unable to be generated
-        :returns: None
-
+        Get input files from '.fls' in source dir
         """
-        log.warn(
-            "Missing .fls file in source dir; %s will not be saved",
-            self.pkglist_name,
-        )
-        self.args.packages = False
+        _deps: set = set()
+        _pkgs: dict[str, set] = {}
+        fls_f = self.main_file.with_suffix(".fls")
+        try:
+            with open(fls_f, encoding="utf8") as f:
+                _deps, _pkgs = _latex.fls_input_files(
+                    f, self.excl_files, _tartex_tex_utils.AUXFILES, sty_files=self.args.packages
+                )
+                _t.set_mtime(os.path.getmtime(fls_f))
+
+        except FileNotFoundError:
+            if self.args.packages:
+                log.warn(
+                    "Cannot generate list of packages due to missing %s file",
+                    fls_f
+                )
+                self.args.packages = False
+
+        except Exception as err:
+            raise err
+
+        _t.app_files(*_deps)
+
+        if self.args.with_pdf:
+            self._add_pdf_stream(self.main_file.with_suffix(".pdf"), _t)
+        return _deps, _pkgs
 
 
     def _add_pdf_stream(self, _file: Path, _t: Tarballer):
@@ -355,7 +372,7 @@ class TarTeX:
         try:
             with open(_file, "rb") as f:
                 self.pdf_stream = f.read()
-            _t.app_stream(_file.name, self.pdf_stream)
+                _t.app_stream(_file.name, self.pdf_stream)
         except FileNotFoundError:
             log.warning(
                 f"Unable to find '{_file}' in {self.cwd}, skipping..."
@@ -365,9 +382,8 @@ class TarTeX:
     def _add_supplement_streams(self, _p: Path, _dep: set[Path], _t: Tarballer):
         """Add supplementary files as streams
 
-        :_p: TODO
-        :_t: TODO
-        :returns: TODO
+        :_p: Path to stream
+        :_t: Tarballer object to add `_p` to
 
         """
         for ext in _tartex_tex_utils.SUPP_REQ:
@@ -380,24 +396,6 @@ class TarTeX:
                 ] = app
                 _t.app_stream(supp_filename.name, app)
 
-    def _add_pkglist_json(self, _p: set[str], _t: Tarballer):
-        """Add list of used (La)TeX packages to tarball
-
-        :_p: pkg list
-        :_t: Tarballer object
-
-        """
-        log.info(
-            "System TeX/LaTeX packages used: %s",
-            ", ".join(sorted(_p["System"])),
-        )
-
-        self.pkglist = json.dumps(_p, cls=SetEncoder).encode("utf8")
-        _t.app_stream(
-            self.pkglist_name,
-            self.pkglist,
-            comm=f"Adding list of used LaTeX packages: {self.pkglist_name}",
-        )
 
     def tar_files(self):
         """
