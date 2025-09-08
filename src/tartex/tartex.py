@@ -94,7 +94,6 @@ class TarTeX:
                     self.main_file.parent, self.args.git_rev or "HEAD"
                 )
                 self.tar_file_git_tag = f"-{self.GR.id()}.tar"
-                self.mtime = self.GR.mtime()
             except Exception:
                 sys.exit(1)
         else:
@@ -223,7 +222,6 @@ class TarTeX:
                 tarf.app_files(*deps)
 
                 tarf.set_mtime(os.path.getmtime(fls_path))
-                self.mtime = tarf._mtime
                 if self.args.with_pdf:
                     main_pdf = Path(compile_dir) / self.main_file.with_suffix(
                         ".pdf"
@@ -246,7 +244,7 @@ class TarTeX:
             # If .fls exists, this assumes that all INPUT files recorded in it
             # are also included in source dir
             if (fls_f := self.main_file.with_suffix(".fls")).exists():
-                self.mtime = os.path.getmtime(fls_f)
+                tarf.set_mtime(os.path.getmtime(fls_f))
                 with open(
                     self.main_file.with_suffix(".fls"), encoding="utf8"
                 ) as f:
@@ -267,7 +265,7 @@ class TarTeX:
 
             else:  # perhaps using git ls-tree; fls file is (as expected) untracked or cleaned
                 if not self.args.git_rev:
-                    self.mtime = os.path.getmtime(self.main_file)
+                    tarf.set_mtime(os.path.getmtime(self.main_file))
                 if self.args.packages:
                     log.warn(
                         "Cannot generate list of packages due to missing %s file",
