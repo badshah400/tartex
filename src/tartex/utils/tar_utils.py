@@ -25,10 +25,7 @@ def strip_tarext(filename: Path):
 
 
 def proc_output_path(
-    wdir: Path,
-    main_file: Path,
-    user_path: Path,
-    git_tag: str = ""
+    wdir: Path, main_file: Path, user_path: Path, git_tag: str = ""
 ):
     """
     Returns the output tar file path (sans any '.tar.?z' suffix) after
@@ -45,9 +42,7 @@ def proc_output_path(
 
     if out.is_dir():  # If dir, set to DIR/${main_file}.tar.gz
         log.debug("%s is an existing dir", out)
-        out = out / (
-            f"{main_file.stem}{git_tag}"
-        )
+        out = out / (f"{main_file.stem}{git_tag}")
     elif (ext := out.suffix.lstrip(".")) in TAR_EXT:
         tar_ext = ext
     else:
@@ -57,12 +52,13 @@ def proc_output_path(
     log.debug("Processed output target basename: %s", out)
     return out, tar_ext
 
+
 def tar_name_conflict(
     wdir: Path,  # calling dir
     filename: Path,  # main .tex/.fls filename
     tpath: str,  # full path to initial tarball name
     overwrite: bool = False,  # whether to overwrite tarball or not
-    git_tag: str = ""  # full tag to be used for git-rev
+    git_tag: str = "",  # full tag to be used for git-rev
 ):
     """
     Resolves conflict in case output tarball file already exists by either of
@@ -107,14 +103,10 @@ def tar_name_conflict(
         new_name = Path(
             Prompt.ask("Enter [bold]new name[/bold] for tar file")
         ).expanduser()
-        new_path, new_ext = proc_output_path(
-            wdir, filename, new_name, git_tag
-        )
+        new_path, new_ext = proc_output_path(wdir, filename, new_name, git_tag)
         if new_ext:
             ext = new_ext
-        new_path = Path(
-            f"{new_path!s}.tar.{ext}"
-        ).resolve()
+        new_path = Path(f"{new_path!s}.tar.{ext}").resolve()
 
         if new_path == tpath:
             richprint(

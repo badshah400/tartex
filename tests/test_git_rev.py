@@ -8,7 +8,6 @@ from subprocess import run
 import tarfile as tar
 
 from tartex.tartex import TarTeX
-from tartex.utils.tar_utils import TAR_DEFAULT_COMP
 
 
 @pytest.fixture

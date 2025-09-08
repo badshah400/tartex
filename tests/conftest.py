@@ -11,16 +11,22 @@ import shutil
 import time
 import pytest
 
-from tartex.tartex import _set_main_file, TarTeX
+from tartex.tartex import TarTeX
 
 
 @pytest.fixture
 def monkeypatch_mtime(monkeypatch):
-    return lambda _: monkeypatch.setattr("os.path.getmtime", lambda _: time.time())
+    return lambda _: monkeypatch.setattr(
+        "os.path.getmtime", lambda _: time.time()
+    )
+
 
 @pytest.fixture
 def monkeypatch_set_main_file(monkeypatch):
-    return lambda foo: monkeypatch.setattr("tartex.tartex._set_main_file", lambda _: Path(foo))
+    return lambda foo: monkeypatch.setattr(
+        "tartex.tartex._set_main_file", lambda _: Path(foo)
+    )
+
 
 @pytest.fixture
 def sample_texfile(monkeypatch_set_main_file, monkeypatch):
@@ -34,7 +40,8 @@ def sample_texfile(monkeypatch_set_main_file, monkeypatch):
     # "some_file.tex" instead of returning None. The latter would cause the
     # TarTeX object to hit sys.exit during __init__(), raising test errors.
     def mock_time(_):
-       return time.time()
+        return time.time()
+
     monkeypatch.setattr("os.path.getmtime", mock_time)
     monkeypatch_set_main_file("some_file.tex")
     return TarTeX(["some_file.tex"])

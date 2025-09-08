@@ -14,6 +14,7 @@ from .utils.tar_utils import TAR_EXT
 from .utils.msg_utils import summary_msg
 import tarfile as tar
 
+
 class Tarballer:
     """Class that handles tarballing a list of objects (file Paths, BytesIO, etc.)"""
 
@@ -27,7 +28,7 @@ class Tarballer:
 
         # dict of objects to include whose contents are only available as BytesIO
         # key: name to use; val: object contents as BytesIO
-        self._streams: dict[str, BytesIO]  = {}
+        self._streams: dict[str, BytesIO] = {}
 
         # dict of strings to use for logging when adding `key` object to tarball
         # key: file or stream object name; val: logging string
@@ -90,7 +91,8 @@ class Tarballer:
 
     def do_tar(self):
         def _tar_add_file(
-            tar_obj: tar.TarFile, file_name: Path,
+            tar_obj: tar.TarFile,
+            file_name: Path,
         ):  # helper func to add file <file_name> to <tar_obj>
             tinfo = tar_obj.gettarinfo(file_name)
             tinfo.uid = tinfo.gid = 0

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Union
 from rich import print as richprint
 
+
 def summary_msg(
     nfiles, tarname: Union[Path, None] = None, wdir: Union[Path, None] = None
 ):
@@ -30,6 +31,3 @@ def summary_msg(
         richprint(
             f"[cyan]Summary: :clipboard: {_num_tag(nfiles)} to include.[/]"
         )
-
-
-

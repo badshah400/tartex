@@ -58,7 +58,9 @@ class TestTarDir:
     tartex_args = [main_file, "-s", "-v", "-o"]
 
     @pytest.mark.skip(reason="Needs to be re-worked after commit abd7033")
-    def test_root_dir(self, monkeypatch_set_main_file, monkeypatch_mtime, caplog):
+    def test_root_dir(
+        self, monkeypatch_set_main_file, monkeypatch_mtime, caplog
+    ):
         """
         Test permission error when trying to write to '/'
         """
@@ -85,7 +87,9 @@ class TestTarDir:
                 (Path(tmpdir) / self.main_file).with_suffix(".tar.gz")
             )
 
-    def test_output_dir_filename(self, monkeypatch_set_main_file, monkeypatch_mtime):
+    def test_output_dir_filename(
+        self, monkeypatch_set_main_file, monkeypatch_mtime
+    ):
         """
         Test tarball output when -o is file name in existing dir (default
         compression)

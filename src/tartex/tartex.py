@@ -57,9 +57,7 @@ def _set_main_file(name: str) -> Union[Path, None]:
     if main_file.is_file():
         return main_file
     else:
-        raise FileNotFoundError(
-            f"File {main_file.name} not found."
-        )
+        raise FileNotFoundError(f"File {main_file.name} not found.")
 
 
 class TarTeX:
@@ -308,7 +306,10 @@ class TarTeX:
         try:
             with open(fls_f, encoding="utf8") as f:
                 _deps, _pkgs = _latex.fls_input_files(
-                    f, self.excl_files, _tartex_tex_utils.AUXFILES, sty_files=self.args.packages
+                    f,
+                    self.excl_files,
+                    _tartex_tex_utils.AUXFILES,
+                    sty_files=self.args.packages,
                 )
                 _t.set_mtime(os.path.getmtime(fls_f))
 
@@ -316,7 +317,7 @@ class TarTeX:
             if self.args.packages:
                 log.warn(
                     "Cannot generate list of packages due to missing %s file",
-                    fls_f
+                    fls_f,
                 )
                 self.args.packages = False
 
@@ -329,18 +330,20 @@ class TarTeX:
             self._add_pdf_stream(self.main_file.with_suffix(".pdf"), _t)
         return _deps, _pkgs
 
-    def _add_bib(
-            self,
-            _deps: set[Path],
-            _pkgs: dict[str, set[str]]
-    ):
+    def _add_bib(self, _deps: set[Path], _pkgs: dict[str, set[str]]):
         """Add bib and bst files to tarball; add bst filename to package list
 
         :_deps: set of files to be included in tarball
         :_pkgs: list of TeX packages that may be added to tarball as json file
 
         """
-        bibs = [f for f in _tartex_tex_utils.bib_file(self.main_file.with_suffix(".tex")) if f]
+        bibs = [
+            f
+            for f in _tartex_tex_utils.bib_file(
+                self.main_file.with_suffix(".tex")
+            )
+            if f
+        ]
 
         for f in bibs:
             try:
@@ -370,7 +373,6 @@ class TarTeX:
             _deps.add(f_relpath)
             log.info("Add user specified file: %s", f_relpath)
 
-
     def _add_pdf_stream(self, _file: Path, _t: Tarballer):
         """Add pdf as stream to Tarballer object
 
@@ -384,9 +386,7 @@ class TarTeX:
                 self.pdf_stream = f.read()
                 _t.app_stream(_file.name, self.pdf_stream)
         except FileNotFoundError:
-            log.warning(
-                f"Unable to find '{_file}' in {self.cwd}, skipping..."
-            )
+            log.warning(f"Unable to find '{_file}' in {self.cwd}, skipping...")
             self.args.with_pdf = False
 
     def _add_supplement_streams(self, _p: Path, _dep: set[Path], _t: Tarballer):
@@ -401,11 +401,8 @@ class TarTeX:
             if app := self._missing_supp(
                 self.main_file.with_suffix(f".{ext}"), _p, _dep
             ):
-                self.req_supfiles[
-                    self.main_file.with_suffix(f".{ext}")
-                ] = app
+                self.req_supfiles[self.main_file.with_suffix(f".{ext}")] = app
                 _t.app_stream(supp_filename.name, app)
-
 
     def tar_files(self):
         """

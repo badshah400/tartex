@@ -10,7 +10,6 @@ Test inclusion and exclusion of .bib files
 import tarfile as tar
 
 from tartex.tartex import TarTeX
-from tartex.utils.tar_utils import TAR_DEFAULT_COMP
 
 
 def test_bib(datadir, tmpdir):

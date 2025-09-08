@@ -7,7 +7,6 @@
 from pathlib import Path
 from typing import Union
 
-from rich import print as richprint
 
 import re
 
@@ -33,6 +32,7 @@ AUXFILES = [
 
 # Supplementary files that are usually required as part of tarball
 SUPP_REQ = ["bbl", "ind"]
+
 
 def add_files(patterns: list[str], dir: Path) -> set[Path]:
     """
@@ -70,11 +70,7 @@ def bib_file(tex_fname: Path) -> list[Union[Path, None]]:
         bib_name = re.sub(r"^\\bibliography\{", "", bib_name).rstrip("}")
         bib_name += ".bib" if bib_name.split(".")[-1] != ".bib" else ""
     if bst_name:
-        bst_name = re.sub(r"^\\bibliographystyle\{", "", bst_name).rstrip(
-            "}"
-        )
+        bst_name = re.sub(r"^\\bibliographystyle\{", "", bst_name).rstrip("}")
         bst_name += ".bst" if bst_name.split(".")[-1] != ".bst" else ""
 
-    return [
-        Path(f) for f in [bib_name, bst_name] if Path(f).is_file()
-    ]
+    return [Path(f) for f in [bib_name, bst_name] if Path(f).is_file()]
