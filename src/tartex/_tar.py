@@ -4,11 +4,14 @@ Helper class TarFiles
 """
 
 import logging as log
+import math
 import os
 import sys
 from io import BytesIO
 from pathlib import Path
+from rich import print as richprint
 from .utils.tar_utils import TAR_EXT
+from .utils.msg_utils import summary_msg
 import tarfile as tar
 
 class Tarballer:
@@ -57,7 +60,7 @@ class Tarballer:
         self._ext = recomp if recomp in TAR_EXT else "gz"
         self._target = self._target.with_suffix(self._ext)
 
-    def set_mtime(self, mtime: int):
+    def set_mtime(self, mtime: float):
         """Set mtime for bytesio objects, for which mtime is not available otherwise"""
         self._mtime = mtime
 
@@ -127,3 +130,16 @@ class Tarballer:
             sys.exit(1)
         except Exception as e:
             raise e
+
+    def print_list(self, _summ: bool = False):
+        """helper function to print list of files in a pretty format"""
+        total = len(self._files) + len(self._streams)
+        idx_width = int(math.log10(total)) + 1  # num of chars for serial nums
+        for i, f in enumerate(sorted(self._files)):
+            richprint(f"{i + 1:{idx_width}}.", end=" ")
+            print(str(f))
+        for r in sorted(self._streams.keys()):
+            richprint(f"{'*':>{idx_width + 1}}", end=" ")
+            print(f"{r}")
+        if _summ:
+            summary_msg(total)

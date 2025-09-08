@@ -423,12 +423,12 @@ class TarTeX:
         log.info("Switching to TeX file source dir: %s", self.main_file.parent)
         with chdir(self.main_file.parent):
             with _git_cntxt:
-                _ls = self.input_files(tarball)
+                _ = self.input_files(tarball)
                 if self.args.list:
                     log.debug(
                         "Working in 'list' mode; no tarball will be produced"
                     )
-                    self._print_list([f for f in _ls if f.exists()])
+                    tarball.print_list(self.args.summary)
                 else:
                     tarball.do_tar()
                     if self.args.summary:
@@ -438,23 +438,6 @@ class TarTeX:
                             self.cwd,
                         )
         log.info("Switching back to working dir: %s", self.cwd)
-
-    def _print_list(self, ls):
-        """helper function to print list of files in a pretty format"""
-        idx_width = int(math.log10(len(ls))) + 1
-        for i, f in enumerate(sorted([str(i) for i in ls])):
-            richprint(f"{i + 1:{idx_width}}.", end=" ")
-            print(f)
-        for r in sorted(self.req_supfiles):
-            richprint(f"{'*':>{idx_width + 1}}", end=" ")
-            print(f"{r.name}")
-        if self.args.packages:
-            richprint(f"{'*':>{idx_width + 1}}", end=" ")
-            print(f"{self.pkglist_name}")
-        if self.args.summary:
-            _tartex_msg_utils.summary_msg(
-                len(ls) + len(self.req_supfiles) + (1 if self.pkglist else 0)
-            )
 
     def _missing_supp(self, fpath, tmpdir, deps):
         """Handle missing supplementary file from orig dir, if req"""
