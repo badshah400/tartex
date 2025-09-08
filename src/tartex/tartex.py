@@ -107,7 +107,7 @@ class TarTeX:
                 self.cwd,
                 self.main_file,
                 self.args.output,
-                self.tar_file_git_tag
+                self.tar_file_git_tag,
             )
 
         self.tar_file_w_ext = self._tar_filename()
@@ -181,111 +181,22 @@ class TarTeX:
         source dir.
         """
 
+        pkgs = []
         if self.args.git_rev:
             log.debug(
                 "Using `git ls-tree` to determine files to include in tarball"
             )
-            deps = self.GR.ls_tree_files()
-            # Process the --excl files
-            for f in self.excl_files:  # Remove the file if it exists in the set
-                deps.discard(f)
-            tarf.set_mtime(self.GR.mtime())
-            tarf.app_files(*deps)
+            _ = self.input_files_from_git(tarf)
+
         if (
             not self.main_file.with_suffix(".fls").exists()
             or self.args.force_recompile
-        ) and not self.args.git_rev:
-            with TemporaryDirectory() as compile_dir:
-                log.info(
-                    "LaTeX recompile forced"
-                    if self.args.force_recompile
-                    else f"{self.main_file.stem}.fls file not found in"
-                    f" {self.main_file.parent.as_posix()}"
-                )
-                log.info("LaTeX compile directory: %s", compile_dir)
-                try:
-                    fls_path = _latex.run_latexmk(
-                        self.main_file.with_suffix(".tex"),
-                        self.force_tex,
-                        compile_dir,
-                    )
-                except Exception:
-                    sys.exit(1)
+        ):
+            self.input_files_from_recompile(tarf)
+            return
 
-                with open(fls_path, encoding="utf-8") as f:
-                    deps, pkgs = _latex.fls_input_files(
-                        f,
-                        self.excl_files,
-                        _tartex_tex_utils.AUXFILES,
-                        sty_files=self.args.packages,
-                    )
-                tarf.app_files(*deps)
-
-                tarf.set_mtime(os.path.getmtime(fls_path))
-                if self.args.with_pdf:
-                    main_pdf = Path(compile_dir) / self.main_file.with_suffix(
-                        ".pdf"
-                    )
-                    with open(fls_path.with_suffix(".pdf"), "rb") as f:
-                        self.pdf_stream = f.read()
-                    tarf.app_stream(main_pdf.name, self.pdf_stream)
-
-                for ext in _tartex_tex_utils.SUPP_REQ:
-                    supp_filename = self.main_file.with_suffix(f".{ext}")
-                    if app := self._missing_supp(
-                        self.main_file.with_suffix(f".{ext}"), compile_dir, deps
-                    ):
-                        self.req_supfiles[
-                            self.main_file.with_suffix(f".{ext}")
-                        ] = app
-                        tarf.app_stream(supp_filename.name, app)
-
-        else:
-            # If .fls exists, this assumes that all INPUT files recorded in it
-            # are also included in source dir
-            if (fls_f := self.main_file.with_suffix(".fls")).exists():
-                tarf.set_mtime(os.path.getmtime(fls_f))
-                with open(
-                    self.main_file.with_suffix(".fls"), encoding="utf8"
-                ) as f:
-                    deps_from_fls, pkgs = _latex.fls_input_files(
-                        f,
-                        self.excl_files,
-                        _tartex_tex_utils.AUXFILES,
-                        sty_files=self.args.packages,
-                    )
-                    if not self.args.git_rev:
-                        deps = deps_from_fls
-
-                    if self.args.packages:
-                        self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode(
-                            "utf8"
-                        )
-                    tarf.app_files(*deps)
-
-            else:  # perhaps using git ls-tree; fls file is (as expected) untracked or cleaned
-                if not self.args.git_rev:
-                    tarf.set_mtime(os.path.getmtime(self.main_file))
-                if self.args.packages:
-                    log.warn(
-                        "Cannot generate list of packages due to missing %s file",
-                        self.main_file.with_suffix(".fls"),
-                    )
-                    self.args.packages = False
-
-            if self.args.with_pdf:
-                main_pdf = self.main_file.with_suffix(".pdf")
-                try:
-                    with open(main_pdf, "rb") as f:
-                        self.pdf_stream = f.read()
-                        tarf.app_stream(main_pdf.name, self.pdf_stream,
-                                            f"Add compiled PDF: {main_pdf.relative_to(self.cwd)}")
-                        log.info("Add file: %s", main_pdf.relative_to(self.cwd))
-                except FileNotFoundError:
-                    log.warning(
-                        f"Unable to find '{main_pdf}' in {self.cwd}, skipping..."
-                    )
-                    self.args.with_pdf = False
+        # If .fls exists, this assumes that all INPUT files recorded in it
+        # are also included in source dir
 
         if self.args.bib:
             tarf.app_files(
@@ -293,14 +204,15 @@ class TarTeX:
                     f
                     for f in _tartex_tex_utils.bib_file(
                         self.main_file.with_suffix(".tex")
-                    ) if f
+                    )
+                    if f
                 ]
             )
             for f in _tartex_tex_utils.bib_file(
                 self.main_file.with_suffix(".tex")
             ):
                 try:
-                    deps.add(f)
+                    tarf.app_files(f)
                     log.info("Add file: %s", f)
                     if f and re.match(r".bst", f.suffix):
                         pkgs["Local"].add(f)
@@ -322,7 +234,8 @@ class TarTeX:
                 f_relpath = f.relative_to(self.main_file.parent)
                 if f_relpath in deps:
                     log.warning(
-                        "Manually included file %s already added", f_relpath.name
+                        "Manually included file %s already added",
+                        f_relpath.name,
                     )
                     continue
                 deps.add(f_relpath)
@@ -335,9 +248,156 @@ class TarTeX:
             )
 
             self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode("utf8")
-            tarf.app_stream(self.pkglist_name, self.pkglist,
-                                comm=f"Adding list of used LaTeX packages: {self.pkglist_name}")
+            tarf.app_stream(
+                self.pkglist_name,
+                self.pkglist,
+                comm=f"Adding list of used LaTeX packages: {self.pkglist_name}",
+            )
         return deps
+
+    def input_files_from_git(self, tarf: Tarballer):
+        """Get input files from `git ls-tree <REVISION>`
+        :returns: TODO
+
+        """
+        deps = self.GR.ls_tree_files()
+        # Process the --excl files
+        for f in self.excl_files:  # Remove the file if it exists in the set
+            deps.discard(f)
+        tarf.app_files(*deps)
+        tarf.set_mtime(self.GR.mtime())
+        if self.args.packages:
+            try:
+                with open(
+                    self.main_file.with_suffix(".fls"), encoding="utf-8"
+                ) as f:
+                    _, pkgs = _latex.fls_input_files(
+                        f,
+                        self.excl_files,
+                        _tartex_tex_utils.AUXFILES,
+                        sty_files=self.args.packages,
+                    )
+                self._add_pkglist_json(pkgs, tarf)
+            except FileNotFoundError as _:
+                self._log_missing_fls()
+            except Exception as err:
+                raise err
+        return deps
+
+    def input_files_from_recompile(self, tarf: Tarballer):
+        """TODO: Docstring for input_files_from_recompile.
+        :returns: TODO
+
+        """
+        with TemporaryDirectory() as compile_dir:
+            log.info(
+                "LaTeX recompile forced"
+                if self.args.force_recompile
+                else f"{self.main_file.stem}.fls file not found in"
+                f" {self.main_file.parent.as_posix()}"
+            )
+            log.info("LaTeX compile directory: %s", compile_dir)
+            try:
+                fls_path = _latex.run_latexmk(
+                    self.main_file.with_suffix(".tex"),
+                    self.force_tex,
+                    compile_dir,
+                )
+            except Exception:
+                sys.exit(1)
+
+            tarf.set_mtime(os.path.getmtime(fls_path))
+            with open(fls_path, encoding="utf-8") as f:
+                deps, pkgs = _latex.fls_input_files(
+                    f,
+                    self.excl_files,
+                    _tartex_tex_utils.AUXFILES,
+                    sty_files=self.args.packages,
+                )
+                tarf.app_files(*deps)
+
+                # Supplementary files, pkg lists are all transient — they only
+                # live in the temporary `compile_dir`; so we need to save them
+                # as streams inside this file-open context.
+
+                if self.args.packages:
+                    self._add_pkglist_json(pkgs, tarf)
+                if self.args.with_pdf:
+                    self._add_pdf_stream(
+                        Path(compile_dir) / self.main_file.with_suffix(".pdf"),
+                        tarf
+                    )
+
+                self._add_supplement_streams(compile_dir, deps, tarf)
+
+    def _log_missing_fls(self):
+        """
+        Log warning about missing .fls file leading to packagelist being
+        unable to be generated
+        :returns: None
+
+        """
+        log.warn(
+            "Missing .fls file in source dir; %s will not be saved",
+            self.pkglist_name,
+        )
+        self.args.packages = False
+
+
+    def _add_pdf_stream(self, _file: Path, _t: Tarballer):
+        """Add pdf as stream to Tarballer object
+
+        :_file: path to pdf file
+        :_t: Tarballer object to append pdf stream to
+        :returns: None
+
+        """
+        try:
+            with open(_file, "rb") as f:
+                self.pdf_stream = f.read()
+            _t.app_stream(_file.name, self.pdf_stream)
+        except FileNotFoundError:
+            log.warning(
+                f"Unable to find '{_file}' in {self.cwd}, skipping..."
+            )
+            self.args.with_pdf = False
+
+    def _add_supplement_streams(self, _p: Path, _dep: set[Path], _t: Tarballer):
+        """Add supplementary files as streams
+
+        :_p: TODO
+        :_t: TODO
+        :returns: TODO
+
+        """
+        for ext in _tartex_tex_utils.SUPP_REQ:
+            supp_filename = self.main_file.with_suffix(f".{ext}")
+            if app := self._missing_supp(
+                self.main_file.with_suffix(f".{ext}"), _p, _dep
+            ):
+                self.req_supfiles[
+                    self.main_file.with_suffix(f".{ext}")
+                ] = app
+                _t.app_stream(supp_filename.name, app)
+
+    def _add_pkglist_json(self, _p: set[str], _t: Tarballer):
+        """Add list of used (La)TeX packages to tarball
+
+        :_p: pkg list
+        :_t: Tarballer object
+
+        """
+        log.info(
+            "System TeX/LaTeX packages used: %s",
+            ", ".join(sorted(_p["System"])),
+        )
+
+        self.pkglist = json.dumps(_p, cls=SetEncoder).encode("utf8")
+        _t.app_stream(
+            self.pkglist_name,
+            self.pkglist,
+            comm=f"Adding list of used LaTeX packages: {self.pkglist_name}",
+        )
 
     def tar_files(self):
         """
@@ -345,12 +405,14 @@ class TarTeX:
         recompile your latex project.
         """
         if self.tar_file_w_ext.exists() and not self.args.list:
-            self.tar_file_w_ext, self.tar_ext = _tartex_tar_utils.tar_name_conflict(
-                self.cwd,
-                self.main_file,
-                self.tar_file_w_ext,
-                self.args.overwrite,
-                self.tar_file_git_tag
+            self.tar_file_w_ext, self.tar_ext = (
+                _tartex_tar_utils.tar_name_conflict(
+                    self.cwd,
+                    self.main_file,
+                    self.tar_file_w_ext,
+                    self.args.overwrite,
+                    self.tar_file_git_tag,
+                )
             )
         tarball = Tarballer(self.cwd, self.main_file, self.tar_file_w_ext)
         _git_cntxt = (
@@ -363,16 +425,19 @@ class TarTeX:
             with _git_cntxt:
                 _ls = self.input_files(tarball)
                 if self.args.list:
-                    log.debug("Working in 'list' mode; no tarball will be produced")
+                    log.debug(
+                        "Working in 'list' mode; no tarball will be produced"
+                    )
                     self._print_list([f for f in _ls if f.exists()])
                 else:
                     tarball.do_tar()
                     if self.args.summary:
                         _tartex_msg_utils.summary_msg(
-                            tarball.num_objects, self.tar_file_w_ext, self.cwd,
+                            tarball.num_objects,
+                            self.tar_file_w_ext,
+                            self.cwd,
                         )
         log.info("Switching back to working dir: %s", self.cwd)
-
 
     def _print_list(self, ls):
         """helper function to print list of files in a pretty format"""
@@ -433,7 +498,6 @@ class TarTeX:
 
         # Note: if tar_file is already an abs path, 'foo/tar_file' simply returns 'tar_file'
         return self.cwd / tar_file.with_suffix(f".tar.{_tar_ext}")
-
 
 
 def make_tar():
