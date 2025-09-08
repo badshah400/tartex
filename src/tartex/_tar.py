@@ -112,8 +112,9 @@ class Tarballer:
         # resolved one way or another, and we should simply over-write
         # tarball if it exists. So, it is safe to use 'w:'
         try:
+            lof = self._files.copy()
             with tar.open(self._target, mode=f"w:{self._ext}") as tar_obj:
-                for dep in self._files:
+                for dep in lof:
                     try:
                         _tar_add_file(tar_obj, dep)
                     except FileNotFoundError:
@@ -122,6 +123,7 @@ class Tarballer:
                             " forcing a LaTeX recompile ('-F').",
                             dep,
                         )
+                        self._files.discard(dep)
                         continue
                 for key, val in self._streams.items():
                     _tar_add_bytesio(tar_obj, key, val)
@@ -135,9 +137,15 @@ class Tarballer:
         """helper function to print list of files in a pretty format"""
         total = len(self._files) + len(self._streams)
         idx_width = int(math.log10(total)) + 1  # num of chars for serial nums
-        for i, f in enumerate(sorted(self._files)):
-            richprint(f"{i + 1:{idx_width}}.", end=" ")
-            print(str(f))
+        files_cnt = 0
+        for f in sorted(self._files):
+            if f.exists():
+                richprint(f"{files_cnt + 1:{idx_width}}.", end=" ")
+                print(str(f))
+                files_cnt += 1
+            else:
+                log.warning("Missing file skipped: %s", f)
+                total -= 1
         for r in sorted(self._streams.keys()):
             richprint(f"{'*':>{idx_width + 1}}", end=" ")
             print(f"{r}")
