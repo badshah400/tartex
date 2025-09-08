@@ -54,7 +54,12 @@ def _set_main_file(name: str) -> Union[Path, None]:
             raise FileNotFoundError(
                 f"File {main_file.name}[.tex|.fls] not found."
             )
-    return main_file if main_file.is_file() else None
+    if main_file.is_file():
+        return main_file
+    else:
+        raise FileNotFoundError(
+            f"File {main_file.name} not found."
+        )
 
 
 class TarTeX:
@@ -62,8 +67,6 @@ class TarTeX:
     Class to help build  a tarball including all source files needed to
     re-compile your LaTeX project."
     """
-
-    # pylint: disable=too-many-instance-attributes
 
     pkglist_name = "TeXPackages.json"
 
