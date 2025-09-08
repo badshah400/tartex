@@ -256,6 +256,13 @@ def parse_args(args) -> argparse.Namespace:
     )
 
     general_opts.add_argument(
+        "-C",
+        "--check",
+        action="store_true",
+        help="Check if all files necessary for compilation exist"
+    )
+
+    general_opts.add_argument(
         "-g",
         "--git-rev",
         metavar="REV",

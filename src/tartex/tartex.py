@@ -409,6 +409,18 @@ class TarTeX:
         Generates a tarball consisting of non-system input files needed to
         recompile your latex project.
         """
+        _git_cntxt = (
+            git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev)
+            if self.args.git_rev
+            else nullcontext()
+        )
+        _pushd_src_dir = chdir(self.main_file.parent)
+        if self.args.check:
+            with _git_cntxt:
+                with _pushd_src_dir:
+                    self.check_files()
+            return
+
         if self.tar_file_w_ext.exists() and not self.args.list:
             self.tar_file_w_ext, self.tar_ext = (
                 _tartex_tar_utils.tar_name_conflict(
@@ -420,13 +432,8 @@ class TarTeX:
                 )
             )
         tarball = Tarballer(self.cwd, self.main_file, self.tar_file_w_ext)
-        _git_cntxt = (
-            git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev)
-            if self.args.git_rev
-            else nullcontext()
-        )
         log.info("Switching to TeX file source dir: %s", self.main_file.parent)
-        with chdir(self.main_file.parent):
+        with _pushd_src_dir:
             with _git_cntxt:
                 _ = self.input_files(tarball)
                 if self.args.list:
@@ -443,6 +450,56 @@ class TarTeX:
                             self.cwd,
                         )
         log.info("Switching back to working dir: %s", self.cwd)
+
+    def check_files(self):
+        """
+        Checks if all required input files exist and are accessible.
+        """
+        log.info("Checking for existence of all required files...")
+        tarball = Tarballer(self.cwd, self.main_file, Path("dummy.tar"))
+        deps = self.input_files(tarball)
+
+        if not self.args.git_rev:
+            missing_files = [f for f in deps if not f.exists()]
+
+            if missing_files:
+                log.error("The following required files are missing:")
+                for f in missing_files:
+                    log.error(f"- {f.as_posix()}")
+                sys.exit(1)
+            else:
+                log.info("All required files are present and accounted for.")
+                log.info("Happy compiling!")
+        else:
+            fls_files, _ = self.input_files_from_srcfls(tarball)
+            git_files = deps
+
+            fls_missing_in_git = fls_files.difference(git_files)
+            git_unnecessary_for_fls = git_files.difference(fls_files)
+
+            if fls_missing_in_git:
+                log.error(
+                    "The following required files are missing from the Git revision:"
+                )
+                for f in fls_missing_in_git:
+                    log.error(f"- {f.as_posix()}")
+
+            if git_unnecessary_for_fls:
+                log.warning(
+                    "The following files in the Git revision are not required for compilation:"
+                )
+                for f in git_unnecessary_for_fls:
+                    log.warning(f"- {f.as_posix()}")
+
+            if fls_missing_in_git:
+                log.critical(
+                    "A required file is missing from the Git revision. Aborting."
+                )
+                sys.exit(1)
+            else:
+                log.info(
+                    "The Git revision contains all files required for compilation."
+                )
 
     def _missing_supp(self, fpath, tmpdir, deps):
         """Handle missing supplementary file from orig dir, if req"""
