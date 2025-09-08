@@ -163,7 +163,7 @@ class TarTeX:
 
         self.pkglist = None
 
-    def input_files(self, tarf: Tarballer):
+    def input_files(self, tarf: Tarballer) -> set[Path]:
         """
         Returns non-system input files needed to compile the main tex file.
 
