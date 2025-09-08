@@ -346,7 +346,7 @@ class TarTeX:
         Generates a tarball consisting of non-system input files needed to
         recompile your latex project.
         """
-        if self.tar_file_w_ext.exists():
+        if self.tar_file_w_ext.exists() and not self.args.list:
             self.tar_file_w_ext, self.tar_ext = _tartex_tar_utils.tar_name_conflict(
                 self.cwd,
                 self.main_file,
@@ -365,6 +365,7 @@ class TarTeX:
             with _git_cntxt:
                 _ls = self.input_files(tarball)
                 if self.args.list:
+                    log.debug("Working in 'list' mode; no tarball will be produced")
                     self._print_list([f for f in _ls if f.exists()])
                 else:
                     tarball.do_tar()
