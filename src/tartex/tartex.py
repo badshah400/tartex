@@ -253,7 +253,7 @@ class TarTeX:
                 raise err
         return _deps, _pkgs
 
-    def input_files_from_recompile(self, tarf: Tarballer, check_mode=False):
+    def input_files_from_recompile(self, tarf: Tarballer, dry_run_mode=False):
         _deps: set = set()
         _pkgs: dict[str, set] = {}
         with TemporaryDirectory() as compile_dir:
@@ -269,7 +269,7 @@ class TarTeX:
                     self.main_file.with_suffix(".tex"),
                     self.force_tex,
                     compile_dir,
-                    no_raise_on_err = check_mode,
+                    no_raise_on_err = dry_run_mode,
                 )
             except Exception as e:
                 raise e
