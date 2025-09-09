@@ -69,6 +69,7 @@ def run_latexmk(
             log.debug(
                 "Not raising error despite latexmk failing; raise_on_err=True"
             )
+            log.warn("Latexmk failed to compile; fls file may be unreliable")
             pass
         else:
             log.error(
