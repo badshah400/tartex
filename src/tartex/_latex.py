@@ -25,7 +25,9 @@ INPUT_FONTS = re.compile(r"^INPUT\s.*.(pfb|tfm)")
 FONT_PUBLIC = re.compile(r"/public/.*/")
 
 
-def run_latexmk(filename, mode, compdir, timeout=300):
+def run_latexmk(
+    filename, mode, compdir, no_raise_on_err=False, timeout=300
+):
     """Helper function to actually compile the latex file in a tmpdir"""
     latexmk_bin = shutil.which("latexmk")
     if not latexmk_bin:
@@ -60,17 +62,23 @@ def run_latexmk(filename, mode, compdir, timeout=300):
         )
         raise e
     except OSError as err:
-        log.critical("%s", err.strerror)
+        log.error("%s", err.strerror)
         raise err
     except subprocess.CalledProcessError as err:
-        log.critical(
-            "Error: %s failed with the following output:\n%s\n%s",
-            err.cmd[0],
-            err.stdout,
-            "===================================================",
-        )
-        log.critical("Latexmk command used was: `%s`", " ".join(latexmk_cmd))
-        raise err
+        if no_raise_on_err:
+            log.debug(
+                "Not raising error despite latexmk failing; raise_on_err=True"
+            )
+            pass
+        else:
+            log.error(
+                "Error: %s failed with the following output:\n%s\n%s",
+                err.cmd[0],
+                err.stdout,
+                "===================================================",
+            )
+            log.error("Latexmk command used was: `%s`", " ".join(latexmk_cmd))
+            raise err
 
     log.info(
         "LaTeX project successfully compiled with: %s", " ".join(latexmk_cmd)
