@@ -89,7 +89,6 @@ def fls_input_files(fls_fileobj, lof_excl, skip_files, *, sty_files=False):
             p = Path(line.split()[-1])
             if (
                 not p.is_absolute()
-                and (p.as_posix() not in deps)
                 and (p.as_posix() not in lof_excl)
                 and (p.suffix not in skip_files)
             ):
