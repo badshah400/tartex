@@ -475,7 +475,12 @@ class TarTeX:
         # against this ref, any additional files in the former would raise a
         # warning, but any missing file is an error.
         ref_tar = Tarballer(self.cwd, self.main_file, Path("ref.tar"))
-        deps, pkgs = self.input_files_from_recompile(ref_tar, dry_run_mode=True)
+        try:
+            deps, pkgs = self.input_files_from_recompile(ref_tar, dry_run_mode=False)
+        except Exception as err:
+            log.critical("Latexmk failed to compile; check if all source files exist")
+            richprint(":cross_mark-emoji: Check failed; missing input files?")
+            raise err
         if self.args.bib:
             self._add_bib(deps, pkgs)
         if self.add_files:
