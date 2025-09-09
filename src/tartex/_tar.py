@@ -77,6 +77,13 @@ class Tarballer:
             if comm:
                 self._comments[f.as_posix()] = comm
 
+    def files(self) -> set[Path]:
+        """Return copy of self._files as a set of Path(s)
+        :returns: set of Paths
+
+        """
+        return self._files.copy()
+
     def app_stream(self, name: str, content: BytesIO, comm: str = ""):
         """Append a single BytesIO content to list of streams
 
