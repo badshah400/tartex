@@ -468,12 +468,13 @@ class TarTeX:
         # The reference tarball `ref_tar` must contain the minimal number of
         # files/streams required to re-compile the project, plus any user
         # specified additionals. Thus, we determine the objects that will go
-        # into this explicit recompilation (without raising errors even if
-        # latexmk fails — still generates the .fls file!) by using
-        # `.input_files_from_recompile()` and adding any user specified
-        # additionals to it, if needed. When comparing a target tarfile
-        # against this ref, any additional files in the former would raise a
-        # warning, but any missing file is an error.
+        # into this explicit recompilation (if latexmk fails at this stage,
+        # the check is assumed to have failed — we cannot work around this) by
+        # using `.input_files_from_recompile()` and adding any user specified
+        # additionals to it, if needed. When comparing a target tarfile against
+        # this ref, any additional files in the former would raise a warning,
+        # but any missing file is an error.
+        #
         ref_tar = Tarballer(self.cwd, self.main_file, Path("ref.tar"))
         try:
             deps, pkgs = self.input_files_from_recompile(ref_tar, dry_run_mode=False)
