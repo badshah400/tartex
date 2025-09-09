@@ -464,7 +464,12 @@ class TarTeX:
         """
         log.info("Checking for existence of all required files...")
         ref_tar = Tarballer(self.cwd, self.main_file, Path("ref.tar"))
-        _ = self.input_files(ref_tar)
+        deps, pkgs = self.input_files_from_recompile(ref_tar, dry_run_mode=True)
+        if self.args.bib:
+            self._add_bib(deps, pkgs)
+        if self.add_files:
+            self._add_user_files(deps)
+        ref_tar.app_files(*deps)
 
         if not self.args.git_rev:
             missing_files = [f for f in ref_tar.files() if not f.exists()]
@@ -478,22 +483,12 @@ class TarTeX:
                 sys.exit(1)
             else:
                 log.info("All files needed for (re)compilation are present.")
-                for f in ref_tar.objects():
-                    richprint(":heavy_check_mark-emoji:", end="  ")
-                    print(f.as_posix())
-                richprint("[bold green]:ok_button-emoji: "
-                          "All files needed for compilation are present[/]")
         else:
             chk_tar = Tarballer(self.cwd, self.main_file, Path("check.tar"))
-            deps, pkgs = self.input_files_from_recompile(chk_tar, dry_run_mode=True)
-            if self.args.bib:
-                self._add_bib(deps, pkgs)
-            if self.add_files:
-                self._add_user_files(deps)
-            chk_tar.app_files(*deps)
+            _ = self.input_files(chk_tar)
 
-            fls_files = chk_tar.objects()
-            git_files = ref_tar.objects()
+            fls_files = ref_tar.objects()
+            git_files = chk_tar.objects()
             git_ref = self.args.git_rev or "HEAD"
 
             fls_missing_in_git = fls_files.difference(git_files)
@@ -521,10 +516,13 @@ class TarTeX:
                 "Git ref '%s' tracks all files required for compilation.",
                 git_ref
             )
-            richprint(
-                ":white_heavy_check_mark-emoji: "
-                "[bold green]All necessary files for compilation tracked in "
-                f"git ref '{git_ref}'[/bold green]")
+
+        for f in ref_tar.objects():
+            richprint(":heavy_check_mark-emoji:", end="  ")
+            print(f.as_posix())
+        richprint("[bold green]:ok_button-emoji: "
+                  "Found all files needed for compilation"
+                  f"{f' at git revision {git_ref}' if self.args.git_rev else ''}[/]")
 
     def _missing_supp(self, fpath, tmpdir, deps):
         """Handle missing supplementary file from orig dir, if req"""
