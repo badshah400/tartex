@@ -501,7 +501,7 @@ class TarTeX:
                     git_ref
                 )
                 for f in git_unnecessary_for_fls:
-                    richprint(":warning-emoji: ", end=" ")
+                    richprint(":warning-emoji:", end="  ")  # 2x space for sep
                     print(f.as_posix())
 
             log.info(
@@ -509,9 +509,9 @@ class TarTeX:
                 git_ref
             )
             richprint(
-                "[green]:white_heavy_check_mark-emoji: "
-                "All necessary files for compilation tracked"
-                f" in git ref '{git_ref}'[/green]")
+                ":white_heavy_check_mark-emoji: "
+                "[bold green]All necessary files for compilation tracked in "
+                f"git ref '{git_ref}'[/bold green]")
 
     def _missing_supp(self, fpath, tmpdir, deps):
         """Handle missing supplementary file from orig dir, if req"""
