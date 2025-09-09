@@ -463,11 +463,11 @@ class TarTeX:
         Checks if all required input files exist and are accessible.
         """
         log.info("Checking for existence of all required files...")
-        tarball = Tarballer(self.cwd, self.main_file, Path("dummy.tar"))
-        deps = self.input_files(tarball)
+        ref_tar = Tarballer(self.cwd, self.main_file, Path("ref.tar"))
+        _ = self.input_files(ref_tar)
 
         if not self.args.git_rev:
-            missing_files = [f for f in deps if not f.exists()]
+            missing_files = [f for f in ref_tar.files() if not f.exists()]
 
             if missing_files:
                 log.error("Files necessary for (re)compilation are missing:")
@@ -478,11 +478,23 @@ class TarTeX:
                 sys.exit(1)
             else:
                 log.info("All files needed for (re)compilation are present.")
-                richprint("[bold green]:white_heavy_check_mark-emoji:[/]  "
-                          "All files needed for (re)compilation are present")
+                for f in ref_tar.objects():
+                    richprint(":heavy_check_mark-emoji:", end="  ")
+                    print(f.as_posix())
+                richprint("[bold green]:ok_button-emoji: "
+                          "All files needed for compilation are present[/]")
         else:
-            fls_files, _ = self.input_files_from_srcfls(tarball)
-            git_files = deps
+            chk_tar = Tarballer(self.cwd, self.main_file, Path("check.tar"))
+            deps, pkgs = self.input_files_from_recompile(chk_tar, dry_run_mode=True)
+            if self.args.bib:
+                self._add_bib(deps, pkgs)
+            if self.add_files:
+                self._add_user_files(deps)
+            chk_tar.app_files(*deps)
+
+            fls_files = chk_tar.objects()
+            git_files = ref_tar.objects()
+            git_ref = self.args.git_rev or "HEAD"
 
             fls_missing_in_git = fls_files.difference(git_files)
             git_unnecessary_for_fls = git_files.difference(fls_files)
