@@ -84,6 +84,17 @@ class Tarballer:
         """
         return self._files.copy()
 
+    def streams(self) -> set[str]:
+        """Return copy of self._streams.keys() as a set of strings
+        :returns: set of str
+
+        """
+        return set(self._streams.keys())
+
+    def objects(self) -> set[Path]:
+        """Return all files and streams to be added to tarball"""
+        return self.files().union([Path(f) for f in self.streams()])
+
     def app_stream(self, name: str, content: BytesIO, comm: str = ""):
         """Append a single BytesIO content to list of streams
 
