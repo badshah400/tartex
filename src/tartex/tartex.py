@@ -253,7 +253,7 @@ class TarTeX:
                 raise err
         return _deps, _pkgs
 
-    def input_files_from_recompile(self, tarf: Tarballer):
+    def input_files_from_recompile(self, tarf: Tarballer, check_mode=False):
         _deps: set = set()
         _pkgs: dict[str, set] = {}
         with TemporaryDirectory() as compile_dir:
@@ -269,9 +269,10 @@ class TarTeX:
                     self.main_file.with_suffix(".tex"),
                     self.force_tex,
                     compile_dir,
+                    no_raise_on_err = check_mode,
                 )
-            except Exception:
-                sys.exit(1)
+            except Exception as e:
+                raise e
 
             tarf.set_mtime(os.path.getmtime(fls_path))
             with open(fls_path, encoding="utf-8") as f:
