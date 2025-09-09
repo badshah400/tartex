@@ -13,6 +13,7 @@ import re
 import sys
 from contextlib import nullcontext
 from pathlib import Path
+from rich import print as richprint
 from tempfile import TemporaryDirectory
 from typing import Union
 
@@ -253,10 +254,6 @@ class TarTeX:
         return _deps, _pkgs
 
     def input_files_from_recompile(self, tarf: Tarballer):
-        """TODO: Docstring for input_files_from_recompile.
-        :returns: TODO
-
-        """
         _deps: set = set()
         _pkgs: dict[str, set] = {}
         with TemporaryDirectory() as compile_dir:
@@ -472,13 +469,16 @@ class TarTeX:
             missing_files = [f for f in deps if not f.exists()]
 
             if missing_files:
-                log.error("The following required files are missing:")
+                log.error("Files necessary for (re)compilation are missing:")
                 for f in missing_files:
-                    log.error(f"- {f.as_posix()}")
+                    richprint(
+                        f":double_exclamation_mark-emoji:  [bold red]{f}[/]",
+                    )
                 sys.exit(1)
             else:
-                log.info("All required files are present and accounted for.")
-                log.info("Happy compiling!")
+                log.info("All files needed for (re)compilation are present.")
+                richprint("[bold green]:white_heavy_check_mark-emoji:[/]  "
+                          "All files needed for (re)compilation are present")
         else:
             fls_files, _ = self.input_files_from_srcfls(tarball)
             git_files = deps
@@ -488,27 +488,30 @@ class TarTeX:
 
             if fls_missing_in_git:
                 log.error(
-                    "The following required files are missing from the Git revision:"
+                    "Required files are missing from the git revision '%s'",
+                    git_ref
                 )
                 for f in fls_missing_in_git:
-                    log.error(f"- {f.as_posix()}")
+                    richprint(f"[red bold] * {f.as_posix()}[/red bold]")
+                sys.exit(1)
 
             if git_unnecessary_for_fls:
                 log.warning(
-                    "The following files in the Git revision are not required for compilation:"
+                    "Found files tracked in git ref '%s' not required for compilation",
+                    git_ref
                 )
                 for f in git_unnecessary_for_fls:
-                    log.warning(f"- {f.as_posix()}")
+                    richprint(":warning-emoji: ", end=" ")
+                    print(f.as_posix())
 
-            if fls_missing_in_git:
-                log.critical(
-                    "A required file is missing from the Git revision. Aborting."
-                )
-                sys.exit(1)
-            else:
-                log.info(
-                    "The Git revision contains all files required for compilation."
-                )
+            log.info(
+                "Git ref '%s' tracks all files required for compilation.",
+                git_ref
+            )
+            richprint(
+                "[green]:white_heavy_check_mark-emoji: "
+                "All necessary files for compilation tracked"
+                f" in git ref '{git_ref}'[/green]")
 
     def _missing_supp(self, fpath, tmpdir, deps):
         """Handle missing supplementary file from orig dir, if req"""
