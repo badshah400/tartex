@@ -416,9 +416,12 @@ class TarTeX:
         )
         _pushd_src_dir = chdir(self.main_file.parent)
         if self.args.check:
-            with _git_cntxt:
-                with _pushd_src_dir:
-                    self.check_files()
+            try:
+                with _git_cntxt:
+                    with _pushd_src_dir:
+                        self.check_files()
+            except Exception:
+                sys.exit(1)
             return
 
         if self.tar_file_w_ext.exists() and not self.args.list:
@@ -432,24 +435,30 @@ class TarTeX:
                 )
             )
         tarball = Tarballer(self.cwd, self.main_file, self.tar_file_w_ext)
-        log.info("Switching to TeX file source dir: %s", self.main_file.parent)
-        with _pushd_src_dir:
+        try:
             with _git_cntxt:
-                _ = self.input_files(tarball)
-                if self.args.list:
-                    log.debug(
-                        "Working in 'list' mode; no tarball will be produced"
+                with _pushd_src_dir:
+                    log.info(
+                        "Switched to TeX file source dir: %s",
+                        self.main_file.parent
                     )
-                    tarball.print_list(self.args.summary)
-                else:
-                    tarball.do_tar()
-                    if self.args.summary:
-                        _tartex_msg_utils.summary_msg(
-                            tarball.num_objects,
-                            self.tar_file_w_ext,
-                            self.cwd,
+                    _ = self.input_files(tarball)
+                    if self.args.list:
+                        log.debug(
+                            "Working in 'list' mode; no tarball will be produced"
                         )
-        log.info("Switching back to working dir: %s", self.cwd)
+                        tarball.print_list(self.args.summary)
+                    else:
+                        tarball.do_tar()
+                        if self.args.summary:
+                            _tartex_msg_utils.summary_msg(
+                                tarball.num_objects,
+                                self.tar_file_w_ext,
+                                self.cwd,
+                            )
+                    log.info("Switching back to working dir: %s", self.cwd)
+        except Exception:
+            sys.exit(1)
 
     def check_files(self):
         """
