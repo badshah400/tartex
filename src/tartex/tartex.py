@@ -462,7 +462,18 @@ class TarTeX:
         """
         Checks if all required input files exist and are accessible.
         """
+
         log.info("Checking for existence of all required files...")
+
+        # The reference tarball `ref_tar` must contain the minimal number of
+        # files/streams required to re-compile the project, plus any user
+        # specified additionals. Thus, we determine the objects that will go
+        # into this explicit recompilation (without raising errors even if
+        # latexmk fails — still generates the .fls file!) by using
+        # `.input_files_from_recompile()` and adding any user specified
+        # additionals to it, if needed. When comparing a target tarfile
+        # against this ref, any additional files in the former would raise a
+        # warning, but any missing file is an error.
         ref_tar = Tarballer(self.cwd, self.main_file, Path("ref.tar"))
         deps, pkgs = self.input_files_from_recompile(ref_tar, dry_run_mode=True)
         if self.args.bib:
@@ -472,6 +483,8 @@ class TarTeX:
         ref_tar.app_files(*deps)
 
         if not self.args.git_rev:
+            # Just check if all necessary objects as determined by reference
+            # tarball are available in source tree; no dummy target needed
             missing_files = [f for f in ref_tar.files() if not f.exists()]
 
             if missing_files:
@@ -482,8 +495,10 @@ class TarTeX:
                     )
                 sys.exit(1)
             else:
-                log.info("All files needed for (re)compilation are present.")
+                log.info("All files needed for compilation are present")
         else:
+            # Dummy target; will be populated by contents from `git ls-tree`
+            # (plus user additionals)
             chk_tar = Tarballer(self.cwd, self.main_file, Path("check.tar"))
             _ = self.input_files(chk_tar)
 
@@ -491,8 +506,8 @@ class TarTeX:
             git_files = chk_tar.objects()
             git_ref = self.args.git_rev or "HEAD"
 
-            fls_missing_in_git = fls_files.difference(git_files)
-            git_unnecessary_for_fls = git_files.difference(fls_files)
+            fls_missing_in_git = fls_files.difference(git_files)  # error
+            git_unnecessary_for_fls = git_files.difference(fls_files)  # warn
 
             if fls_missing_in_git:
                 log.error(
@@ -500,7 +515,9 @@ class TarTeX:
                     git_ref
                 )
                 for f in fls_missing_in_git:
-                    richprint(f"[red bold] * {f.as_posix()}[/red bold]")
+                    richprint(
+                        f":no_entry-emoji: [red bold]{f.as_posix()}[/red bold]"
+                    )
                 sys.exit(1)
 
             if git_unnecessary_for_fls:
