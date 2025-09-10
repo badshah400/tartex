@@ -506,64 +506,32 @@ class TarTeX:
             dummy_tar = Tarballer(self.cwd, self.main_file, Path("dummy.tar"))
             self.input_files(dummy_tar)
 
-            missing_files = [f for f in ref_tar.objects() if not f.exists()]
+            # will return True if check fails
+            chk_err = self._check_err_missing(ref_tar, dummy_tar, INDI['req-miss'])
 
-            if missing_files or (
-                    _miss := ref_tar.objects().difference(dummy_tar.objects())
-            ):
-                log.error(miss_msg)
-                for f in missing_files:
-                    richprint(
-                        f"{INDI['req-miss']} [bold]{f}[/]",
-                    )
-                for f in _miss:
-                    richprint(
-                        f"{INDI['req-miss']} [bold]{f}[/]",
-                    )
+            if chk_err:
                 richprint(f"{INDI['chk-fail']} Check failed.")
                 raise CheckFailError(miss_msg)
             else:
                 log.info("All files needed for compilation are present")
 
-            if _extra := dummy_tar.objects().difference(ref_tar.objects()):
-                log.warn("Files not essential to compilation added to tarball")
-                for f in _extra:
-                    richprint(f"{INDI['not-need']} {f.as_posix()}")
+            _ = self._check_warn_extra(ref_tar, dummy_tar, INDI['not-need'])
+
         else:
+            git_ref = self.args.git_rev or "HEAD"
             # Dummy target; will be populated by contents from `git ls-tree`
             # (plus user additionals)
             chk_tar = Tarballer(self.cwd, self.main_file, Path("check.tar"))
             _ = self.input_files(chk_tar)
 
-            fls_files = ref_tar.objects()
-            git_files = chk_tar.objects()
-            git_ref = self.args.git_rev or "HEAD"
-
-            fls_missing_in_git = fls_files.difference(git_files)  # error
-            git_unnecessary_for_fls = git_files.difference(fls_files)  # warn
-
-            if fls_missing_in_git:
-                miss_msg = f"Files needed for compilation missing from git tree at ref {git_ref}"
-                log.error(miss_msg)
-                for f in fls_missing_in_git:
-                    richprint(
-                        f"{INDI['req-miss']} {f.as_posix()}"
-                    )
-                richprint(f"{INDI['chk-fail']} Check failed.")
+            chk_err = self._check_err_missing(ref_tar, chk_tar, INDI['req-miss'])
+            if chk_err:
+                richprint(
+                    f"{INDI['chk-fail']} Check failed for git revision '{git_ref}'"
+                )
                 raise CheckFailError(miss_msg)
 
-            if git_unnecessary_for_fls:
-                log.warning(
-                    "Files tracked in git ref '%s' not required for compilation",
-                    git_ref
-                )
-                for f in git_unnecessary_for_fls:
-                    richprint(f"{INDI['not-need']} {f.as_posix()}")  # 2x space for sep
-
-            log.info(
-                "Git ref '%s' tracks all files required for compilation.",
-                git_ref
-            )
+            _ = self._check_warn_extra(ref_tar, chk_tar, INDI['not-need'])
 
         for f in ref_tar.objects():
             richprint(f"{INDI['perfect']} {f.as_posix()}")
@@ -571,6 +539,35 @@ class TarTeX:
         richprint(f"{INDI['chk-pass']} "
                   "[bold green]Found all files needed for compilation"
                   f"{f' at git revision {git_ref}' if self.args.git_rev else ''}[/]")
+
+    def _check_err_missing(self, _ref, _dummy, _indicator=""):
+        non_exist_files = [f for f in _ref.objects() if not f.exists()]
+
+        if non_exist_files or (
+                _miss := _ref.objects().difference(_dummy.objects())
+        ):
+            log.error("Files needed for compilation missing")
+            for f in non_exist_files:
+                richprint(
+                    f"{_indicator} [bold]{f}[/]",
+                )
+            for f in _miss:
+                richprint(
+                    f"{_indicator} [bold]{f}[/]",
+                )
+            return True
+        else:
+            return False
+
+    def _check_warn_extra(self, _ref, _dummy, _indicator=""):
+        if _extra := _dummy.objects().difference(_ref.objects()):
+            log.warn("Files not essential to compilation added to tarball")
+            for f in _extra:
+                richprint(f"{_indicator} {f.as_posix()}")
+            return True
+        else:
+            return False
+
 
     def _missing_supp(self, fpath, tmpdir, deps):
         """Handle missing supplementary file from orig dir, if req"""
