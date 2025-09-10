@@ -83,15 +83,31 @@ def _check_err_missing(
     non_exist_files = [f for f in _ref.objects() if not f.exists()]
 
     if non_exist_files or (
-            _miss := _ref.objects().difference(_tgt.objects())
+            _excluded := _ref.objects().difference(_tgt.objects())
     ):
-        log.error("Files needed for compilation missing")
+        if non_exist_files:
+            log.info(
+                "Files needed for compilation not found (deleted?): %s",
+                ", ".join([f.as_posix() for f in non_exist_files])
+            )
+            richprint("[bold red]Files needed for compilation missing (deleted?):[/]")
         for f in non_exist_files:
             richprint(_indicator, end=" ")
             print(f"{f!s}")
-        for f in _miss:
+        else:
+            print()
+
+        if _excluded:
+            log.debug(
+                "Files needed for compilation excluded from tarball: %s",
+                ", ".join([f.as_posix() for f in _excluded])
+            )
+            richprint("[bold red]Files needed for compilation not included:[/]")
+        for f in _excluded:
             richprint(_indicator, end=" ")
             print(f"{f!s}")
+        else:
+            print()
         return True
     else:
         return False
@@ -104,10 +120,16 @@ def _check_warn_extra(
     latter contains files missing from the former. Logs accordingly.
     """
     if _extra := _tgt.objects().difference(_ref.objects()):
-        log.warn("Files not essential to compilation added to tarball")
+        log.debug(
+            "Files not essential to compilation added to tarball: %s",
+            ", ".join([f.as_posix() for f in _extra])
+        )
+        richprint("[yellow]Files not essential to compilation added:[/]")
         for f in _extra:
             richprint(_indicator, end=" ")
             print(f"{f!s}")
+        else:
+            print()
 
         return True
     else:
@@ -578,11 +600,12 @@ class TarTeX:
             deps, pkgs = self.input_files_from_recompile(ref_tar, minimal=True)
         except Exception as err:
             log.critical("Latexmk failed to compile; check if all source files exist")
-            richprint(f"{INDI['req-miss']} Check failed; input files missing?")
+            richprint(f"{INDI['req-miss']} Files need for compilation missing (deleted?)")
             raise CheckFailError from err
 
+        miss_msg = "Files needed for compilation missing or excluded"
+
         if not self.args.git_rev:
-            miss_msg = "Files needed for compilation missing"
 
             # dummy target including all user specified additionals/exclusions
             dummy_tar = Tarballer(self.cwd, self.main_file, Path("dummy.tar"))
@@ -592,7 +615,7 @@ class TarTeX:
             chk_err = _check_err_missing(ref_tar, dummy_tar, INDI['req-miss'])
 
             if chk_err:
-                richprint(f"{INDI['chk-fail']} Check failed")
+                richprint(f"{INDI['chk-fail']} {miss_msg}")
                 raise CheckFailError(miss_msg)
             else:
                 log.info("All files needed for compilation are present")
@@ -609,18 +632,21 @@ class TarTeX:
             chk_err = _check_err_missing(ref_tar, chk_tar, INDI['req-miss'])
             if chk_err:
                 richprint(
-                    f"{INDI['chk-fail']} Check failed for git revision '{git_ref}'"
+                    f"{INDI['chk-fail']} {miss_msg} at git revision '{git_ref}'"
                 )
                 raise CheckFailError(miss_msg)
 
             _ = _check_warn_extra(ref_tar, chk_tar, INDI['not-need'])
 
+        richprint("[green]All files needed for compilation to be included:[/]")
         for f in ref_tar.objects():
             richprint(INDI['perfect'], end=" ")
             print(f"{f!s}")
+        else:
+            print()
 
         richprint(f"{INDI['chk-pass']} "
-                  "[bold green]Found all files needed for compilation"
+                  "[bold green]All files needed for compilation included"
                   f"{f' at git revision {git_ref}' if self.args.git_rev else ''}[/]")
 
 
