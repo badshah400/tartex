@@ -54,7 +54,7 @@ class CheckFailError(Exception):
         """init CheckFail exception
 
         """
-        super().__init__(self.msg)
+        super().__init__(msg)
         self._msg = msg
 
     def __str__(self):
@@ -592,7 +592,7 @@ class TarTeX:
             chk_err = _check_err_missing(ref_tar, dummy_tar, INDI['req-miss'])
 
             if chk_err:
-                richprint(f"{INDI['chk-fail']} Check failed.")
+                richprint(f"{INDI['chk-fail']} Check failed")
                 raise CheckFailError(miss_msg)
             else:
                 log.info("All files needed for compilation are present")
