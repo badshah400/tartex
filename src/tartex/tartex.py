@@ -164,7 +164,7 @@ class TarTeX:
 
         self.pkglist = None
 
-    def input_files(self, tarf: Tarballer) -> set[Path]:
+    def input_files(self, tarf: Tarballer) -> None:
         """
         Returns non-system input files needed to compile the main tex file.
 
@@ -197,16 +197,14 @@ class TarTeX:
         else:
             deps, pkgs = self.input_files_from_srcfls(tarf)
 
-        for f in self.excl_files:  # Remove files from excl list
-            deps.discard(f)
-
         if self.args.bib:
-            self._add_bib(deps, pkgs)
+            tarf.app_files(*self._add_bib(pkgs))
 
         if self.add_files:
-            self._add_user_files(deps)
+            tarf.app_files(*self._add_user_files())
 
-        tarf.app_files(*deps)
+        if self.excl_files:  # Remove files in excl list
+            tarf.drop_files(*self.excl_files)
 
         if self.args.packages:
             log.info(
@@ -220,8 +218,6 @@ class TarTeX:
                 self.pkglist,
                 comm=f"Adding list of used LaTeX packages: {self.pkglist_name}",
             )
-
-        return deps
 
     def input_files_from_git(self, tarf: Tarballer):
         """Get input files from `git ls-tree <REVISION>`
@@ -326,20 +322,22 @@ class TarTeX:
             self._add_pdf_stream(self.main_file.with_suffix(".pdf"), _t)
         return _deps, _pkgs
 
-    def _add_bib(self, _deps: set[Path], _pkgs: dict[str, set[str]]):
+    def _add_bib(self, _pkgs: dict[str, set[str]]):
         """Add bib and bst files to tarball; add bst filename to package list
 
         :_deps: set of files to be included in tarball
         :_pkgs: list of TeX packages that may be added to tarball as json file
 
         """
-        bibs = [
+        bibs = set(
+            [
             f
-            for f in _tartex_tex_utils.bib_file(
-                self.main_file.with_suffix(".tex")
-            )
-            if f
-        ]
+                for f in _tartex_tex_utils.bib_file(
+                    self.main_file.with_suffix(".tex")
+                )
+                if f
+            ]
+        )
 
         for f in bibs:
             try:
@@ -348,26 +346,21 @@ class TarTeX:
                     _pkgs["Local"].add(f.as_posix())
             except Exception:
                 pass
-        _deps.update(bibs)
 
-    def _add_user_files(self, _deps):
+        return bibs
+
+    def _add_user_files(self):
         """Add user specified extra files to tarball
 
-        :_deps: set of files to be included in tarball
-
         """
+        _files = set()
         for f in _tartex_tex_utils.add_files(
             self.add_files, self.main_file.parent
         ):
             f_relpath = f.relative_to(self.main_file.parent)
-            if f_relpath in _deps:
-                log.warning(
-                    "Manually included file %s already added",
-                    f_relpath.name,
-                )
-                continue
-            _deps.add(f_relpath)
+            _files.add(f_relpath)
             log.info("Add user specified file: %s", f_relpath)
+        return _files
 
     def _add_pdf_stream(self, _file: Path, _t: Tarballer):
         """Add pdf as stream to Tarballer object
