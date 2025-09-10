@@ -118,7 +118,7 @@ class TarTeX:
         excl_lists = (self.main_file.parent.glob(f"{L}") for L in excludes)
 
         self.excl_files = [
-            f.relative_to(self.main_file.parent).as_posix()
+            f.relative_to(self.main_file.parent)
             for L in excl_lists
             for f in L
         ]
