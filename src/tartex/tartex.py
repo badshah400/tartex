@@ -87,13 +87,11 @@ def _check_err_missing(
     ):
         log.error("Files needed for compilation missing")
         for f in non_exist_files:
-            richprint(
-                f"{_indicator} [bold]{f}[/]",
-            )
+            richprint(_indicator, end=" ")
+            print(f"{f!s}")
         for f in _miss:
-            richprint(
-                f"{_indicator} [bold]{f}[/]",
-            )
+            richprint(_indicator, end=" ")
+            print(f"{f!s}")
         return True
     else:
         return False
@@ -108,7 +106,9 @@ def _check_warn_extra(
     if _extra := _tgt.objects().difference(_ref.objects()):
         log.warn("Files not essential to compilation added to tarball")
         for f in _extra:
-            richprint(f"{_indicator} {f.as_posix()}")
+            richprint(_indicator, end=" ")
+            print(f"{f!s}")
+
         return True
     else:
         return False
@@ -609,7 +609,8 @@ class TarTeX:
             _ = _check_warn_extra(ref_tar, chk_tar, INDI['not-need'])
 
         for f in ref_tar.objects():
-            richprint(f"{INDI['perfect']} {f.as_posix()}")
+            richprint(INDI['perfect'], end=" ")
+            print(f"{f!s}")
 
         richprint(f"{INDI['chk-pass']} "
                   "[bold green]Found all files needed for compilation"
