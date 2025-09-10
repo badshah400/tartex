@@ -197,6 +197,9 @@ class TarTeX:
         else:
             deps, pkgs = self.input_files_from_srcfls(tarf)
 
+        for f in self.excl_files:  # Remove files from excl list
+            deps.discard(f)
+
         if self.args.bib:
             self._add_bib(deps, pkgs)
 
@@ -228,8 +231,6 @@ class TarTeX:
         _deps = self.GR.ls_tree_files()
         _pkgs: dict[str, set] = {}
         # Process the --excl files
-        for f in self.excl_files:  # Remove the file if it exists in the set
-            _deps.discard(f)
         tarf.app_files(*_deps)
         tarf.set_mtime(self.GR.mtime())
         if self.args.packages:
@@ -239,7 +240,6 @@ class TarTeX:
                 ) as f:
                     _, _pkgs = _latex.fls_input_files(
                         f,
-                        self.excl_files,
                         _tartex_tex_utils.AUXFILES,
                         sty_files=self.args.packages,
                     )
@@ -278,7 +278,6 @@ class TarTeX:
             with open(fls_path, encoding="utf-8") as f:
                 _deps, _pkgs = _latex.fls_input_files(
                     f,
-                    self.excl_files,
                     _tartex_tex_utils.AUXFILES,
                     sty_files=self.args.packages,
                 )
@@ -305,7 +304,6 @@ class TarTeX:
             with open(fls_f, encoding="utf8") as f:
                 _deps, _pkgs = _latex.fls_input_files(
                     f,
-                    self.excl_files,
                     _tartex_tex_utils.AUXFILES,
                     sty_files=self.args.packages,
                 )

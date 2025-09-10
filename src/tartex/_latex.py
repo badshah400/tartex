@@ -89,7 +89,7 @@ def run_latexmk(
     return fls_path
 
 
-def fls_input_files(fls_fileobj, lof_excl, skip_files, *, sty_files=False):
+def fls_input_files(fls_fileobj, skip_files, *, sty_files=False):
     """Helper function to return list on files marked as 'INPUT' in fls file"""
     deps = set()
     pkgs = {"System": set(), "Local": set()}
@@ -98,7 +98,6 @@ def fls_input_files(fls_fileobj, lof_excl, skip_files, *, sty_files=False):
             p = Path(line.split()[-1])
             if (
                 not p.is_absolute()
-                and (p.as_posix() not in lof_excl)
                 and (p.suffix not in skip_files)
             ):
                 deps.add(p)
