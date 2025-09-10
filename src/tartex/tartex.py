@@ -57,6 +57,62 @@ class CheckFailError(Exception):
         return f"Check failed: {self._msg}"
 
 
+##################################
+## HELPER CLASSES AND FUNCTIONS ##
+##################################
+
+class SetEncoder(json.JSONEncoder):
+    """A class to allow JSONEncoder to interpret a set as a list"""
+
+    def default(self, o):
+        """
+        Convert o (a set) into a sorted list
+
+        :o: set
+        :return: list
+        """
+        return sorted(o)
+
+def _check_err_missing(
+        _ref: Tarballer, _tgt: Tarballer, _indicator: str = ""
+) -> bool:
+    """
+    Compares objects included in _ref and _tgt and return True if the
+    former contains files missing from the latter. Logs accordingly.
+    """
+    non_exist_files = [f for f in _ref.objects() if not f.exists()]
+
+    if non_exist_files or (
+            _miss := _ref.objects().difference(_tgt.objects())
+    ):
+        log.error("Files needed for compilation missing")
+        for f in non_exist_files:
+            richprint(
+                f"{_indicator} [bold]{f}[/]",
+            )
+        for f in _miss:
+            richprint(
+                f"{_indicator} [bold]{f}[/]",
+            )
+        return True
+    else:
+        return False
+
+def _check_warn_extra(
+        _ref: Tarballer, _tgt: Tarballer, _indicator: str = ""
+) -> bool:
+    """
+    Compares objects included in _ref and _tgt and return True if the
+    latter contains files missing from the former. Logs accordingly.
+    """
+    if _extra := _tgt.objects().difference(_ref.objects()):
+        log.warn("Files not essential to compilation added to tarball")
+        for f in _extra:
+            richprint(f"{_indicator} {f.as_posix()}")
+        return True
+    else:
+        return False
+
 def _set_main_file(name: str) -> Union[Path, None]:
     main_file = Path(name).resolve()
     if main_file.suffix not in [".fls", ".tex"]:
@@ -74,6 +130,10 @@ def _set_main_file(name: str) -> Union[Path, None]:
     else:
         raise FileNotFoundError(f"File {main_file.name} not found.")
 
+
+################
+## MAIN CLASS ##
+################
 
 class TarTeX:
     """
@@ -507,7 +567,7 @@ class TarTeX:
             self.input_files(dummy_tar)
 
             # will return True if check fails
-            chk_err = self._check_err_missing(ref_tar, dummy_tar, INDI['req-miss'])
+            chk_err = _check_err_missing(ref_tar, dummy_tar, INDI['req-miss'])
 
             if chk_err:
                 richprint(f"{INDI['chk-fail']} Check failed.")
@@ -515,7 +575,7 @@ class TarTeX:
             else:
                 log.info("All files needed for compilation are present")
 
-            _ = self._check_warn_extra(ref_tar, dummy_tar, INDI['not-need'])
+            _ = _check_warn_extra(ref_tar, dummy_tar, INDI['not-need'])
 
         else:
             git_ref = self.args.git_rev or "HEAD"
@@ -524,14 +584,14 @@ class TarTeX:
             chk_tar = Tarballer(self.cwd, self.main_file, Path("check.tar"))
             _ = self.input_files(chk_tar)
 
-            chk_err = self._check_err_missing(ref_tar, chk_tar, INDI['req-miss'])
+            chk_err = _check_err_missing(ref_tar, chk_tar, INDI['req-miss'])
             if chk_err:
                 richprint(
                     f"{INDI['chk-fail']} Check failed for git revision '{git_ref}'"
                 )
                 raise CheckFailError(miss_msg)
 
-            _ = self._check_warn_extra(ref_tar, chk_tar, INDI['not-need'])
+            _ = _check_warn_extra(ref_tar, chk_tar, INDI['not-need'])
 
         for f in ref_tar.objects():
             richprint(f"{INDI['perfect']} {f.as_posix()}")
@@ -540,34 +600,10 @@ class TarTeX:
                   "[bold green]Found all files needed for compilation"
                   f"{f' at git revision {git_ref}' if self.args.git_rev else ''}[/]")
 
-    def _check_err_missing(self, _ref, _dummy, _indicator=""):
-        non_exist_files = [f for f in _ref.objects() if not f.exists()]
 
-        if non_exist_files or (
-                _miss := _ref.objects().difference(_dummy.objects())
-        ):
-            log.error("Files needed for compilation missing")
-            for f in non_exist_files:
-                richprint(
-                    f"{_indicator} [bold]{f}[/]",
-                )
-            for f in _miss:
-                richprint(
-                    f"{_indicator} [bold]{f}[/]",
-                )
-            return True
-        else:
-            return False
-
-    def _check_warn_extra(self, _ref, _dummy, _indicator=""):
-        if _extra := _dummy.objects().difference(_ref.objects()):
-            log.warn("Files not essential to compilation added to tarball")
-            for f in _extra:
-                richprint(f"{_indicator} {f.as_posix()}")
-            return True
-        else:
-            return False
-
+    ############################
+    ## CLASS HELPER FUNCTIONS ##
+    ############################
 
     def _missing_supp(self, fpath, tmpdir, deps):
         """Handle missing supplementary file from orig dir, if req"""
@@ -613,23 +649,13 @@ class TarTeX:
         return self.cwd / tar_file.with_suffix(f".tar.{_tar_ext}")
 
 
+###################################
+## COMMAND LINE UTILITY FUNCTION ##
+###################################
 def make_tar():
     """Build tarball with command line arguments processed by argparse"""
     t = TarTeX(sys.argv[1:])
     t.tar_files()
-
-
-class SetEncoder(json.JSONEncoder):
-    """A class to allow JSONEncoder to interpret a set as a list"""
-
-    def default(self, o):
-        """
-        Convert o (a set) into a sorted list
-
-        :o: set
-        :return: list
-        """
-        return sorted(o)
 
 
 if __name__ == "__main__":
