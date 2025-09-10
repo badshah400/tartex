@@ -42,6 +42,10 @@ except ImportError:
         finally:
             os.chdir(cwd)
 
+##################################
+## HELPER CLASSES AND FUNCTIONS ##
+##################################
+
 class CheckFailError(Exception):
 
     """Exception raised when `--check` fails"""
@@ -57,14 +61,10 @@ class CheckFailError(Exception):
         return f"Check failed: {self._msg}"
 
 
-##################################
-## HELPER CLASSES AND FUNCTIONS ##
-##################################
-
 class SetEncoder(json.JSONEncoder):
     """A class to allow JSONEncoder to interpret a set as a list"""
 
-    def default(self, o):
+    def default(self, o: set) -> list:
         """
         Convert o (a set) into a sorted list
 
@@ -114,6 +114,11 @@ def _check_warn_extra(
         return False
 
 def _set_main_file(name: str) -> Union[Path, None]:
+    """
+    Return fully resolved file name after adding an appropriate suffix, if
+    necessary. Raises `FileNotFoundError` if neither the input str, nor a
+    version of it with '.tex' or '.fls' extension, point to any existing file.
+    """
     main_file = Path(name).resolve()
     if main_file.suffix not in [".fls", ".tex"]:
         # ...otherwise try adding the .fls/.tex suffix to main_file
