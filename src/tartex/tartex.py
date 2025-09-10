@@ -323,7 +323,22 @@ class TarTeX:
                 raise err
         return _deps, _pkgs
 
-    def input_files_from_recompile(self, tarf: Tarballer):
+    def input_files_from_recompile(
+            self, tarf: Tarballer, minimal: bool = False
+    ) -> (set[Path], dict[str, str]):
+        """
+        Determines set of input files and list of LaTeX packages used by
+        running explicit re-compilation of project in an out-of-tree temporary
+        directory.
+
+        If minimal is `True`, omits adding any files other than those
+        absolutely needed for compilation, such as user specified bib files,
+        etc., or, likewise, excluding files matching user specified exclusion
+        patterns if any.
+
+        Returns tuple: (Set of Path objects representing input files, dict of
+        LaTeX packages used for compilation)
+        """
         _deps: set = set()
         _pkgs: dict[str, set] = {}
         with TemporaryDirectory() as compile_dir:
@@ -355,11 +370,12 @@ class TarTeX:
                 # Supplementary files, pkg lists are all transient — they only
                 # live in the temporary `compile_dir`; so we need to save them
                 # as streams inside this file-open context.
+                if not minimal:
+                    if self.args.with_pdf:
+                        self._add_pdf_stream(fls_path.with_suffix(".pdf"), tarf)
 
-                if self.args.with_pdf:
-                    self._add_pdf_stream(fls_path.with_suffix(".pdf"), tarf)
+                    self._add_supplement_streams(Path(compile_dir), _deps, tarf)
 
-                self._add_supplement_streams(Path(compile_dir), _deps, tarf)
                 return _deps, _pkgs
 
     def input_files_from_srcfls(self, _t: Tarballer):
@@ -553,7 +569,7 @@ class TarTeX:
         #
         ref_tar = Tarballer(self.cwd, self.main_file, Path("ref.tar"))
         try:
-            deps, pkgs = self.input_files_from_recompile(ref_tar)
+            deps, pkgs = self.input_files_from_recompile(ref_tar, minimal=True)
         except Exception as err:
             log.critical("Latexmk failed to compile; check if all source files exist")
             richprint(f"{INDI['req-miss']} Check failed; input files missing?")
