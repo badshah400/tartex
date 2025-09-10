@@ -501,15 +501,21 @@ class TarTeX:
 
         if not self.args.git_rev:
             miss_msg = "Files needed for compilation missing"
-            # dummy target will include all user specified additional/excluded files
+
+            # dummy target including all user specified additionals/exclusions
             dummy_tar = Tarballer(self.cwd, self.main_file, Path("dummy.tar"))
             self.input_files(dummy_tar)
+
             missing_files = [f for f in ref_tar.objects() if not f.exists()]
 
             if missing_files or (
                     _miss := ref_tar.objects().difference(dummy_tar.objects())
             ):
                 log.error(miss_msg)
+                for f in missing_files:
+                    richprint(
+                        f"{INDI['req-miss']} [bold]{f}[/]",
+                    )
                 for f in _miss:
                     richprint(
                         f"{INDI['req-miss']} [bold]{f}[/]",
