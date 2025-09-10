@@ -77,6 +77,12 @@ class Tarballer:
             if comm:
                 self._comments[f.as_posix()] = comm
 
+    def drop_files(self, *args: Path):
+        """Drop files and associated comments, if any"""
+        for f in args:
+            self._files.discard(f)
+            _ = self._comments.pop(f.as_posix(), None)
+
     def files(self) -> set[Path]:
         """Return copy of self._files as a set of Path(s)
         :returns: set of Paths
