@@ -468,7 +468,17 @@ class TarTeX:
         Checks if all required input files exist and are accessible.
         """
 
-        log.info("Checking for existence of all required files...")
+        log.debug("Working in `check` mode; no tarball will be generated")
+        log.info("Checking whether target tarball contents will recompile...")
+
+        # Rich print indicators for missing or superfluous file messages
+        INDI = {
+            "req-miss": ":double_exclamation_mark-emoji: ",  # extra space req
+            "not-need": ":warning-emoji: ",  # extra space req
+            "perfect":  ":heavy_check_mark-emoji: ",  # extra space req
+            "chk-fail": ":cross_mark-emoji:",
+            "chk-pass": ":ok_button-emoji:",
+        }
 
         # The reference tarball `ref_tar` must contain the minimal number of
         # files/streams required to re-compile the project, ignoring any user
@@ -486,27 +496,33 @@ class TarTeX:
             deps, pkgs = self.input_files_from_recompile(ref_tar, dry_run_mode=False)
         except Exception as err:
             log.critical("Latexmk failed to compile; check if all source files exist")
-            richprint(":cross_mark-emoji: Check failed; missing input files?")
-            raise err
+            richprint(f"{INDI['req-miss']} Check failed; input files missing?")
+            raise CheckFailError from err
 
         if not self.args.git_rev:
+            miss_msg = "Files needed for compilation missing"
             # dummy target will include all user specified additional/excluded files
             dummy_tar = Tarballer(self.cwd, self.main_file, Path("dummy.tar"))
             self.input_files(dummy_tar)
             missing_files = [f for f in ref_tar.objects() if not f.exists()]
 
             if missing_files or (
-                    _ex := ref_tar.files().difference(dummy_tar.objects())
+                    _miss := ref_tar.objects().difference(dummy_tar.objects())
             ):
-                log.error("Files necessary for (re)compilation are missing:")
-                for f in _ex:
+                log.error(miss_msg)
+                for f in _miss:
                     richprint(
-                        f":double_exclamation_mark-emoji:  [bold red]{f}[/]",
+                        f"{INDI['req-miss']} [bold]{f}[/]",
                     )
-                richprint(":cross_mark-emoji: Check failed.")
-                sys.exit(1)
+                richprint(f"{INDI['chk-fail']} Check failed.")
+                raise CheckFailError(miss_msg)
             else:
                 log.info("All files needed for compilation are present")
+
+            if _extra := dummy_tar.objects().difference(ref_tar.objects()):
+                log.warn("Files not essential to compilation added to tarball")
+                for f in _extra:
+                    richprint(f"{INDI['not-need']} {f.as_posix()}")
         else:
             # Dummy target; will be populated by contents from `git ls-tree`
             # (plus user additionals)
@@ -521,25 +537,22 @@ class TarTeX:
             git_unnecessary_for_fls = git_files.difference(fls_files)  # warn
 
             if fls_missing_in_git:
-                log.error(
-                    "Required files are missing from the git revision '%s'",
-                    git_ref
-                )
+                miss_msg = f"Files needed for compilation missing from git tree at ref {git_ref}"
+                log.error(miss_msg)
                 for f in fls_missing_in_git:
                     richprint(
-                        f":no_entry-emoji: [red bold]{f.as_posix()}[/red bold]"
+                        f"{INDI['req-miss']} {f.as_posix()}"
                     )
-                richprint(":cross_mark-emoji: Check failed.")
-                sys.exit(1)
+                richprint(f"{INDI['chk-fail']} Check failed.")
+                raise CheckFailError(miss_msg)
 
             if git_unnecessary_for_fls:
                 log.warning(
-                    "Found files tracked in git ref '%s' not required for compilation",
+                    "Files tracked in git ref '%s' not required for compilation",
                     git_ref
                 )
                 for f in git_unnecessary_for_fls:
-                    richprint(":warning-emoji:", end="  ")  # 2x space for sep
-                    print(f.as_posix())
+                    richprint(f"{INDI['not-need']} {f.as_posix()}")  # 2x space for sep
 
             log.info(
                 "Git ref '%s' tracks all files required for compilation.",
@@ -547,11 +560,10 @@ class TarTeX:
             )
 
         for f in ref_tar.objects():
-            richprint(":heavy_check_mark-emoji:", end="  ")
-            print(f.as_posix())
+            richprint(f"{INDI['perfect']} {f.as_posix()}")
 
-        richprint("[bold green]:ok_button-emoji: "
-                  "Found all files needed for compilation"
+        richprint(f"{INDI['chk-pass']} "
+                  "[bold green]Found all files needed for compilation"
                   f"{f' at git revision {git_ref}' if self.args.git_rev else ''}[/]")
 
     def _missing_supp(self, fpath, tmpdir, deps):
