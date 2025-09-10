@@ -42,6 +42,20 @@ except ImportError:
         finally:
             os.chdir(cwd)
 
+class CheckFailError(Exception):
+
+    """Exception raised when `--check` fails"""
+
+    def __init__(self, msg=""):
+        """init CheckFail exception
+
+        """
+        super().__init__(self.msg)
+        self._msg = msg
+
+    def __str__(self):
+        return f"Check failed: {self._msg}"
+
 
 def _set_main_file(name: str) -> Union[Path, None]:
     main_file = Path(name).resolve()
