@@ -457,14 +457,15 @@ class TarTeX:
         log.info("Checking for existence of all required files...")
 
         # The reference tarball `ref_tar` must contain the minimal number of
-        # files/streams required to re-compile the project, plus any user
+        # files/streams required to re-compile the project, ignoring any user
         # specified additionals. Thus, we determine the objects that will go
         # into this explicit recompilation (if latexmk fails at this stage,
         # the check is assumed to have failed — we cannot work around this) by
-        # using `.input_files_from_recompile()` and adding any user specified
-        # additionals to it, if needed. When comparing a target tarfile against
-        # this ref, any additional files in the former would raise a warning,
-        # but any missing file is an error.
+        # using `.input_files_from_recompile()`.
+        #
+        # When comparing a target tarfile against this ref, any additional
+        # files in the former would raise a warning, but any missing file is an
+        # error.
         #
         ref_tar = Tarballer(self.cwd, self.main_file, Path("ref.tar"))
         try:
@@ -473,20 +474,18 @@ class TarTeX:
             log.critical("Latexmk failed to compile; check if all source files exist")
             richprint(":cross_mark-emoji: Check failed; missing input files?")
             raise err
-        if self.args.bib:
-            self._add_bib(deps, pkgs)
-        if self.add_files:
-            self._add_user_files(deps)
-        ref_tar.app_files(*deps)
 
         if not self.args.git_rev:
-            # Just check if all necessary objects as determined by reference
-            # tarball are available in source tree; no dummy target needed
-            missing_files = [f for f in ref_tar.files() if not f.exists()]
+            # dummy target will include all user specified additional/excluded files
+            dummy_tar = Tarballer(self.cwd, self.main_file, Path("dummy.tar"))
+            self.input_files(dummy_tar)
+            missing_files = [f for f in ref_tar.objects() if not f.exists()]
 
-            if missing_files:
+            if missing_files or (
+                    _ex := ref_tar.files().difference(dummy_tar.objects())
+            ):
                 log.error("Files necessary for (re)compilation are missing:")
-                for f in missing_files:
+                for f in _ex:
                     richprint(
                         f":double_exclamation_mark-emoji:  [bold red]{f}[/]",
                     )
