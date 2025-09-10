@@ -26,7 +26,7 @@ FONT_PUBLIC = re.compile(r"/public/.*/")
 
 
 def run_latexmk(
-    filename, mode, compdir, no_raise_on_err=False, timeout=300
+    filename, mode, compdir, timeout=300
 ):
     """Helper function to actually compile the latex file in a tmpdir"""
     latexmk_bin = shutil.which("latexmk")
@@ -65,21 +65,14 @@ def run_latexmk(
         log.error("%s", err.strerror)
         raise err
     except subprocess.CalledProcessError as err:
-        if no_raise_on_err:
-            log.debug(
-                "Not raising error despite latexmk failing; raise_on_err=True"
-            )
-            log.warn("Latexmk failed to compile; fls file may be unreliable")
-            pass
-        else:
-            log.error(
-                "Error: %s failed with the following output:\n%s\n%s",
-                err.cmd[0],
-                err.stdout,
-                "===================================================",
-            )
-            log.error("Latexmk command used was: `%s`", " ".join(latexmk_cmd))
-            raise err
+        log.error(
+            "Error: %s failed with the following output:\n%s\n%s",
+            err.cmd[0],
+            err.stdout,
+            "===================================================",
+        )
+        log.error("Latexmk command used was: `%s`", " ".join(latexmk_cmd))
+        raise err
 
     log.info(
         "LaTeX project successfully compiled with: %s", " ".join(latexmk_cmd)

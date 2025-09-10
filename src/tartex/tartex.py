@@ -263,7 +263,7 @@ class TarTeX:
                 raise err
         return _deps, _pkgs
 
-    def input_files_from_recompile(self, tarf: Tarballer, dry_run_mode=False):
+    def input_files_from_recompile(self, tarf: Tarballer):
         _deps: set = set()
         _pkgs: dict[str, set] = {}
         with TemporaryDirectory() as compile_dir:
@@ -279,7 +279,6 @@ class TarTeX:
                     self.main_file.with_suffix(".tex"),
                     self.force_tex,
                     compile_dir,
-                    no_raise_on_err = dry_run_mode,
                 )
             except Exception as e:
                 raise e
@@ -494,7 +493,7 @@ class TarTeX:
         #
         ref_tar = Tarballer(self.cwd, self.main_file, Path("ref.tar"))
         try:
-            deps, pkgs = self.input_files_from_recompile(ref_tar, dry_run_mode=False)
+            deps, pkgs = self.input_files_from_recompile(ref_tar)
         except Exception as err:
             log.critical("Latexmk failed to compile; check if all source files exist")
             richprint(f"{INDI['req-miss']} Check failed; input files missing?")
