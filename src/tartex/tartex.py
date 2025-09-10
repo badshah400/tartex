@@ -410,7 +410,7 @@ class TarTeX:
     def tar_files(self):
         """
         Generates a tarball consisting of non-system input files needed to
-        recompile your latex project.
+        recompile your latex project. Main entry point to tartex cmdline app.
         """
         _git_cntxt = (
             git_checkout(self.GR.git_bin, self.GR.repo, self.GR.rev)
@@ -465,7 +465,8 @@ class TarTeX:
 
     def check_files(self):
         """
-        Checks if all required input files exist and are accessible.
+        Checks if simulated target tarball will contain all files needed to
+        recompile project (and any more).
         """
 
         log.debug("Working in `check` mode; no tarball will be generated")
