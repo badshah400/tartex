@@ -370,11 +370,10 @@ class TarTeX:
                 # Supplementary files, pkg lists are all transient — they only
                 # live in the temporary `compile_dir`; so we need to save them
                 # as streams inside this file-open context.
+                self._add_supplement_streams(Path(compile_dir), _deps, tarf)
                 if not minimal:
                     if self.args.with_pdf:
                         self._add_pdf_stream(fls_path.with_suffix(".pdf"), tarf)
-
-                    self._add_supplement_streams(Path(compile_dir), _deps, tarf)
 
                 return _deps, _pkgs
 
