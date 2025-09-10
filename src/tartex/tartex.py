@@ -573,6 +573,8 @@ class TarTeX:
         #
         ref_tar = Tarballer(self.cwd, self.main_file, Path("ref.tar"))
         try:
+            # passing `minimal=True` ensures tarballer obj includes only the
+            # absolutely necessary files/streams as determined from a recompile
             deps, pkgs = self.input_files_from_recompile(ref_tar, minimal=True)
         except Exception as err:
             log.critical("Latexmk failed to compile; check if all source files exist")
