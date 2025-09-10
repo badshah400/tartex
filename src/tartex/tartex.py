@@ -499,6 +499,7 @@ class TarTeX:
                     richprint(
                         f":double_exclamation_mark-emoji:  [bold red]{f}[/]",
                     )
+                richprint(":cross_mark-emoji: Check failed.")
                 sys.exit(1)
             else:
                 log.info("All files needed for compilation are present")
@@ -524,6 +525,7 @@ class TarTeX:
                     richprint(
                         f":no_entry-emoji: [red bold]{f.as_posix()}[/red bold]"
                     )
+                richprint(":cross_mark-emoji: Check failed.")
                 sys.exit(1)
 
             if git_unnecessary_for_fls:
@@ -543,6 +545,7 @@ class TarTeX:
         for f in ref_tar.objects():
             richprint(":heavy_check_mark-emoji:", end="  ")
             print(f.as_posix())
+
         richprint("[bold green]:ok_button-emoji: "
                   "Found all files needed for compilation"
                   f"{f' at git revision {git_ref}' if self.args.git_rev else ''}[/]")
