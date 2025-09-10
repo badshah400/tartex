@@ -95,7 +95,8 @@ def _check_err_missing(
             richprint(_indicator, end=" ")
             print(f"{f!s}")
         else:
-            print()
+            # No blank line needed at end of loop here
+            pass
 
         if _excluded:
             log.debug(
@@ -603,50 +604,47 @@ class TarTeX:
             richprint(f"{INDI['req-miss']} Files need for compilation missing (deleted?)")
             raise CheckFailError from err
 
-        miss_msg = "Files needed for compilation missing or excluded"
+        # dummy target including all user specified additionals/exclusions
+        dummy_tar = Tarballer(self.cwd, self.main_file, Path("dummy.tar"))
+        miss_msg = "Files needed for compilation missing or excluded from tarball"
 
         if not self.args.git_rev:
-
-            # dummy target including all user specified additionals/exclusions
-            dummy_tar = Tarballer(self.cwd, self.main_file, Path("dummy.tar"))
             self.input_files(dummy_tar)
 
             # will return True if check fails
             chk_err = _check_err_missing(ref_tar, dummy_tar, INDI['req-miss'])
-
-            if chk_err:
-                richprint(f"{INDI['chk-fail']} {miss_msg}")
-                raise CheckFailError(miss_msg)
-            else:
-                log.info("All files needed for compilation are present")
-
             _ = _check_warn_extra(ref_tar, dummy_tar, INDI['not-need'])
 
         else:
             git_ref = self.args.git_rev or "HEAD"
             # Dummy target; will be populated by contents from `git ls-tree`
             # (plus user additionals)
-            chk_tar = Tarballer(self.cwd, self.main_file, Path("check.tar"))
-            _ = self.input_files(chk_tar)
+            _ = self.input_files(dummy_tar)
 
-            chk_err = _check_err_missing(ref_tar, chk_tar, INDI['req-miss'])
-            if chk_err:
-                richprint(
-                    f"{INDI['chk-fail']} {miss_msg} at git revision '{git_ref}'"
-                )
-                raise CheckFailError(miss_msg)
+            chk_err = _check_err_missing(ref_tar, dummy_tar, INDI['req-miss'])
+            _ = _check_warn_extra(ref_tar, dummy_tar, INDI['not-need'])
 
-            _ = _check_warn_extra(ref_tar, chk_tar, INDI['not-need'])
+            # if chk_err:
+            #     richprint(
+            #         f"{INDI['chk-fail']} {miss_msg} at git revision '{git_ref}'"
+            #     )
+            #     raise CheckFailError(miss_msg)
 
-        richprint("[green]All files needed for compilation to be included:[/]")
-        for f in ref_tar.objects():
+        richprint("[green]Files needed for compilation to be included:[/]")
+        for f in ref_tar.objects().intersection(dummy_tar.objects()):
             richprint(INDI['perfect'], end=" ")
             print(f"{f!s}")
         else:
             print()
 
+        if chk_err:
+            richprint(f"{INDI['chk-fail']} [red]{miss_msg}[/]")
+            raise CheckFailError(miss_msg)
+        else:
+            log.info("All files needed for compilation are present")
+
         richprint(f"{INDI['chk-pass']} "
-                  "[bold green]All files needed for compilation included"
+                  "[bold green]All files needed for compilation included in tarball"
                   f"{f' at git revision {git_ref}' if self.args.git_rev else ''}[/]")
 
 
