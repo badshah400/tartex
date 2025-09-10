@@ -74,7 +74,7 @@ class SetEncoder(json.JSONEncoder):
         return sorted(o)
 
 def _check_err_missing(
-        _ref: Tarballer, _tgt: Tarballer, _indicator: str = ""
+        _ref: Tarballer, _tgt: Tarballer, _indicator: str = "*"
 ) -> bool:
     """
     Compares objects included in _ref and _tgt and return True if the
@@ -97,7 +97,7 @@ def _check_err_missing(
         return False
 
 def _check_warn_extra(
-        _ref: Tarballer, _tgt: Tarballer, _indicator: str = ""
+        _ref: Tarballer, _tgt: Tarballer, _indicator: str = "*"
 ) -> bool:
     """
     Compares objects included in _ref and _tgt and return True if the
