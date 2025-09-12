@@ -267,3 +267,18 @@ class TestTarConflict:
         caplog.set_level(logging.WARNING)
         out_mess = caplog.text
         assert "overwriting existing" in out_mess.lower()
+
+class TestCheck:
+    def test_check_success(self, capsys, datadir):
+        """Use `--check` to report successful inclusion of single file"""
+        t = TarTeX(
+            [
+                (Path(datadir) / "basic_latex.tex").as_posix(),
+                "--check",
+                "-o",
+                (Path(datadir) / "basic_latex_check.tar.gz").as_posix(),
+            ]
+        )
+        t.tar_files()
+        assert not t.tar_file_w_ext.exists()
+        assert "All files needed for compilation included" in capsys.readouterr().out
