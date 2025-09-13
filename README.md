@@ -28,6 +28,7 @@ It aims to produce [arXiv](https://arxiv.org) and journal-ready bundles with zer
 - 📸 Git integration: snapshot files into tarball directly from Git revision (`--git-rev`)
 - 🔍 Auto-detects re-compilation processing mode (pdf/ps) from project
 - 🔏 Leaves your LaTeX project directory unchanged
+- 🕵️ Optional check to ensure final tarball contains all necessary files
 - 🖇️ Supports shell completions for bash, zsh, and fish
 
 ## Installation
@@ -37,7 +38,7 @@ It aims to produce [arXiv](https://arxiv.org) and journal-ready bundles with zer
 > you must have `latexmk` and `pdflatex`, as well as a full LaTeX env installed
 > to allow compilation of your LaTeX project. TarTeX does not include any
 > system-wide files, such as standard TeX style files, classes, etc. in the tar
-> file.
+> file. This is also required for the check options (`--check`/`--only-check`).
 
 ### Using pipx
 
@@ -75,6 +76,8 @@ positional arguments:
 common options:
   -h, --help               show this help message and exit
   -V, --version            print tartex version and exit
+  -c, --check              Check if tarball has all files needed for compiling
+  -C, --only-check         Only check and print detailed report; no tarball
   -g, --git-rev=[REV]      add git tree files at revision REV (default: HEAD)
   -l, --list, --dry-run    print list of files to include and quit
   -o, --output=NAME[.EXT]  output tar filename; 'EXT' sets re-compression mode,
@@ -85,11 +88,11 @@ common options:
   -v, --verbose            increase log verbosity (-v, -vv, etc.)
 
 options for additional file inclusion/exclusion in tar:
-  -a, --add=PATTERNS       include additional files matching glob PATTERN;
+  -a, --add="PATTERNs"     include additional files matching glob PATTERN;
                            separate multiple PATTERNs using commas
   -b, --bib                find and add bib file to tarball
   --with-pdf               add existing/generated final output PDF
-  -x, --excl=PATTERNS      exclude file names matching PATTERNS
+  -x, --excl="PATTERNs"    exclude file names matching PATTERNS
 
 options for latexmk processing (ignored for 'git-rev'):
   -F, --force-recompile    force (La)TeX re-compile even if '.fls' found

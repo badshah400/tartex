@@ -2,14 +2,23 @@
 
 ## Un-released
 
+### Added
+
+- Add `--check` option that will check if all files needed for recompiling project will be included in tarball
+- Add `--only-check` option that prints a detailed report on missing, necessary, and unnecessary files to be included in tarball, without actually generating the tar file
+
+### Fixed
+
+- Match file patterns recursively when add or exclude options are passed.
+
 ## [0.8.0] 2025-08-26
 
-## Added
+### Added
 
 - Option `--git-rev=REV` to process and add tracked files from git repo at revision `REV` (default: `HEAD`).
 - Add initial man file built using `help2man` and ship it in wheel/source.
  
-## Fixed
+### Fixed
 
 - Clean up tarball if latexmk compilation fails.
 - Improve displayed error messages if latexmk fails.
