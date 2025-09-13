@@ -268,7 +268,7 @@ class TestTarConflict:
         out_mess = caplog.text
         assert "overwriting existing" in out_mess.lower()
 
-class TestCheck:
+class TestCheckBasic:
     def test_check_success(self, capsys, datadir):
         """Use `--check` to report successful inclusion of single file"""
         t = TarTeX(
@@ -282,3 +282,18 @@ class TestCheck:
         t.tar_files()
         assert not t.tar_file_w_ext.exists()
         assert "All files needed for compilation included" in capsys.readouterr().out
+
+    def test_check_warn_pdf(self, capsys, datadir):
+        """When main tex file is excluded as part of `-x`, report failure"""
+        t = TarTeX(
+            [
+                (Path(datadir) / "basic_latex.tex").as_posix(),
+                "--check",
+                "--with-pdf",
+            ]
+        )
+        t.tar_files()
+        assert not t.tar_file_w_ext.exists()
+        msg_out = capsys.readouterr().out
+        assert "Files not essential to compilation" in msg_out
+        assert "All files needed for compilation" in msg_out

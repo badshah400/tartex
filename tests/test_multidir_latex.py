@@ -6,6 +6,7 @@
 
 """Tests for LaTeX project consisting of multiple dirs"""
 
+import fileinput
 import os
 import tarfile as tar
 from pathlib import Path
@@ -68,3 +69,25 @@ class TestMultiDir:
 
         # Tar file must not be created with "-l"
         assert not t.tar_file_w_ext.exists()
+
+    def test_check_success(self, datadir, capsys):
+        t = TarTeX([(Path(datadir) / "main.tex").as_posix(), "--check"])
+        t.tar_files()
+
+        # Tar file must not be created with "--check"
+        assert not t.tar_file_w_ext.exists()
+
+        out_msg = capsys.readouterr().out
+        assert "figures/peppers.png" in out_msg
+        assert "All files needed for compilation included in tarball" in out_msg
+
+    def test_check_fail_excl(self, datadir, capsys):
+        """`--check` must fail when necessary image file is excluded from tarball"""
+        t = TarTeX([(Path(datadir) / "main.tex").as_posix(), "--check", "-x", "figures/*.png"])
+        with pytest.raises(SystemExit) as exc:
+            t.tar_files()
+
+        assert exc.value.code == 1
+        out_msg = capsys.readouterr().out
+        assert "Files needed for compilation not included" in out_msg
+        assert "peppers.png" in out_msg
