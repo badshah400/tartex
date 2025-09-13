@@ -268,13 +268,13 @@ class TestTarConflict:
         out_mess = caplog.text
         assert "overwriting existing" in out_mess.lower()
 
-class TestCheckBasic:
-    def test_check_success(self, capsys, datadir):
-        """Use `--check` to report successful inclusion of single file"""
+class TestOnlyCheckBasic:
+    def test_only_check_success(self, capsys, datadir):
+        """Use `--only-check` to report successful inclusion of single file"""
         t = TarTeX(
             [
                 (Path(datadir) / "basic_latex.tex").as_posix(),
-                "--check",
+                "--only-check",
                 "-o",
                 (Path(datadir) / "basic_latex_check.tar.gz").as_posix(),
             ]
@@ -284,12 +284,14 @@ class TestCheckBasic:
         assert "All files needed for compilation included" in capsys.readouterr().out
 
     def test_check_warn_pdf(self, capsys, datadir):
-        """When main tex file is excluded as part of `-x`, report failure"""
+        """Warn when `--only-check` finds unnecessary files to be included"""
         t = TarTeX(
             [
                 (Path(datadir) / "basic_latex.tex").as_posix(),
-                "--check",
+                "--only-check",
                 "--with-pdf",
+                "-o",
+                (Path(datadir) / "basic_latex_warn.tar.xz").as_posix(),
             ]
         )
         t.tar_files()

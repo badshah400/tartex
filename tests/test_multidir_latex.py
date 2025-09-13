@@ -64,14 +64,29 @@ class TestMultiDir:
 
     def test_list(self, datadir):
         """Test printing list of files"""
-        t = TarTeX([(Path(datadir) / "main.tex").as_posix(), "-l", "-s"])
+        t = TarTeX(
+            [
+                (Path(datadir) / "main.tex").as_posix(),
+                "-l",
+                "-s",
+                "-o",  # avoid conflict with tarballs from other tests
+                (Path(datadir) / "multidir_list.tar.bz2").as_posix(),
+            ]
+        )
         t.tar_files()
 
         # Tar file must not be created with "-l"
         assert not t.tar_file_w_ext.exists()
 
-    def test_check_success(self, datadir, capsys):
-        t = TarTeX([(Path(datadir) / "main.tex").as_posix(), "--check"])
+    def test_only_check_success(self, datadir, capsys):
+        t = TarTeX(
+            [
+                (Path(datadir) / "main.tex").as_posix(),
+                "--only-check",
+                "-o", # unique output to avoid conflicts with other tests
+                (Path(datadir) / "multidir_check_ok.tar.gz").as_posix(),
+            ]
+        )
         t.tar_files()
 
         # Tar file must not be created with "--check"
@@ -83,7 +98,16 @@ class TestMultiDir:
 
     def test_check_fail_excl(self, datadir, capsys):
         """`--check` must fail when necessary image file is excluded from tarball"""
-        t = TarTeX([(Path(datadir) / "main.tex").as_posix(), "--check", "-x", "figures/*.png"])
+        t = TarTeX(
+            [
+                (Path(datadir) / "main.tex").as_posix(),
+                "-o", # unique output to avoid conflicts with other tests
+                (Path(datadir) / "multidir_check_fail.tar.gz").as_posix(),
+                "--check",
+                "-x",
+                "figures/*.png"
+            ]
+        )
         with pytest.raises(SystemExit) as exc:
             t.tar_files()
 
