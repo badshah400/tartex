@@ -219,18 +219,26 @@ class TarTeX:
         excludes = self.args.excl.split(",") if self.args.excl else []
         excl_lists = (self.main_file.parent.glob(f"**/{L}") for L in excludes)
 
-        self.excl_files = [
-            f.relative_to(self.main_file.parent)
-            for L in excl_lists
-            for f in L
-        ]
+        self.excl_files = set(
+            [
+                f.relative_to(self.main_file.parent)
+                for L in excl_lists
+                for f in L
+            ]
+        )
+        # Do not exclude main tex file even if matched by `--excl` glob
+        self.excl_files.discard(
+            self.main_file.with_suffix(".tex").relative_to(
+                self.main_file.parent
+            )
+        )
 
         # If .bbl/.ind is missing in source dir, then it is not in
         # self.excl_files (result of globbing files in srcdir) even if the user
         # passes a matching wildcard to exclude it with "-x".
         # Extend self.excl_files specifically in these cases
         for glb in excludes:
-            self.excl_files.extend(
+            self.excl_files.update(
                 [
                     f
                     for f in [
