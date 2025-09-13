@@ -259,14 +259,14 @@ def parse_args(args) -> argparse.Namespace:
         "-c",
         "--check",
         action="store_true",
-        help="Check if tarball contains all files needed for compiling project"
+        help="Check if tarball has all files needed for compiling"
     )
 
     general_opts.add_argument(
         "-C",
         "--only-check",
         action="store_true",
-        help="Only check — no tarball produced — if all needed files will be included"
+        help="Only check and print detailed report; no tarball"
     )
 
     general_opts.add_argument(
@@ -336,7 +336,7 @@ def parse_args(args) -> argparse.Namespace:
     file_opts.add_argument(
         "-a",
         "--add",
-        metavar="PATTERNS",
+        metavar="\"PATTERNs\"",
         type=str,
         help=(
             "include additional files matching glob PATTERN;"
@@ -360,7 +360,7 @@ def parse_args(args) -> argparse.Namespace:
     file_opts.add_argument(
         "-x",
         "--excl",
-        metavar="PATTERNS",
+        metavar="\"PATTERNs\"",
         type=str,
         help="exclude file names matching PATTERNS",
     )
