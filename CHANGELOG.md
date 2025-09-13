@@ -4,12 +4,13 @@
 
 ### Added
 
-- Add `--check` option that will check if all files needed for recompiling project will be included in tarball
-- Add `--only-check` option that prints a detailed report on missing, necessary, and unnecessary files to be included in tarball, without actually generating the tar file
+- Add `--check` option to check if all files needed for recompiling project will be included in tarball
+- Add `--only-check` option to print a detailed report on missing, necessary, and unnecessary files to be included, without actually generating the tar file
 
 ### Fixed
 
 - Match file patterns recursively when add or exclude options are passed.
+- Do not exclude main tex file even if matched by `--excl` pattern.
 
 ## [0.8.0] 2025-08-26
 
