@@ -74,7 +74,7 @@ class SetEncoder(json.JSONEncoder):
         return sorted(o)
 
 def _check_err_missing(
-        _ref: Tarballer, _tgt: Tarballer, _indicator: str = "*"
+    _ref: Tarballer, _tgt: Tarballer, _indicator: str = "*",
 ) -> bool:
     """
     Compares objects included in _ref and _tgt and return True if the
@@ -91,12 +91,12 @@ def _check_err_missing(
                 ", ".join([f.as_posix() for f in non_exist_files])
             )
             richprint("[bold red]Files needed for compilation missing (deleted?):[/]")
-        for f in non_exist_files:
-            richprint(_indicator, end=" ")
-            print(f"{f!s}")
-        else:
-            # No blank line needed at end of loop here
-            pass
+            for f in non_exist_files:
+                richprint(_indicator, end=" ")
+                print(f"{f!s}")
+            else:
+                # No blank line needed at end of loop here
+                pass
 
         if _excluded:
             log.debug(
@@ -104,17 +104,17 @@ def _check_err_missing(
                 ", ".join([f.as_posix() for f in _excluded])
             )
             richprint("[bold red]Files needed for compilation not included:[/]")
-        for f in _excluded:
-            richprint(_indicator, end=" ")
-            print(f"{f!s}")
-        else:
-            print()
+            for f in _excluded:
+                richprint(_indicator, end=" ")
+                print(f"{f!s}")
+            else:
+                print()
         return True
     else:
         return False
 
 def _check_warn_extra(
-        _ref: Tarballer, _tgt: Tarballer, _indicator: str = "*"
+    _ref: Tarballer, _tgt: Tarballer, _indicator: str = "*",
 ) -> bool:
     """
     Compares objects included in _ref and _tgt and return True if the
