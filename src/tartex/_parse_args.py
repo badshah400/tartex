@@ -256,10 +256,17 @@ def parse_args(args) -> argparse.Namespace:
     )
 
     general_opts.add_argument(
-        "-C",
+        "-c",
         "--check",
         action="store_true",
-        help="Check if all files necessary for compilation exist"
+        help="Check if tarball contains all files needed for compiling project"
+    )
+
+    general_opts.add_argument(
+        "-C",
+        "--only-check",
+        action="store_true",
+        help="Only check — no tarball produced — if all needed files will be included"
     )
 
     general_opts.add_argument(

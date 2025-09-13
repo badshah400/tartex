@@ -520,13 +520,15 @@ class TarTeX:
             else nullcontext()
         )
         _pushd_src_dir = chdir(self.main_file.parent)
-        if self.args.check:
+        if self.args.check or self.args.only_check:
             try:
                 with _git_cntxt:
                     with _pushd_src_dir:
-                        self.check_files()
+                        self.check_files(not self.args.only_check)
             except Exception:
                 sys.exit(1)
+
+        if self.args.only_check:
             return
 
         if self.tar_file_w_ext.exists() and not self.args.list:
@@ -565,13 +567,13 @@ class TarTeX:
         except Exception:
             sys.exit(1)
 
-    def check_files(self):
+    def check_files(self, silent: bool = False):
         """
         Checks if simulated target tarball will contain all files needed to
         recompile project (and any more).
         """
 
-        log.debug("Working in `check` mode; no tarball will be generated")
+        log.debug("Working in `check` mode; no tarball will be produced")
         log.info("Checking whether target tarball contents will recompile...")
 
         # Rich print indicators for missing or superfluous file messages
@@ -601,7 +603,8 @@ class TarTeX:
             deps, pkgs = self.input_files_from_recompile(ref_tar, minimal=True)
         except Exception as err:
             log.critical("Latexmk failed to compile; check if all source files exist")
-            richprint(f"{INDI['req-miss']} Files need for compilation missing (deleted?)")
+            if not silent:
+                richprint(f"{INDI['req-miss']} Files need for compilation missing (deleted?)")
             raise CheckFailError from err
 
         # dummy target including all user specified additionals/exclusions
@@ -613,40 +616,38 @@ class TarTeX:
 
             # will return True if check fails
             chk_err = _check_err_missing(ref_tar, dummy_tar, INDI['req-miss'])
-            _ = _check_warn_extra(ref_tar, dummy_tar, INDI['not-need'])
+            if not silent:
+                _ = _check_warn_extra(ref_tar, dummy_tar, INDI['not-need'])
 
         else:
             git_ref = self.args.git_rev or "HEAD"
             # Dummy target; will be populated by contents from `git ls-tree`
             # (plus user additionals)
-            _ = self.input_files(dummy_tar)
+            self.input_files(dummy_tar)
 
             chk_err = _check_err_missing(ref_tar, dummy_tar, INDI['req-miss'])
-            _ = _check_warn_extra(ref_tar, dummy_tar, INDI['not-need'])
+            if not silent:
+                _ = _check_warn_extra(ref_tar, dummy_tar, INDI['not-need'])
 
-            # if chk_err:
-            #     richprint(
-            #         f"{INDI['chk-fail']} {miss_msg} at git revision '{git_ref}'"
-            #     )
-            #     raise CheckFailError(miss_msg)
+        if not silent:
+            richprint("[green]Files needed for compilation to be included:[/]")
+            for f in ref_tar.objects().intersection(dummy_tar.objects()):
+                richprint(INDI['perfect'], end=" ")
+                print(f"{f!s}")
+            else:
+                print()
 
-        richprint("[green]Files needed for compilation to be included:[/]")
-        for f in ref_tar.objects().intersection(dummy_tar.objects()):
-            richprint(INDI['perfect'], end=" ")
-            print(f"{f!s}")
-        else:
-            print()
+            if chk_err:
+                richprint(f"{INDI['chk-fail']} [red]{miss_msg}[/]")
+            else:
+                log.info("All files needed for compilation are present")
+
+            richprint(f"{INDI['chk-pass']} "
+                      "[bold green]All files needed for compilation included in tarball"
+                      f"{f' at git revision {git_ref}' if self.args.git_rev else ''}[/]")
 
         if chk_err:
-            richprint(f"{INDI['chk-fail']} [red]{miss_msg}[/]")
             raise CheckFailError(miss_msg)
-        else:
-            log.info("All files needed for compilation are present")
-
-        richprint(f"{INDI['chk-pass']} "
-                  "[bold green]All files needed for compilation included in tarball"
-                  f"{f' at git revision {git_ref}' if self.args.git_rev else ''}[/]")
-
 
     ############################
     ## CLASS HELPER FUNCTIONS ##
