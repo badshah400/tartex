@@ -105,7 +105,7 @@ class TestMultiDir:
                 (Path(datadir) / "multidir_check_fail.tar.gz").as_posix(),
                 "--check",
                 "-x",
-                "figures/*.png"
+                "*.png"
             ]
         )
         with pytest.raises(SystemExit) as exc:

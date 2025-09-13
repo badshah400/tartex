@@ -217,7 +217,7 @@ class TarTeX:
         self.req_supfiles = {}
         self.add_files = self.args.add.split(",") if self.args.add else []
         excludes = self.args.excl.split(",") if self.args.excl else []
-        excl_lists = (self.main_file.parent.glob(f"{L}") for L in excludes)
+        excl_lists = (self.main_file.parent.glob(f"**/{L}") for L in excludes)
 
         self.excl_files = [
             f.relative_to(self.main_file.parent)

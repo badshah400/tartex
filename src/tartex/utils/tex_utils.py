@@ -41,7 +41,7 @@ def add_files(patterns: list[str], dir: Path) -> set[Path]:
     """
     files: set[Path] = set()
     for fpatt in patterns:
-        files.update(set(dir.glob(fpatt)))
+        files.update(set(dir.glob(f"**/{fpatt}")))
 
     return files
 
