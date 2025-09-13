@@ -525,7 +525,9 @@ class TarTeX:
                 with _git_cntxt:
                     with _pushd_src_dir:
                         self.check_files(not self.args.only_check)
-            except Exception:
+            except Exception as err:
+                if not self.args.only_check:
+                    log.critical("Check failed, no tarball will be generated")
                 sys.exit(1)
 
         if self.args.only_check:
