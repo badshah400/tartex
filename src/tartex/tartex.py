@@ -643,9 +643,11 @@ class TarTeX:
                 richprint(f"{INDI['chk-fail']} [red]{miss_msg}[/]")
             else:
                 log.info("All files needed for compilation are present")
-                richprint(f"{INDI['chk-pass']} "
-                          "[bold green]All files needed for compilation included in tarball"
-                          f"{f' at git revision {git_ref}' if self.args.git_rev else ''}[/]")
+                richprint(
+                    f"{INDI['chk-pass']} [bold green]All files needed for"
+                    " compilation included in tarball"
+                    f"{f' at git revision {git_ref}' if self.args.git_rev else ''}[/]"
+                )
 
         if chk_err:
             raise CheckFailError(miss_msg)
