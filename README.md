@@ -132,10 +132,9 @@ that are tracked by Git at _that revision_. This means:
 
 - Files ignored by `.gitignore` (e.g. `*.aux`, `*.log`, build artifacts, temp files)
   are automatically excluded, since they are not tracked by Git.
-- No re-compilation of TeX sources.
-- You don’t need to maintain a separate exclude list, the Git tree is the source
-  of truth.
-- The tarball will exactly reflect the state of the project at the chosen revision,
+- No re-compilation of TeX sources (unless using one of the `check` options).
+- No need to maintain a separate exclude list.
+- Output tarball reflects the exact state of the project at the chosen revision,
   ensuring reproducibility.
 - Unless the output tar filename is explicitly specified by the user (via
   `-o`/`--output`), a git short-ref or tag-id will be appended to it. For example,
@@ -166,8 +165,8 @@ indicative of the revision, to the final tar filename. This is useful, for
 instance, when you are close to a version for submission and tagging your git
 repository meaningfully; using TarTeX will produce tarballs with names like
 `foo-v0.9.tar.gz` and `bar-v1.0.tar.gz` for projects at git tags `v0.9` and
-`v1.0` respectively. Within the same project, this is also useful to tarball
-two different snapshots to send to your collaborators, for example, to extract
+`v1.0` respectively. Within the same project, this is also useful to tar
+two different snapshots to send to your collaborators, for instance, to extract
 and run [`latexdiff`](https://ctan.org/pkg/latexdiff) on them.
 
 The table below highlights the key differences:
