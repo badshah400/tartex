@@ -4,13 +4,18 @@
 
 ### Added
 
-- Add `--check` option to check if all files needed for recompiling project will be included in tarball
-- Add `--only-check` option to print a detailed report on missing, necessary, and unnecessary files to be included, without actually generating the tar file
+- Add `--check` option to check if all files needed for recompiling project will be included in tarball.
+- Add `--only-check` option to print a detailed report on missing, necessary, and unnecessary files to be included, without actually generating the tar file.
+- Make file pattern matching for `--add` or `--excl` options recursive.
 
 ### Fixed
 
-- Match file patterns recursively when add or exclude options are passed.
 - Do not exclude main tex file even if matched by `--excl` pattern.
+- Improved shell completions for --git-ref.
+- Avoid adding duplicate files when using git-rev.
+- Suppress unnecessary conflict dialog in `--list` mode.
+- Fix incorrect setting of working dir.
+- Better help messages, logging, and documentation all around.
 
 ## [0.8.0] 2025-08-26
 
