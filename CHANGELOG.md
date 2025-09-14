@@ -6,7 +6,7 @@
 
 - Add `--check` option to check if all files needed for recompiling project will be included in tarball.
 - Add `--only-check` option to print a detailed report on missing, necessary, and unnecessary files to be included, without actually generating the tar file.
-- Make file pattern matching for `--add` or `--excl` options recurse into all sub-directories starting from source directory.
+- Make file pattern matching for `--add` or `--excl` options recurse into sub-directories starting at source directory.
 
 ### Fixed
 
