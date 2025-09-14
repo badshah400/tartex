@@ -46,14 +46,12 @@ except ImportError:
 ## HELPER CLASSES AND FUNCTIONS ##
 ##################################
 
-class CheckFailError(Exception):
 
+class CheckFailError(Exception):
     """Exception raised when `--check` fails"""
 
     def __init__(self, msg=""):
-        """init CheckFail exception
-
-        """
+        """init CheckFail exception"""
         super().__init__(msg)
         self._msg = msg
 
@@ -73,8 +71,11 @@ class SetEncoder(json.JSONEncoder):
         """
         return sorted(o)
 
+
 def _check_err_missing(
-    _ref: Tarballer, _tgt: Tarballer, _indicator: str = "*",
+    _ref: Tarballer,
+    _tgt: Tarballer,
+    _indicator: str = "*",
 ) -> bool:
     """
     Compares objects included in _ref and _tgt and return True if the
@@ -83,14 +84,16 @@ def _check_err_missing(
     non_exist_files = [f for f in _ref.objects() if not f.exists()]
 
     if non_exist_files or (
-            _excluded := _ref.objects().difference(_tgt.objects())
+        _excluded := _ref.objects().difference(_tgt.objects())
     ):
         if non_exist_files:
             log.info(
                 "Files needed for compilation not found (deleted?): %s",
-                ", ".join([f.as_posix() for f in non_exist_files])
+                ", ".join([f.as_posix() for f in non_exist_files]),
             )
-            richprint("[bold red]Files needed for compilation missing (deleted?):[/]")
+            richprint(
+                "[bold red]Files needed for compilation missing (deleted?):[/]"
+            )
             for f in non_exist_files:
                 richprint(_indicator, end=" ")
                 print(f"{f!s}")
@@ -101,7 +104,7 @@ def _check_err_missing(
         if _excluded:
             log.debug(
                 "Files needed for compilation excluded from tarball: %s",
-                ", ".join([f.as_posix() for f in _excluded])
+                ", ".join([f.as_posix() for f in _excluded]),
             )
             richprint("[bold red]Files needed for compilation not included:[/]")
             for f in _excluded:
@@ -113,8 +116,11 @@ def _check_err_missing(
     else:
         return False
 
+
 def _check_warn_extra(
-    _ref: Tarballer, _tgt: Tarballer, _indicator: str = "*",
+    _ref: Tarballer,
+    _tgt: Tarballer,
+    _indicator: str = "*",
 ) -> bool:
     """
     Compares objects included in _ref and _tgt and return True if the
@@ -123,7 +129,7 @@ def _check_warn_extra(
     if _extra := _tgt.objects().difference(_ref.objects()):
         log.debug(
             "Files not essential to compilation added to tarball: %s",
-            ", ".join([f.as_posix() for f in _extra])
+            ", ".join([f.as_posix() for f in _extra]),
         )
         richprint("[yellow]Files not essential to compilation added:[/]")
         for f in _extra:
@@ -135,6 +141,7 @@ def _check_warn_extra(
         return True
     else:
         return False
+
 
 def _set_main_file(name: str) -> Union[Path, None]:
     """
@@ -162,6 +169,7 @@ def _set_main_file(name: str) -> Union[Path, None]:
 ################
 ## MAIN CLASS ##
 ################
+
 
 class TarTeX:
     """
@@ -459,7 +467,7 @@ class TarTeX:
         """
         bibs = set(
             [
-            f
+                f
                 for f in _tartex_tex_utils.bib_file(
                     self.main_file.with_suffix(".tex")
                 )
@@ -478,9 +486,7 @@ class TarTeX:
         return bibs
 
     def _add_user_files(self):
-        """Add user specified extra files to tarball
-
-        """
+        """Add user specified extra files to tarball"""
         _files = set()
         for f in _tartex_tex_utils.add_files(
             self.add_files, self.main_file.parent
@@ -537,7 +543,7 @@ class TarTeX:
                 with _git_cntxt:
                     with _pushd_src_dir:
                         self.check_files(not self.args.only_check)
-            except Exception as err:
+            except Exception:
                 if not self.args.only_check:
                     log.critical("Check failed, no tarball will be generated")
                 sys.exit(1)
@@ -561,7 +567,7 @@ class TarTeX:
                 with _pushd_src_dir:
                     log.info(
                         "Switched to TeX file source dir: %s",
-                        self.main_file.parent
+                        self.main_file.parent,
                     )
                     _ = self.input_files(tarball)
                     if self.args.list:
@@ -594,7 +600,7 @@ class TarTeX:
         INDI = {
             "req-miss": ":double_exclamation_mark-emoji: ",  # extra space req
             "not-need": ":warning-emoji: ",  # extra space req
-            "perfect":  ":heavy_check_mark-emoji: ",  # extra space req
+            "perfect": ":heavy_check_mark-emoji: ",  # extra space req
             "chk-fail": ":cross_mark-emoji:",
             "chk-pass": ":ok_button-emoji:",
         }
@@ -616,22 +622,28 @@ class TarTeX:
             # absolutely necessary files/streams as determined from a recompile
             deps, pkgs = self.input_files_from_recompile(ref_tar, minimal=True)
         except Exception as err:
-            log.critical("Latexmk failed to compile; check if all source files exist")
+            log.critical(
+                "Latexmk failed to compile; check if all source files exist"
+            )
             if not silent:
-                richprint(f"{INDI['req-miss']} Files need for compilation missing (deleted?)")
+                richprint(
+                    f"{INDI['req-miss']} Files need for compilation missing (deleted?)"
+                )
             raise CheckFailError from err
 
         # dummy target including all user specified additionals/exclusions
         dummy_tar = Tarballer(self.cwd, self.main_file, Path("dummy.tar"))
-        miss_msg = "Files needed for compilation missing or excluded from tarball"
+        miss_msg = (
+            "Files needed for compilation missing or excluded from tarball"
+        )
 
         if not self.args.git_rev:
             self.input_files(dummy_tar)
 
             # will return True if check fails
-            chk_err = _check_err_missing(ref_tar, dummy_tar, INDI['req-miss'])
+            chk_err = _check_err_missing(ref_tar, dummy_tar, INDI["req-miss"])
             if not silent:
-                _ = _check_warn_extra(ref_tar, dummy_tar, INDI['not-need'])
+                _ = _check_warn_extra(ref_tar, dummy_tar, INDI["not-need"])
 
         else:
             git_ref = self.args.git_rev or "HEAD"
@@ -639,14 +651,14 @@ class TarTeX:
             # (plus user additionals)
             self.input_files(dummy_tar)
 
-            chk_err = _check_err_missing(ref_tar, dummy_tar, INDI['req-miss'])
+            chk_err = _check_err_missing(ref_tar, dummy_tar, INDI["req-miss"])
             if not silent:
-                _ = _check_warn_extra(ref_tar, dummy_tar, INDI['not-need'])
+                _ = _check_warn_extra(ref_tar, dummy_tar, INDI["not-need"])
 
         if not silent:
             richprint("[green]Files needed for compilation to be included:[/]")
             for f in ref_tar.objects().intersection(dummy_tar.objects()):
-                richprint(INDI['perfect'], end=" ")
+                richprint(INDI["perfect"], end=" ")
                 print(f"{f!s}")
             else:
                 print()
