@@ -329,13 +329,15 @@ class TarTeX:
                 comm=f"Adding list of used LaTeX packages: {self.pkglist_name}",
             )
 
-    def input_files_from_git(self, tarf: Tarballer):
+    def input_files_from_git(
+        self, tarf: Tarballer
+    ) -> tuple[set[Path], dict[str, set[str]]]:
         """Get input files from `git ls-tree <REVISION>`
         :returns: TODO
 
         """
         _deps = self.GR.ls_tree_files()
-        _pkgs: dict[str, set] = {}
+        _pkgs: dict[str, set[str]] = {}
         # Process the --excl files
         tarf.app_files(*_deps)
         tarf.set_mtime(self.GR.mtime())
@@ -360,8 +362,8 @@ class TarTeX:
         return _deps, _pkgs
 
     def input_files_from_recompile(
-            self, tarf: Tarballer, minimal: bool = False
-    ) -> (set[Path], dict[str, str]):
+        self, tarf: Tarballer, minimal: bool = False
+    ) -> tuple[set[Path], dict[str, set[str]]]:
         """
         Determines set of input files and list of LaTeX packages used by
         running explicit re-compilation of project in an out-of-tree temporary
@@ -375,8 +377,8 @@ class TarTeX:
         Returns tuple: (Set of Path objects representing input files, dict of
         LaTeX packages used for compilation)
         """
-        _deps: set = set()
-        _pkgs: dict[str, set] = {}
+        _deps: set[Path] = set()
+        _pkgs: dict[str, set[str]] = {}
         with TemporaryDirectory() as compile_dir:
             log.info(
                 "LaTeX recompile forced"
@@ -413,12 +415,14 @@ class TarTeX:
 
                 return _deps, _pkgs
 
-    def input_files_from_srcfls(self, _t: Tarballer):
+    def input_files_from_srcfls(
+        self, _t: Tarballer
+    ) -> tuple[set[Path], dict[str, set[str]]]:
         """
         Get input files from '.fls' in source dir
         """
-        _deps: set = set()
-        _pkgs: dict[str, set] = {}
+        _deps: set[Path] = set()
+        _pkgs: dict[str, set[str]] = {}
         fls_f = self.main_file.with_suffix(".fls")
         try:
             with open(fls_f, encoding="utf8") as f:
