@@ -68,7 +68,7 @@ Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 usage: tartex [OPTIONS] FILENAME
 
 Build a tarball including all source files needed to compile your LaTeX project
-(version 0.9.0).
+(version 0.10.0dev0).
 
 positional arguments:
   FILENAME                 input file name [.tex|.fls] (with/without file ext.)
@@ -177,7 +177,7 @@ The table below highlights the key differences:
 | **Uncommitted changes** | **Included**                        | **Ignored**                           |
 | **Reproducibility**   | Depends on current state              | Guaranteed (historical snapshot)      |
 | **Typical use cases** | Submitting latest draft, sharing with collaborators | Packaging for journal submission, archiving published versions |
-| **Command example**   | `tartex main.tex` → `main.tar.gz`    | `tartex main.tex --git-rev v1.2` → `main-v1.2.tar.gz` |
+| **Command example**   | `tartex main.tex` → `main.tar.gz`     | `tartex main.tex --git-rev v1.2` → `main-v1.2.tar.gz` |
 
 
 ## License
@@ -186,8 +186,11 @@ The table below highlights the key differences:
 
 ## Similar utilities
 
-* [bundledoc](https://ctan.org/tex-archive/support/bundledoc) is a post-processor for the `snapshot` package that bundles together all the classes, packages and files needed to build a given LaTeX document.
+* [bundledoc](https://ctan.org/tex-archive/support/bundledoc) is a
+  post-processor for the `snapshot` package that bundles together all the
+  classes, packages and files needed to build a given LaTeX document.
 
 ## Acknowledgment and AI usage disclosure
 
-Some features, like the `--git-rev` option — but **no actual code itself** — were motivated by discussions with [Gemini AI](https://gemini.google.com).
+Some features, like the `--git-rev` option — but **no actual code itself** —
+were motivated by discussions with [Gemini AI](https://gemini.google.com).
