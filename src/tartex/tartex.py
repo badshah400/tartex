@@ -18,11 +18,13 @@ from tempfile import TemporaryDirectory
 from typing import Union
 
 from tartex import _latex
+from tartex.__about__ import __appname__
 from tartex._parse_args import parse_args
 from tartex._git_rev import GitRev, git_checkout
 import tartex.utils.msg_utils as _tartex_msg_utils
 import tartex.utils.tex_utils as _tartex_tex_utils
 import tartex.utils.tar_utils as _tartex_tar_utils
+import tartex.utils.hash_utils as _tartex_hash_utils
 from tartex._tar import Tarballer
 
 try:
@@ -178,6 +180,7 @@ class TarTeX:
     """
 
     pkglist_name = "TeXPackages.json"
+    filehash_cache = f".{__appname__}.cache"
 
     def __init__(self, args):
         self.args = parse_args(args)
@@ -315,6 +318,10 @@ class TarTeX:
         else:
             deps, pkgs = self.input_files_from_srcfls(tarf)
 
+        _tartex_hash_utils.save_input_files_hash(
+            deps, Path(self.filehash_cache)
+        )
+
         if self.args.bib:
             tarf.app_files(*self._add_bib(pkgs))
 
@@ -431,6 +438,16 @@ class TarTeX:
         """
         _deps: set[Path] = set()
         _pkgs: dict[str, set[str]] = {}
+        if (_cf:=Path(self.filehash_cache)).is_file():
+            if _tartex_hash_utils.check_file_hash(_cf):
+                log.warning("No changes to input files, will use cached data")
+                with open(_cf, "r") as cache:
+                    _deps = json.load(cache).keys()
+                    _pkgs = {}
+                return _deps, _pkgs
+        else:
+            log.info("No cache file found")
+
         fls_f = self.main_file.with_suffix(".fls")
         try:
             with open(fls_f, encoding="utf8") as f:
