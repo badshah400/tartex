@@ -187,3 +187,7 @@ The table below highlights the key differences:
 ## Similar utilities
 
 * [bundledoc](https://ctan.org/tex-archive/support/bundledoc) is a post-processor for the `snapshot` package that bundles together all the classes, packages and files needed to build a given LaTeX document.
+
+## Acknowledgment and AI usage disclosure
+
+Some features, like the `--git-rev` option — but **no actual code itself** — were motivated by discussions with [Gemini AI](https://gemini.google.com).
