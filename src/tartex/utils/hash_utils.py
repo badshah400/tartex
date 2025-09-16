@@ -8,7 +8,6 @@
 import hashlib
 import json
 from pathlib import Path
-from typing import Union
 
 HASH_METHOD = hashlib.sha256
 
@@ -43,6 +42,3 @@ def check_file_hash(cache_file: Path) -> bool:
                 break
     else:
         return True
-
-    return file_hash == hash_from_cache
-    
