@@ -462,20 +462,22 @@ class TarTeX:
     def input_files_from_cache(
             self,
             _t: Tarballer
-    ) -> tuple[set[Path], dict[str, set[Path]]]:
+    ) -> tuple[set[Path], dict[str, set[str]]]:
         if (_cf:=Path(self.filehash_cache)).is_file():
+            _deps: set[Path] = set()
             if _tartex_hash_utils.check_file_hash(_cf):
                 log.info("No changes to input files, will use cached data")
                 with open(_cf, "r") as cache:
                     _j = json.load(cache)
-                    _deps = _j["input_files"].keys()
+                    _deps.update([Path(f) for f in _j["input_files"].keys()])
                     _pkgs = _j["packages"]
                     for _d in _deps:
                         if not _d.is_file():
                             return self.input_files_from_recompile(_t)
+                _t.app_files(*_deps)
                 return _deps, _pkgs
             else:
-                log.info("Input files content changed, recompiling...")
+                log.info("Input files content changed or missing, recompiling...")
         else:
             log.info("No cache file found")
 
