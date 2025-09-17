@@ -430,15 +430,6 @@ class TarTeX:
         """
         _deps: set[Path] = set()
         _pkgs: dict[str, set[str]] = {}
-        if (_cf:=Path(self.filehash_cache)).is_file():
-            if _tartex_hash_utils.check_file_hash(_cf):
-                log.warning("No changes to input files, will use cached data")
-                with open(_cf, "r") as cache:
-                    _deps = json.load(cache).keys()
-                    _pkgs = {}
-                return _deps, _pkgs
-        else:
-            log.info("No cache file found")
 
         fls_f = self.main_file.with_suffix(".fls")
         try:
@@ -466,6 +457,29 @@ class TarTeX:
         if self.args.with_pdf:
             self._add_pdf_stream(self.main_file.with_suffix(".pdf"), _t)
         return _deps, _pkgs
+
+    def input_files_from_cache(
+            self,
+            _t: Tarballer
+    ) -> tuple[set[Path], dict[str, set[Path]]]:
+        if (_cf:=Path(self.filehash_cache)).is_file():
+            if _tartex_hash_utils.check_file_hash(_cf):
+                log.info("No changes to input files, will use cached data")
+                with open(_cf, "r") as cache:
+                    _j = json.load(cache)
+                    _deps = _j["input_files"].keys()
+                    _pkgs = _j["packages"]
+                    for _d in _deps:
+                        if not _d.is_file():
+                            return self.input_files_from_recompile(_t)
+                return _deps, _pkgs
+            else:
+                log.info("Input files content changed, recompiling...")
+        else:
+            log.info("No cache file found")
+
+        return self.input_files_from_recompile(_t)
+
 
     def _add_bib(self, _pkgs: dict[str, set[str]]):
         """Add bib and bst files to tarball; add bst filename to package list
