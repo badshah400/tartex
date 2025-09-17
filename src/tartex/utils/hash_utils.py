@@ -9,14 +9,15 @@ import hashlib
 import json
 import logging as log
 from pathlib import Path
-from .tex_utils import SetEncoder
+from .tex_utils import SetEncoder, SUPP_REQ
 
 HASH_METHOD = hashlib.sha256
 
 def save_input_files_hash(
     cache_file: Path,
     files: set[Path],
-    packages: dict[str, set[Path]],
+    streams: set[str],
+    packages: dict[str, set[str]],
 ) -> None:
     hash_dict: dict[str, str] = {}
     wdir = cache_file.parent
@@ -31,7 +32,7 @@ def save_input_files_hash(
         except FileNotFoundError:
             continue
 
-    _cache = {"input_files": hash_dict, "packages": packages}
+    _cache = {"input_files": hash_dict, "streams": streams, "packages": packages}
     with open(cache_file, mode="w") as f:
         json.dump(
             _cache,
@@ -40,6 +41,7 @@ def save_input_files_hash(
             indent=4,
             ensure_ascii=True,
         )
+    return
 
 def check_file_hash(cache_file: Path) -> bool:
     try:
@@ -47,6 +49,13 @@ def check_file_hash(cache_file: Path) -> bool:
             cache_dict = json.load(cf)
     except Exception:
         return False
+
+    # if any supplementary files are found as `streams` in the cache file, this
+    # implies they are missing from the project dir and a recompile is
+    # automatically required (otherwise file will be missing from tarball too)
+    for supp in cache_dict["streams"]:
+        if Path(supp).suffix.lstrip(".") in SUPP_REQ:
+            return False
 
     for filename in cache_dict["input_files"].keys():
         try:

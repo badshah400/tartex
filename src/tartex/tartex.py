@@ -308,6 +308,7 @@ class TarTeX:
         _tartex_hash_utils.save_input_files_hash(
             Path(self.filehash_cache),
             deps,
+            tarf.streams(),
             pkgs
         )
 
