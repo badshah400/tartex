@@ -61,19 +61,6 @@ class CheckFailError(Exception):
         return f"Check failed: {self._msg}"
 
 
-class SetEncoder(json.JSONEncoder):
-    """A class to allow JSONEncoder to interpret a set as a list"""
-
-    def default(self, o: set) -> list:
-        """
-        Convert o (a set) into a sorted list
-
-        :o: set
-        :return: list
-        """
-        return sorted(o)
-
-
 def _check_err_missing(
     _ref: Tarballer,
     _tgt: Tarballer,
@@ -316,10 +303,12 @@ class TarTeX:
         # If .fls exists, this assumes that all INPUT files recorded in it
         # are also included in source dir
         else:
-            deps, pkgs = self.input_files_from_srcfls(tarf)
+            deps, pkgs = self.input_files_from_cache(tarf)
 
         _tartex_hash_utils.save_input_files_hash(
-            deps, Path(self.filehash_cache)
+            Path(self.filehash_cache),
+            deps,
+            pkgs
         )
 
         if self.args.bib:
@@ -337,7 +326,10 @@ class TarTeX:
                 ", ".join(sorted(pkgs["System"])),
             )
 
-            self.pkglist = json.dumps(pkgs, cls=SetEncoder).encode("utf8")
+            self.pkglist = json.dumps(
+                pkgs,
+                cls=_tartex_tex_utils.SetEncoder
+            ).encode("utf8")
             tarf.app_stream(
                 self.pkglist_name,
                 self.pkglist,

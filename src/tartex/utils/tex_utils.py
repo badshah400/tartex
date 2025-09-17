@@ -6,7 +6,7 @@
 
 from pathlib import Path
 from typing import Union
-
+import json
 
 import re
 
@@ -74,3 +74,15 @@ def bib_file(tex_fname: Path) -> list[Union[Path, None]]:
         bst_name += ".bst" if bst_name.split(".")[-1] != ".bst" else ""
 
     return [Path(f) for f in [bib_name, bst_name] if Path(f).is_file()]
+
+class SetEncoder(json.JSONEncoder):
+    """A class to allow JSONEncoder to interpret a set as a list"""
+
+    def default(self, o: set) -> list:
+        """
+        Convert o (a set) into a sorted list
+
+        :o: set
+        :return: list
+        """
+        return sorted(o)
