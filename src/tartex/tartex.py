@@ -287,6 +287,7 @@ class TarTeX:
         """
 
         pkgs: dict[str, set[str]] = {}
+        update_cache: bool = True
         if self.args.git_rev:
             log.debug(
                 "Using `git ls-tree` to determine files to include in tarball"
@@ -304,14 +305,15 @@ class TarTeX:
         # If .fls exists, this assumes that all INPUT files recorded in it
         # are also included in source dir
         else:
-            deps, pkgs = self.input_files_from_cache(tarf)
+            deps, pkgs, update_cache = self.input_files_from_cache(tarf)
 
-        _tartex_hash_utils.save_input_files_hash(
-            Path(self.filehash_cache),
-            deps,
-            tarf.streams(),
-            pkgs
-        )
+        if update_cache:
+            _tartex_hash_utils.save_input_files_hash(
+                Path(self.filehash_cache),
+                deps,
+                tarf.streams(),
+                pkgs
+            )
 
         if self.args.bib:
             tarf.app_files(*self._add_bib(pkgs))
@@ -463,7 +465,7 @@ class TarTeX:
     def input_files_from_cache(
             self,
             _t: Tarballer
-    ) -> tuple[set[Path], dict[str, set[str]]]:
+    ) -> tuple[set[Path], dict[str, set[str]], bool]:
         if (_cf:=Path(self.filehash_cache)).is_file():
             _deps: set[Path] = set()
             if _tartex_hash_utils.check_file_hash(_cf):
@@ -476,13 +478,13 @@ class TarTeX:
                         if not _d.is_file():
                             return self.input_files_from_recompile(_t)
                 _t.app_files(*_deps)
-                return _deps, _pkgs
+                return _deps, _pkgs, False
             else:
                 log.info("Input files content changed or missing, recompiling...")
         else:
             log.info("No cache file found")
 
-        return self.input_files_from_recompile(_t)
+        return *self.input_files_from_recompile(_t), True
 
 
     def _add_bib(self, _pkgs: dict[str, set[str]]):

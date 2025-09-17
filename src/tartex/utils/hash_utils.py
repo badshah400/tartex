@@ -41,6 +41,7 @@ def save_input_files_hash(
             indent=4,
             ensure_ascii=True,
         )
+    log.info("Saved input dependencies to cache file: %s", cache_file)
     return
 
 def check_file_hash(cache_file: Path) -> bool:
