@@ -56,7 +56,10 @@ def check_file_hash(cache_file: Path) -> bool:
     # automatically required (otherwise file will be missing from tarball too)
     for supp in cache_dict["streams"]:
         if Path(supp).suffix.lstrip(".") in SUPP_REQ:
-            return False
+            log.warning(
+                "Missing supplementary file %s, try recompile ('-F')",
+                supp
+            )
 
     for filename in cache_dict["input_files"].keys():
         try:

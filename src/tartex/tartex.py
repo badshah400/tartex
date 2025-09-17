@@ -476,7 +476,8 @@ class TarTeX:
                     _pkgs = _j["packages"]
                     for _d in _deps:
                         if not _d.is_file():
-                            return self.input_files_from_recompile(_t)
+                            log.warning("Missing input file %s", _d.name)
+                            _deps.discard(_d)
                 _t.app_files(*_deps)
                 return _deps, _pkgs, False
             else:
