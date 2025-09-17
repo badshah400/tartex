@@ -167,7 +167,6 @@ class TarTeX:
     """
 
     pkglist_name = "TeXPackages.json"
-    filehash_cache = f".{__appname__}.cache"
 
     def __init__(self, args):
         self.args = parse_args(args)
@@ -185,6 +184,8 @@ class TarTeX:
         except FileNotFoundError as err:
             log.critical(f"Error: {err}")
             sys.exit(1)
+
+        self.filehash_cache = f".{self.main_file.stem}.{__appname__}.cache"
 
         if self.args.git_rev:
             try:
@@ -285,7 +286,7 @@ class TarTeX:
         source dir.
         """
 
-        pkgs: dict[str, set] = {}
+        pkgs: dict[str, set[str]] = {}
         if self.args.git_rev:
             log.debug(
                 "Using `git ls-tree` to determine files to include in tarball"
