@@ -7,6 +7,7 @@
 
 import hashlib
 import json
+import logging as log
 from pathlib import Path
 from .tex_utils import SetEncoder
 
@@ -47,10 +48,13 @@ def check_file_hash(cache_file: Path) -> bool:
     except Exception:
         return False
 
-    for filename in cache_dict.keys():
-        with open(filename, mode="rb") as _f:
-            if cache_dict["input_files"][filename] != hashlib.sha256(_f.read()).hexdigest():
-                return False
-                break
+    for filename in cache_dict["input_files"].keys():
+        try:
+            with open(filename, mode="rb") as _f:
+                if cache_dict["input_files"][filename] != hashlib.sha256(_f.read()).hexdigest():
+                    return False
+        except FileNotFoundError as err:
+            log.warn(err)
+            return False
     else:
         return True
