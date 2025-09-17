@@ -474,10 +474,12 @@ class TarTeX:
                     _j = json.load(cache)
                     _deps.update([Path(f) for f in _j["input_files"].keys()])
                     _pkgs = _j["packages"]
+                    discard = set()
                     for _d in _deps:
                         if not _d.is_file():
                             log.warning("Missing input file %s", _d.name)
-                            _deps.discard(_d)
+                            discard.add(_d)
+                    _deps = _deps.difference(discard)
                 _t.app_files(*_deps)
                 return _deps, _pkgs, False
             else:
