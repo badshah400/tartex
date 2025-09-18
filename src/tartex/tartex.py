@@ -767,9 +767,9 @@ class TarTeX:
                 log.debug("Check succeeded")
                 richprint("[green4]Check success[/]")
             if missing_supp:
-                # log INFO if force recompiling, WARN otherwise
+                # log INFO if force recompiling, WARNING otherwise
                 log.log(
-                    log.INFO if self.args.force_recompile else log.WARN,
+                    log.INFO if self.args.force_recompile else log.WARNING,
                     "Missing supplementary file(s): %s",
                     ", ".join([str(_s) for _s in missing_supp])
                 )
