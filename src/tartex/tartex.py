@@ -494,6 +494,8 @@ class TarTeX:
                             missing.add(_d)
                     _deps = _deps.difference(missing)
                 _t.app_files(*_deps)
+                if self.args.with_pdf:
+                    self._add_pdf_stream(self.main_file.with_suffix(".pdf"), _t)
                 return _deps, _pkgs
             else:
                 log.info(
