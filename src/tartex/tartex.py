@@ -13,7 +13,11 @@ import re
 import sys
 from contextlib import nullcontext
 from pathlib import Path
-from rich import print as richprint
+from rich import (
+    print as richprint,
+    logging as richlog,
+    highlighter,
+)
 from tempfile import TemporaryDirectory
 from typing import Union
 
@@ -177,13 +181,22 @@ class TarTeX:
 
     def __init__(self, args):
         self.args = parse_args(args)
+        log_level = (
+            (log.INFO // self.args.verbose)
+            if self.args.verbose > 0
+            else log.WARN
+        )
         log.basicConfig(
-            format="[%(levelname)s] %(message)s",
-            level=(
-                (log.INFO // self.args.verbose)
-                if self.args.verbose > 0
-                else log.WARN
-            ),
+            format="%(message)s",
+            level=log_level,
+            handlers=[
+                richlog.RichHandler(
+                    level=log_level,
+                    show_time=False,
+                    show_path=False,
+                    highlighter=highlighter.NullHighlighter(),
+                )
+            ],
         )
         self.cwd = Path.cwd()
         try:
@@ -668,7 +681,7 @@ class TarTeX:
         log.debug("Working in `check` mode; no tarball will be produced")
         log.debug("Checking whether target tarball contents will recompile...")
         richprint(
-            "Checking whether target tarball contents will recompile...",
+            "[bright_black]Checking whether target tarball contents will recompile...[/]",
         )
 
         # Rich print indicators for missing or superfluous file messages
@@ -752,11 +765,14 @@ class TarTeX:
                 _ = _check_warn_extra(ref_tar, dummy_tar, INDI["not-need"])
 
         if silent:
-            if not chk_err:
+            if chk_err:
+                log.debug("Check failed")
+                richprint("[red]Check failed[/]")
+            else:
                 log.debug("Check succeeded")
-                richprint("[green4]Success[/]")
+                richprint("[green4]Check success[/]")
         else:
-            richprint("[green]Files needed for compilation to be included:[/]")
+            richprint("[green4]Files needed for compilation to be included:[/]")
             for f in ref_tar.objects().intersection(dummy_tar.objects()):
                 richprint(INDI["perfect"], end=" ")
                 print(f"{f!s}")
@@ -768,7 +784,7 @@ class TarTeX:
             else:
                 log.info("All files needed for compilation are present")
                 richprint(
-                    f"{INDI['chk-pass']} [bold green]All files needed for"
+                    f"{INDI['chk-pass']} [bold green4]All files needed for"
                     " compilation included in tarball"
                     f"{f' at git revision {git_ref}' if self.args.git_rev else ''}[/]"
                 )
