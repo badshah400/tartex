@@ -145,7 +145,7 @@ class Tarballer:
                         _tar_add_file(tar_obj, dep)
                     except FileNotFoundError:
                         log.warning(
-                            "Skipping INPUT file '%s', not found amongst sources; try"
+                            "Skip missing INPUT file '%s'; try"
                             " forcing a LaTeX recompile ('-F').",
                             dep,
                         )
