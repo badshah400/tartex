@@ -287,7 +287,6 @@ class TarTeX:
         """
 
         pkgs: dict[str, set[str]] = {}
-        update_cache: bool = True
         if self.args.git_rev:
             log.debug(
                 "Using `git ls-tree` to determine files to include in tarball"
@@ -309,15 +308,7 @@ class TarTeX:
             deps, pkgs = self.input_files_from_srcfls(tarf)
 
         else:
-            deps, pkgs, update_cache = self.input_files_from_cache(tarf)
-
-        if update_cache:
-            _tartex_hash_utils.save_input_files_hash(
-                Path(self.filehash_cache),
-                deps,
-                tarf.streams(),
-                pkgs
-            )
+            deps, pkgs = self.input_files_from_cache(tarf)
 
         if self.args.bib:
             tarf.app_files(*self._add_bib(pkgs))
@@ -428,6 +419,12 @@ class TarTeX:
                     if self.args.with_pdf:
                         self._add_pdf_stream(fls_path.with_suffix(".pdf"), tarf)
 
+                _tartex_hash_utils.save_input_files_hash(
+                    Path(self.filehash_cache),
+                    _deps,
+                    tarf.streams(),
+                    _pkgs
+                )
                 return _deps, _pkgs
 
     def input_files_from_srcfls(
@@ -469,9 +466,10 @@ class TarTeX:
     def input_files_from_cache(
             self,
             _t: Tarballer
-    ) -> tuple[set[Path], dict[str, set[str]], bool]:
+    ) -> tuple[set[Path], dict[str, set[str]]]:
         if (_cf:=Path(self.filehash_cache)).is_file():
             _deps: set[Path] = set()
+            _pkgs: dict[str, set[str]] = {}
             if _tartex_hash_utils.check_file_hash(_cf):
                 log.info("No changes to input files, will use cached data")
                 with open(_cf, "r") as cache:
@@ -481,17 +479,20 @@ class TarTeX:
                     missing = set()  # Missing files to discard
                     for _d in _deps:
                         if not _d.is_file():
-                            log.warning("Missing input file %s", _d.name)
+                            log.warning(
+                                "Missing input file %s, try recompile ('-F')",
+                                _d.name
+                            )
                             missing.add(_d)
                     _deps = _deps.difference(missing)
                 _t.app_files(*_deps)
-                return _deps, _pkgs, False
+                return _deps, _pkgs
             else:
                 log.info("Input files content changed or missing, recompiling...")
         else:
             log.info("No cache file found")
 
-        return *self.input_files_from_recompile(_t), True
+        return self.input_files_from_recompile(_t)
 
 
     def _add_bib(self, _pkgs: dict[str, set[str]]):
