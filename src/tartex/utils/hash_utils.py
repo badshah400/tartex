@@ -13,6 +13,7 @@ from .tex_utils import SetEncoder, SUPP_REQ
 
 HASH_METHOD = hashlib.sha256
 
+
 def save_input_files_hash(
     cache_file: Path,
     files: set[Path],
@@ -32,7 +33,11 @@ def save_input_files_hash(
         except FileNotFoundError:
             continue
 
-    _cache = {"input_files": hash_dict, "streams": streams, "packages": packages}
+    _cache = {
+        "input_files": hash_dict,
+        "streams": streams,
+        "packages": packages,
+    }
     with open(cache_file, mode="w") as f:
         json.dump(
             _cache,
@@ -43,6 +48,7 @@ def save_input_files_hash(
         )
     log.info("Saved input dependencies to cache file: %s", cache_file)
     return
+
 
 def check_file_hash(cache_file: Path) -> bool:
     try:
@@ -57,14 +63,16 @@ def check_file_hash(cache_file: Path) -> bool:
     for supp in cache_dict["streams"]:
         if Path(supp).suffix.lstrip(".") in SUPP_REQ:
             log.warning(
-                "Missing supplementary file %s, try recompile ('-F')",
-                supp
+                "Missing supplementary file %s, try recompile ('-F')", supp
             )
 
     for filename in cache_dict["input_files"].keys():
         try:
             with open(filename, mode="rb") as _f:
-                if cache_dict["input_files"][filename] != hashlib.sha256(_f.read()).hexdigest():
+                if (
+                    cache_dict["input_files"][filename]
+                    != hashlib.sha256(_f.read()).hexdigest()
+                ):
                     return False
         except FileNotFoundError as err:
             log.warn(err)

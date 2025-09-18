@@ -326,8 +326,7 @@ class TarTeX:
             )
 
             self.pkglist = json.dumps(
-                pkgs,
-                cls=_tartex_tex_utils.SetEncoder
+                pkgs, cls=_tartex_tex_utils.SetEncoder
             ).encode("utf8")
             tarf.app_stream(
                 self.pkglist_name,
@@ -420,10 +419,7 @@ class TarTeX:
                         self._add_pdf_stream(fls_path.with_suffix(".pdf"), tarf)
 
                 _tartex_hash_utils.save_input_files_hash(
-                    Path(self.filehash_cache),
-                    _deps,
-                    tarf.streams(),
-                    _pkgs
+                    Path(self.filehash_cache), _deps, tarf.streams(), _pkgs
                 )
                 return _deps, _pkgs
 
@@ -464,10 +460,9 @@ class TarTeX:
         return _deps, _pkgs
 
     def input_files_from_cache(
-            self,
-            _t: Tarballer
+        self, _t: Tarballer
     ) -> tuple[set[Path], dict[str, set[str]]]:
-        if (_cf:=Path(self.filehash_cache)).is_file():
+        if (_cf := Path(self.filehash_cache)).is_file():
             _deps: set[Path] = set()
             _pkgs: dict[str, set[str]] = {}
             if _tartex_hash_utils.check_file_hash(_cf):
@@ -481,19 +476,20 @@ class TarTeX:
                         if not _d.is_file():
                             log.warning(
                                 "Missing input file %s, try recompile ('-F')",
-                                _d.name
+                                _d.name,
                             )
                             missing.add(_d)
                     _deps = _deps.difference(missing)
                 _t.app_files(*_deps)
                 return _deps, _pkgs
             else:
-                log.info("Input files content changed or missing, recompiling...")
+                log.info(
+                    "Input files content changed or missing, recompiling..."
+                )
         else:
             log.info("No cache file found")
 
         return self.input_files_from_recompile(_t)
-
 
     def _add_bib(self, _pkgs: dict[str, set[str]]):
         """Add bib and bst files to tarball; add bst filename to package list
