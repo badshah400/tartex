@@ -58,11 +58,11 @@ def check_file_hash(cache_file: Path) -> bool:
         return False
 
     # if any supplementary files are found as `streams` in the cache file, this
-    # implies they are missing from the project dir and a recompile is
-    # automatically required (otherwise file will be missing from tarball too)
+    # implies they are missing from the project dir and a recompile may be
+    # required (otherwise file will be missing from tarball too). Log info.
     for supp in cache_dict["streams"]:
         if Path(supp).suffix.lstrip(".") in SUPP_REQ:
-            log.warning(
+            log.info(
                 "Missing supplementary file %s, try recompile ('-F')", supp
             )
 

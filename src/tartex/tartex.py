@@ -110,7 +110,7 @@ def _check_err_missing(
         return True if len(non_exist_files.union(excluded)) > 0 else False
     else:
         if _sf := supp_files.intersection(_tgt.objects()):
-            log.warn(
+            log.info(
                 "Supplementary file(s) missing from project dir: %s",
                 ", ".join([str(_f) for _f in _sf])
             )
