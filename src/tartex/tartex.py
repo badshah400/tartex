@@ -659,7 +659,10 @@ class TarTeX:
         """
 
         log.debug("Working in `check` mode; no tarball will be produced")
-        log.info("Checking whether target tarball contents will recompile...")
+        log.debug("Checking whether target tarball contents will recompile...")
+        richprint(
+            "Checking whether target tarball contents will recompile...",
+        )
 
         # Rich print indicators for missing or superfluous file messages
         INDI = {
@@ -724,7 +727,8 @@ class TarTeX:
 
         if silent:
             if not chk_err:
-                log.info("Check succeeded")
+                log.debug("Check succeeded")
+                richprint("[green3]Success[/]")
         else:
             richprint("[green]Files needed for compilation to be included:[/]")
             for f in ref_tar.objects().intersection(dummy_tar.objects()):
