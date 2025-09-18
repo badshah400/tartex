@@ -764,7 +764,7 @@ class TarTeX:
                 print()
 
             if chk_err:
-                richprint(f"{INDI['chk-fail']} [red3]{miss_msg}[/]")
+                richprint(f"{INDI['chk-fail']} [red]{miss_msg}[/]")
             else:
                 log.info("All files needed for compilation are present")
                 richprint(
