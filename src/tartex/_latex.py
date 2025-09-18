@@ -26,7 +26,7 @@ FONT_PUBLIC = re.compile(r"/public/.*/")
 
 
 def run_latexmk(
-    filename, mode, compdir, timeout=300
+    filename, mode, compdir, timeout=300, silent: bool = False
 ):
     """Helper function to actually compile the latex file in a tmpdir"""
     latexmk_bin = shutil.which("latexmk")
@@ -74,9 +74,10 @@ def run_latexmk(
         log.error("Latexmk command used was: `%s`", " ".join(latexmk_cmd))
         raise err
 
-    log.info(
-        "LaTeX project successfully compiled with: %s", " ".join(latexmk_cmd)
-    )
+    if not silent:
+        log.info(
+            "LaTeX project successfully compiled with: %s", " ".join(latexmk_cmd)
+        )
     fls_path = Path(compdir) / f"{filename.stem}.fls"
     log.debug("%s generated", fls_path.as_posix())
     return fls_path

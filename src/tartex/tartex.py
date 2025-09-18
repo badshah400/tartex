@@ -273,7 +273,7 @@ class TarTeX:
 
         self.pkglist = None
 
-    def input_files(self, tarf: Tarballer) -> None:
+    def input_files(self, tarf: Tarballer, silent: bool = False) -> None:
         """
         Returns non-system input files needed to compile the main tex file.
 
@@ -291,7 +291,7 @@ class TarTeX:
             log.debug(
                 "Using `git ls-tree` to determine files to include in tarball"
             )
-            deps, pkgs = self.input_files_from_git(tarf)
+            deps, pkgs = self.input_files_from_git(tarf, silent)
 
         # When "main file" is ".tex" and either cache file is found missing or
         # recompile has been forced by user option `--force-recompile`
@@ -299,16 +299,16 @@ class TarTeX:
             not self.main_file.with_suffix(".fls").exists()
             or self.args.force_recompile
         ):
-            deps, pkgs = self.input_files_from_recompile(tarf)
+            deps, pkgs = self.input_files_from_recompile(tarf, silent)
 
         # If .fls is the user supplied "main file", this assumes that all INPUT
         # files recorded in it are also included in source dir and skips any
         # missing ones
         elif self.main_file.suffix == ".fls":
-            deps, pkgs = self.input_files_from_srcfls(tarf)
+            deps, pkgs = self.input_files_from_srcfls(tarf, silent)
 
         else:
-            deps, pkgs = self.input_files_from_cache(tarf)
+            deps, pkgs = self.input_files_from_cache(tarf, silent)
 
         if self.args.bib:
             tarf.app_files(*self._add_bib(pkgs))
@@ -335,7 +335,7 @@ class TarTeX:
             )
 
     def input_files_from_git(
-        self, tarf: Tarballer
+        self, tarf: Tarballer, silent: bool = False
     ) -> tuple[set[Path], dict[str, set[str]]]:
         """Get input files from `git ls-tree <REVISION>`
         :returns: TODO
@@ -357,17 +357,22 @@ class TarTeX:
                         sty_files=self.args.packages,
                     )
             except FileNotFoundError:
-                log.warn(
-                    "Missing .fls file in source dir; %s will not be saved",
-                    self.pkglist_name,
-                )
+                if not silent:
+                    log.warn(
+                        "Missing .fls file in source dir; %s will not be saved",
+                        self.pkglist_name,
+                    )
                 self.args.packages = False
             except Exception as err:
                 raise err
         return _deps, _pkgs
 
     def input_files_from_recompile(
-        self, tarf: Tarballer, minimal: bool = False, cache_update: bool = False
+        self,
+        tarf: Tarballer,
+        minimal: bool = False,
+        cache_update: bool = False,
+        silent: bool = False
     ) -> tuple[set[Path], dict[str, set[str]]]:
         """
         Determines set of input files and list of LaTeX packages used by
@@ -385,15 +390,17 @@ class TarTeX:
         _deps: set[Path] = set()
         _pkgs: dict[str, set[str]] = {}
         with TemporaryDirectory() as compile_dir:
-            log.info(
-                f"LaTeX recompile {'forced' if self.args.force_recompile else 'required'}"
-            )
-            log.info("LaTeX compile directory: %s", compile_dir)
+            if not silent:
+                log.info(
+                    f"LaTeX recompile {'forced' if self.args.force_recompile else 'required'}"
+                )
+                log.info("LaTeX compile directory: %s", compile_dir)
             try:
                 fls_path = _latex.run_latexmk(
                     self.main_file.with_suffix(".tex"),
                     self.force_tex,
                     compile_dir,
+                    silent=silent,
                 )
             except Exception as e:
                 raise e
@@ -422,7 +429,7 @@ class TarTeX:
                 return _deps, _pkgs
 
     def input_files_from_srcfls(
-        self, _t: Tarballer
+        self, _t: Tarballer, silent: bool = False
     ) -> tuple[set[Path], dict[str, set[str]]]:
         """
         Get input files from '.fls' in source dir
@@ -442,10 +449,11 @@ class TarTeX:
 
         except FileNotFoundError:
             if self.args.packages:
-                log.warn(
-                    "Cannot generate list of packages due to missing %s file",
-                    fls_f,
-                )
+                if not silent:
+                    log.warn(
+                        "Cannot generate list of packages due to missing %s file",
+                        fls_f,
+                    )
                 self.args.packages = False
 
         except Exception as err:
@@ -458,7 +466,7 @@ class TarTeX:
         return _deps, _pkgs
 
     def input_files_from_cache(
-        self, _t: Tarballer
+        self, _t: Tarballer, silent: bool = False
     ) -> tuple[set[Path], dict[str, set[str]]]:
         """
         Determine input files based on cache data:
@@ -476,7 +484,8 @@ class TarTeX:
             _deps: set[Path] = set()
             _pkgs: dict[str, set[str]] = {}
             if _tartex_hash_utils.check_file_hash(_cf):
-                log.info("No changes to input files, using cached data")
+                if not silent:
+                    log.info("No changes to input files, using cached data")
                 with open(_cf, "r") as cache:
                     _j = json.load(cache)
                     _deps.update([Path(f) for f in _j["input_files"].keys()])
@@ -492,14 +501,18 @@ class TarTeX:
                     _deps = _deps.difference(missing)
                 _t.app_files(*_deps)
                 if self.args.with_pdf:
-                    self._add_pdf_stream(self.main_file.with_suffix(".pdf"), _t)
+                    self._add_pdf_stream(
+                        self.main_file.with_suffix(".pdf"), _t, silent
+                    )
                 return _deps, _pkgs
             else:
-                log.info(
-                    "Input files content changed or missing, recompiling..."
-                )
+                if not silent:
+                    log.info(
+                        "Input files content changed or missing, recompiling..."
+                    )
         else:
-            log.info("No cache file found")
+            if not silent:
+                log.info("No cache file found")
 
         return self.input_files_from_recompile(_t, cache_update=True)
 
@@ -541,11 +554,14 @@ class TarTeX:
             log.info("Add user specified file: %s", f_relpath)
         return _files
 
-    def _add_pdf_stream(self, _file: Path, _t: Tarballer):
+    def _add_pdf_stream(
+            self, _file: Path, _t: Tarballer, silent: bool = False
+    ):
         """Add pdf as stream to Tarballer object
 
         :_file: path to pdf file
         :_t: Tarballer object to append pdf stream to
+        :silent: suppress logs when `True` (bool)
         :returns: None
 
         """
@@ -554,10 +570,11 @@ class TarTeX:
                 self.pdf_stream = f.read()
                 _t.app_stream(_file.name, self.pdf_stream)
         except FileNotFoundError:
-            log.warning(
-                "Skipping pdf not found: %s",
-                f"{_file.relative_to(self.main_file.parent)}"
-            )
+            if not silent:
+                log.warning(
+                    "Skipping pdf not found: %s",
+                    f"{_file.relative_to(self.main_file.parent)}"
+                )
             self.args.with_pdf = False
 
     def _add_supplement_streams(self, _p: Path, _dep: set[Path], _t: Tarballer):
@@ -668,7 +685,9 @@ class TarTeX:
         try:
             # passing `minimal=True` ensures tarballer obj includes only the
             # absolutely necessary files/streams as determined from a recompile
-            deps, pkgs = self.input_files_from_recompile(ref_tar, minimal=True)
+            deps, pkgs = self.input_files_from_recompile(
+                ref_tar, minimal=True, silent=silent
+            )
         except Exception as err:
             log.critical(
                 "Latexmk failed to compile; check if all source files exist"
@@ -686,7 +705,7 @@ class TarTeX:
         )
 
         if not self.args.git_rev:
-            self.input_files(dummy_tar)
+            self.input_files(dummy_tar, silent)
 
             # will return True if check fails
             chk_err = _check_err_missing(ref_tar, dummy_tar, INDI["req-miss"])
@@ -697,7 +716,7 @@ class TarTeX:
             git_ref = self.args.git_rev or "HEAD"
             # Dummy target; will be populated by contents from `git ls-tree`
             # (plus user additionals)
-            self.input_files(dummy_tar)
+            self.input_files(dummy_tar, silent)
 
             chk_err = _check_err_missing(ref_tar, dummy_tar, INDI["req-miss"])
             if not silent:
