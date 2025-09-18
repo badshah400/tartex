@@ -191,7 +191,6 @@ class TarTeX:
             level=log_level,
             handlers=[
                 richlog.RichHandler(
-                    level=log_level,
                     show_time=False,
                     show_path=False,
                     highlighter=highlighter.NullHighlighter(),
