@@ -91,9 +91,6 @@ def _check_err_missing(
             for f in non_exist_files:
                 richprint(indicator, end=" ")
                 print(f"{f!s}")
-            else:
-                # No blank line needed at end of loop here
-                pass
 
         if excluded:
             log.debug(
@@ -104,10 +101,9 @@ def _check_err_missing(
             for f in excluded:
                 richprint(indicator, end=" ")
                 print(f"{f!s}")
-            else:
-                print()
 
-        return True if len(non_exist_files.union(excluded)) > 0 else False
+        print()  # blank line to section off errors
+        return True
     else:
         if _sf := supp_files.intersection(_tgt.objects()):
             log.info(
