@@ -728,7 +728,7 @@ class TarTeX:
         if silent:
             if not chk_err:
                 log.debug("Check succeeded")
-                richprint("[green3]Success[/]")
+                richprint("[green4]Success[/]")
         else:
             richprint("[green]Files needed for compilation to be included:[/]")
             for f in ref_tar.objects().intersection(dummy_tar.objects()):

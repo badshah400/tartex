@@ -75,7 +75,7 @@ def check_file_hash(cache_file: Path) -> bool:
                 ):
                     return False
         except FileNotFoundError as err:
-            log.warn(err)
+            log.warn("Unable to find file: %s", err.filename)
             return False
     else:
         return True
