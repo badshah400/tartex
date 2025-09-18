@@ -372,7 +372,7 @@ class TarTeX:
                     )
             except FileNotFoundError:
                 if not silent:
-                    log.warn(
+                    log.warning(
                         "Missing .fls file in source dir; %s will not be saved",
                         self.pkglist_name,
                     )
@@ -464,7 +464,7 @@ class TarTeX:
         except FileNotFoundError:
             if self.args.packages:
                 if not silent:
-                    log.warn(
+                    log.warning(
                         "Cannot generate list of packages due to missing %s file",
                         fls_f,
                     )
