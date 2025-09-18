@@ -64,45 +64,56 @@ class CheckFailError(Exception):
 def _check_err_missing(
     _ref: Tarballer,
     _tgt: Tarballer,
-    _indicator: str = "*",
+    *,
+    supp_files: set[Path] = set(),
+    indicator: str = "*",
 ) -> bool:
     """
-    Compares objects included in _ref and _tgt and return True if the
-    former contains files missing from the latter. Logs accordingly.
-    """
-    non_exist_files = [f for f in _ref.objects() if not f.exists()]
+    Compares objects included in _ref and _tgt and return True if the former
+    contains files missing from the latter. Logs accordingly.
 
-    if non_exist_files or (
-        _excluded := _ref.objects().difference(_tgt.objects())
-    ):
+    If non-empty, warns instead of declaring errors on missing `supp_files`.
+    """
+    non_exist_files = set([f for f in _ref.objects() if not f.exists()])
+    non_exist_files.difference_update(supp_files)
+    excluded = _ref.objects().difference(_tgt.objects())
+    excluded.difference_update(non_exist_files.union(supp_files))
+
+    if non_exist_files or excluded:
         if non_exist_files:
             log.info(
                 "Files needed for compilation not found (deleted?): %s",
                 ", ".join([f.as_posix() for f in non_exist_files]),
             )
             richprint(
-                "[bold red]Files needed for compilation missing (deleted?):[/]"
+                "[bold bright_red]Files needed for compilation missing (deleted?):[/]"
             )
             for f in non_exist_files:
-                richprint(_indicator, end=" ")
+                richprint(indicator, end=" ")
                 print(f"{f!s}")
             else:
                 # No blank line needed at end of loop here
                 pass
 
-        if _excluded:
+        if excluded:
             log.debug(
                 "Files needed for compilation excluded from tarball: %s",
-                ", ".join([f.as_posix() for f in _excluded]),
+                ", ".join([f.as_posix() for f in excluded]),
             )
-            richprint("[bold red]Files needed for compilation not included:[/]")
-            for f in _excluded:
-                richprint(_indicator, end=" ")
+            richprint("[bold bright_red]Files needed for compilation not included:[/]")
+            for f in excluded:
+                richprint(indicator, end=" ")
                 print(f"{f!s}")
             else:
                 print()
-        return True
+
+        return True if len(non_exist_files.union(excluded)) > 0 else False
     else:
+        if _sf := supp_files.intersection(_tgt.objects()):
+            log.warn(
+                "Supplementary file(s) missing from project dir: %s",
+                ", ".join([str(_f) for _f in _sf])
+            )
         return False
 
 
@@ -707,11 +718,25 @@ class TarTeX:
             "Files needed for compilation missing or excluded from tarball"
         )
 
+        missing_ok = set(
+            [
+                self.main_file.with_suffix(f".{e}").relative_to(
+                    self.main_file.parent
+                )
+                for e in _tartex_tex_utils.SUPP_REQ
+            ]
+        ) if self.args.force_recompile else set()
+
         if not self.args.git_rev:
             self.input_files(dummy_tar, silent)
 
             # will return True if check fails
-            chk_err = _check_err_missing(ref_tar, dummy_tar, INDI["req-miss"])
+            chk_err = _check_err_missing(
+                ref_tar,
+                dummy_tar,
+                indicator=INDI["req-miss"],
+                supp_files=missing_ok,
+            )
             if not silent:
                 _ = _check_warn_extra(ref_tar, dummy_tar, INDI["not-need"])
 
@@ -721,7 +746,12 @@ class TarTeX:
             # (plus user additionals)
             self.input_files(dummy_tar, silent)
 
-            chk_err = _check_err_missing(ref_tar, dummy_tar, INDI["req-miss"])
+            chk_err = _check_err_missing(
+                ref_tar,
+                dummy_tar,
+                indicator=INDI["req-miss"],
+                supp_files=missing_ok,
+            )
             if not silent:
                 _ = _check_warn_extra(ref_tar, dummy_tar, INDI["not-need"])
 
