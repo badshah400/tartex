@@ -109,11 +109,6 @@ def _check_err_missing(
         print()  # blank line to section off errors
         return True
     else:
-        if _sf := supp_files.intersection(_tgt.objects()):
-            log.info(
-                "Supplementary file(s) missing from project dir: %s",
-                ", ".join([str(_f) for _f in _sf])
-            )
         return False
 
 
@@ -726,7 +721,7 @@ class TarTeX:
             "Files needed for compilation missing or excluded from tarball"
         )
 
-        missing_ok = set(
+        missing_supp = set(
             [
                 self.main_file.with_suffix(f".{e}").relative_to(
                     self.main_file.parent
@@ -734,6 +729,8 @@ class TarTeX:
                 for e in _tartex_tex_utils.SUPP_REQ
             ]
         ) if self.args.force_recompile else set()
+        # make sure supplementary file is actually needed
+        missing_supp.intersection_update(ref_tar.objects())
 
         if not self.args.git_rev:
             self.input_files(dummy_tar, silent)
@@ -743,7 +740,7 @@ class TarTeX:
                 ref_tar,
                 dummy_tar,
                 indicator=INDI["req-miss"],
-                supp_files=missing_ok,
+                supp_files=missing_supp,
             )
             if not silent:
                 _ = _check_warn_extra(ref_tar, dummy_tar, INDI["not-need"])
@@ -758,7 +755,7 @@ class TarTeX:
                 ref_tar,
                 dummy_tar,
                 indicator=INDI["req-miss"],
-                supp_files=missing_ok,
+                supp_files=missing_supp,
             )
             if not silent:
                 _ = _check_warn_extra(ref_tar, dummy_tar, INDI["not-need"])
@@ -770,6 +767,13 @@ class TarTeX:
             else:
                 log.debug("Check succeeded")
                 richprint("[green4]Check success[/]")
+            if missing_supp:
+                # log INFO if force recompiling, WARN otherwise
+                log.log(
+                    log.INFO if self.args.force_recompile else log.WARN,
+                    "Missing supplementary file(s): %s",
+                    ", ".join([str(_s) for _s in missing_supp])
+                )
         else:
             richprint("[green4]Files needed for compilation to be included:[/]")
             for f in ref_tar.objects().intersection(dummy_tar.objects()):
