@@ -211,7 +211,7 @@ class TarTeX:
 
         self.tar_file_w_ext = self._tar_filename()
         self.tar_ext = self.tar_file_w_ext.suffix.lstrip(".")
-        log.debug("Output tarball '%s' will be generated", self.tar_file_w_ext)
+        log.debug("Output tarball name: '%s'", self.tar_file_w_ext)
 
         self.req_supfiles = {}
         self.add_files = self.args.add.split(",") if self.args.add else []
@@ -367,7 +367,7 @@ class TarTeX:
         return _deps, _pkgs
 
     def input_files_from_recompile(
-        self, tarf: Tarballer, minimal: bool = False
+        self, tarf: Tarballer, minimal: bool = False, cache_update: bool = False
     ) -> tuple[set[Path], dict[str, set[str]]]:
         """
         Determines set of input files and list of LaTeX packages used by
@@ -418,9 +418,10 @@ class TarTeX:
                     if self.args.with_pdf:
                         self._add_pdf_stream(fls_path.with_suffix(".pdf"), tarf)
 
-                _tartex_hash_utils.save_input_files_hash(
-                    Path(self.filehash_cache), _deps, tarf.streams(), _pkgs
-                )
+                if cache_update:
+                    _tartex_hash_utils.save_input_files_hash(
+                        Path(self.filehash_cache), _deps, tarf.streams(), _pkgs
+                    )
                 return _deps, _pkgs
 
     def input_files_from_srcfls(
@@ -462,6 +463,18 @@ class TarTeX:
     def input_files_from_cache(
         self, _t: Tarballer
     ) -> tuple[set[Path], dict[str, set[str]]]:
+        """
+        Determine input files based on cache data:
+        * If no cache data exists, recompile and store cache data.
+        * If cache data exists and input files listed in it have their sha sums
+          matching those of files in project — indicating no change in input
+          files content, directly use these input files from project dir.
+        * If cache data exists, but input files are missing or sha sums do not
+          match up, recompile and update cache data.
+
+        Returns: tuple of input dependency files paths, dict corresponding to
+        package list
+        """
         if (_cf := Path(self.filehash_cache)).is_file():
             _deps: set[Path] = set()
             _pkgs: dict[str, set[str]] = {}
@@ -489,7 +502,7 @@ class TarTeX:
         else:
             log.info("No cache file found")
 
-        return self.input_files_from_recompile(_t)
+        return self.input_files_from_recompile(_t, cache_update=True)
 
     def _add_bib(self, _pkgs: dict[str, set[str]]):
         """Add bib and bst files to tarball; add bst filename to package list
