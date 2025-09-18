@@ -549,7 +549,6 @@ class TarTeX:
 
         for f in bibs:
             try:
-                log.info("Add file: %s", f)
                 if f and re.match(r".bst", f.suffix):
                     _pkgs["Local"].add(f.as_posix())
             except Exception:
