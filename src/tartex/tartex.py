@@ -504,8 +504,13 @@ class TarTeX:
                     _j = json.load(cache)
                     _deps.update([Path(f) for f in _j["input_files"].keys()])
                     _pkgs = _j["packages"]
-                    missing = set()  # Missing files to discard
-                    for _d in _deps:
+                    missing: set[Path] = set()  # Missing files to discard
+
+                    # Apart from obviously missing files from the set of _deps,
+                    # anything in "streams" is automatically assumed missing
+                    # since there is no way to have it restored and still
+                    # verify its integrity. Resolved upon next cache update.
+                    for _d in _deps.union([Path(_f) for _f in _j["streams"]]):
                         if not _d.is_file():
                             log.warning(
                                 "Missing input file %s, try recompile ('-F')",
