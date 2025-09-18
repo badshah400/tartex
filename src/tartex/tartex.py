@@ -386,10 +386,7 @@ class TarTeX:
         _pkgs: dict[str, set[str]] = {}
         with TemporaryDirectory() as compile_dir:
             log.info(
-                "LaTeX recompile forced"
-                if self.args.force_recompile
-                else f"{self.main_file.stem}.fls file not found in"
-                f" {self.main_file.parent.as_posix()}"
+                f"LaTeX recompile {'forced' if self.args.force_recompile else 'required'}"
             )
             log.info("LaTeX compile directory: %s", compile_dir)
             try:
@@ -479,7 +476,7 @@ class TarTeX:
             _deps: set[Path] = set()
             _pkgs: dict[str, set[str]] = {}
             if _tartex_hash_utils.check_file_hash(_cf):
-                log.info("No changes to input files, will use cached data")
+                log.info("No changes to input files, using cached data")
                 with open(_cf, "r") as cache:
                     _j = json.load(cache)
                     _deps.update([Path(f) for f in _j["input_files"].keys()])
@@ -557,7 +554,10 @@ class TarTeX:
                 self.pdf_stream = f.read()
                 _t.app_stream(_file.name, self.pdf_stream)
         except FileNotFoundError:
-            log.warning(f"Unable to find '{_file}' in {self.cwd}, skipping...")
+            log.warning(
+                "Skipping pdf not found: %s",
+                f"{_file.relative_to(self.main_file.parent)}"
+            )
             self.args.with_pdf = False
 
     def _add_supplement_streams(self, _p: Path, _dep: set[Path], _t: Tarballer):
@@ -703,7 +703,10 @@ class TarTeX:
             if not silent:
                 _ = _check_warn_extra(ref_tar, dummy_tar, INDI["not-need"])
 
-        if not silent:
+        if silent:
+            if not chk_err:
+                log.info("Check succeeded")
+        else:
             richprint("[green]Files needed for compilation to be included:[/]")
             for f in ref_tar.objects().intersection(dummy_tar.objects()):
                 richprint(INDI["perfect"], end=" ")
