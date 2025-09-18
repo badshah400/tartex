@@ -294,16 +294,20 @@ class TarTeX:
             )
             deps, pkgs = self.input_files_from_git(tarf)
 
-        # Either missing '.fls' file in source or recompile forced by user
-        # option (`--force-recompile`)
+        # When "main file" is ".tex" and either cache file is found missing or
+        # recompile has been forced by user option `--force-recompile`
         elif (
             not self.main_file.with_suffix(".fls").exists()
             or self.args.force_recompile
         ):
             deps, pkgs = self.input_files_from_recompile(tarf)
 
-        # If .fls exists, this assumes that all INPUT files recorded in it
-        # are also included in source dir
+        # If .fls is the user supplied "main file", this assumes that all INPUT
+        # files recorded in it are also included in source dir and skips any
+        # missing ones
+        elif self.main_file.suffix == ".fls":
+            deps, pkgs = self.input_files_from_srcfls(tarf)
+
         else:
             deps, pkgs, update_cache = self.input_files_from_cache(tarf)
 
