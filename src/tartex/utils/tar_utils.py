@@ -76,7 +76,7 @@ def tar_name_conflict(
 
     :returns: new_tar_file and new extension if any (otherwise "") (tuple)
     """
-    ext = Path(tpath).suffix
+    ext = Path(tpath).suffix.lstrip(".")
 
     if overwrite:
         log.warning(f"Overwriting existing tar file {tpath}")

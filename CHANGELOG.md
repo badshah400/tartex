@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Fix extra dot in extension when using new name to resolve tar name conflict.
+
 ## [0.10.0] 2025-09-20
 
 ### Added
