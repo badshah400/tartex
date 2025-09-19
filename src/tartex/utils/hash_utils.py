@@ -41,7 +41,11 @@ def save_input_files_hash(
             indent=4,
             ensure_ascii=True,
         )
-    log.info("Saved input dependencies to cache file: %s", cache_file)
+    try:
+        c_path_msg = f"~/{cache_file.relative_to(Path.home())}"
+    except ValueError:
+        c_path_msg = str(cache_file)
+    log.info("Updated cache: %s", c_path_msg)
     return
 
 
