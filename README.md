@@ -33,8 +33,8 @@ It aims to produce [arXiv](https://arxiv.org) and journal-ready bundles with zer
 
 ## Installation
 
-> __Note__: If re-compilation of sources is required (no existing `.fls` file
-> in source project), or is explicitly requested (`-F`/`--force-recompile`),
+> __Note__: If re-compilation of sources is required (cache file not generated
+> or accessible), or is explicitly requested (`-F`/`--force-recompile`),
 > you must have `latexmk` and `pdflatex`, as well as a full LaTeX env installed
 > to allow compilation of your LaTeX project. TarTeX does not include any
 > system-wide files, such as standard TeX style files, classes, etc. in the tar

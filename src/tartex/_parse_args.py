@@ -373,7 +373,7 @@ def parse_args(args) -> argparse.Namespace:
         "-F",
         "--force-recompile",
         action="store_true",
-        help="force (La)TeX re-compile even if '.fls' found",
+        help="force (La)TeX re-compile; cache use/update disabled",
     )
 
     latexmk_opts.add_argument(
