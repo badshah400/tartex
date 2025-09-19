@@ -512,7 +512,7 @@ class TarTeX:
         """
         cache_path = Path(self.filehash_cache)
         if not silent:
-            log.info("Getting input files from cache file: %s", cache_path.name)
+            log.info("Getting input files from cache file: %s", cache_path)
 
         if cache_path.is_file():
             _deps: set[Path] = set()
@@ -546,10 +546,10 @@ class TarTeX:
                 return _deps, _pkgs
             else:
                 if not silent:
-                    log.info("File missing or content changed, recompiling...")
+                    log.info("File missing or content changed...")
         else:
             if not silent:
-                log.info("Unable to find cache file: %s", cache_path.name)
+                log.info("Unable to find cache file %s...", cache_path)
 
         return self.input_files_from_recompile(_t, cache_update=True)
 

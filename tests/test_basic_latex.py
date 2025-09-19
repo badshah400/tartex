@@ -164,6 +164,8 @@ class TestCache:
                 str(datadir / "cache_up.tar.gz"),
             ]
         )
+
+        # First run
         t.tar_files()
         assert t.filehash_cache.exists()
         mtime = os.path.getmtime(t.filehash_cache)
@@ -174,6 +176,7 @@ class TestCache:
         with open(t.main_file, "a") as _f:
             _f.write("\n")
 
+        # Second run
         t.tar_files()
 
         assert os.path.getmtime(t.filehash_cache) != mtime
