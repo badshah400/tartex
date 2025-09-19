@@ -24,7 +24,7 @@ It aims to produce [arXiv](https://arxiv.org) and journal-ready bundles with zer
 
 - 📦 Produces compact, reproducible tarballs with a minimal list of files
 - ✨ Compatible with [arXiv](https://arxiv.org) and most journal submission rules
-- 💨 Fast: avoids re-compilation unless absolutely necessary or explicitly requested
+- 💨 Fast: caches list of dependencies and avoids re-compilation unless necessary or forced
 - 📸 Git integration: snapshot files into tarball directly from Git revision (`--git-rev`)
 - 🔍 Auto-detects re-compilation processing mode (pdf/ps) from project
 - 🔏 Leaves your LaTeX project directory unchanged
@@ -68,7 +68,7 @@ Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
 usage: tartex [OPTIONS] FILENAME
 
 Build a tarball including all source files needed to compile your LaTeX project
-(version 0.10.0dev0).
+(version 0.10.0).
 
 positional arguments:
   FILENAME                 input file name [.fls|.tex] (with/without extension)
