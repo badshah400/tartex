@@ -352,7 +352,8 @@ class TarTeX:
     def input_files_from_git(
         self, tarf: Tarballer, silent: bool = False
     ) -> tuple[set[Path], dict[str, set[str]]]:
-        """Get input files from `git ls-tree <REVISION>`
+        """
+        Get input files from `git ls-tree <REVISION>`
         :returns: TODO
 
         """
@@ -449,9 +450,8 @@ class TarTeX:
     def input_files_from_srcfls(
         self, _t: Tarballer, silent: bool = False
     ) -> tuple[set[Path], dict[str, set[str]]]:
-        """
-        Get input files from '.fls' in source dir
-        """
+        """Get input files from '.fls' in source dir"""
+
         if not silent:
             log.info("Reading input files from '%s'", self.main_file.name)
 
@@ -503,7 +503,7 @@ class TarTeX:
         """
         cache_path = Path(self.filehash_cache)
         if not silent:
-            log.info("Getting input files from cache: '%s'", cache_path.name)
+            log.info("Getting input files from cache file: %s", cache_path.name)
 
         if cache_path.is_file():
             _deps: set[Path] = set()
@@ -537,17 +537,16 @@ class TarTeX:
                 return _deps, _pkgs
             else:
                 if not silent:
-                    log.info(
-                        "Input files content changed or missing, recompiling..."
-                    )
+                    log.info("File missing or content changed, recompiling...")
         else:
             if not silent:
-                log.info("No cache file found")
+                log.info("Unable to find cache file: %s", cache_path.name)
 
         return self.input_files_from_recompile(_t, cache_update=True)
 
     def _add_bib(self, _pkgs: dict[str, set[str]]):
-        """Add bib and bst files to tarball; add bst filename to package list
+        """
+        Add bib and bst files to tarball; add bst filename to package list
 
         :_deps: set of files to be included in tarball
         :_pkgs: list of TeX packages that may be added to tarball as json file
@@ -584,7 +583,8 @@ class TarTeX:
         return _files
 
     def _add_pdf_stream(self, _file: Path, _t: Tarballer, silent: bool = False):
-        """Add pdf as stream to Tarballer object
+        """
+        Add pdf as stream to Tarballer object
 
         :_file: path to pdf file
         :_t: Tarballer object to append pdf stream to
@@ -605,7 +605,8 @@ class TarTeX:
             self.args.with_pdf = False
 
     def _add_supplement_streams(self, _p: Path, _dep: set[Path], _t: Tarballer):
-        """Add supplementary files as streams
+        """
+        Add supplementary files as streams
 
         :_p: Path to stream
         :_t: Tarballer object to add `_p` to
@@ -833,7 +834,8 @@ class TarTeX:
         return None
 
     def _tar_filename(self):
-        """Set member variables for tar output
+        """
+        Set member variables for tar output
         :returns: full tarball file name
 
         """
