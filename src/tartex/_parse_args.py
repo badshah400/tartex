@@ -236,7 +236,7 @@ def parse_args(args) -> argparse.Namespace:
         "fname",
         metavar="FILENAME",
         type=Path,
-        help="input file name [.tex|.fls] (with/without file ext.)",
+        help="input file name [.fls|.tex] (with/without extension)",
     )
 
     general_opts = parser.add_argument_group("common options")

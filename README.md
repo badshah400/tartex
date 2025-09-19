@@ -71,7 +71,7 @@ Build a tarball including all source files needed to compile your LaTeX project
 (version 0.10.0dev0).
 
 positional arguments:
-  FILENAME                 input file name [.tex|.fls] (with/without file ext.)
+  FILENAME                 input file name [.fls|.tex] (with/without extension)
 
 common options:
   -h, --help               show this help message and exit
