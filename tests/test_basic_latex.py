@@ -10,6 +10,7 @@ import logging
 import os
 import tarfile as tar
 from pathlib import Path
+from tartex.utils.hash_utils import HASH_METHOD
 
 import pytest
 
@@ -132,7 +133,8 @@ class TestCache:
 
     def test_cache_retrieve(self, datadir):
         """
-        Test cache file is generated when tartex is first run
+        Test cache file is untouched when tartex is rerun without changes to
+        input files
         """
         t = TarTeX(
             [
@@ -148,6 +150,43 @@ class TestCache:
         mtime = int(os.path.getmtime(t.filehash_cache))
         t.tar_files()  # run mustn't touch cache, as no input files changed
         assert int(os.path.getmtime(t.filehash_cache)) == mtime
+
+    def test_cache_update(self, datadir):
+        """
+        Test cache file is updated when tartex is run after input files change
+        """
+        t = TarTeX(
+            [
+                str(datadir / "basic_latex.tex"),
+                "-v",
+                "--overwrite",
+                "-o",
+                str(datadir / "cache_up.tar.gz"),
+            ]
+        )
+        t.tar_files()
+        assert t.filehash_cache.exists()
+        mtime = os.path.getmtime(t.filehash_cache)
+        with open(t.filehash_cache, "r") as _c:
+            _j = json.load(_c)
+
+        # Modify file
+        with open(t.main_file, "a") as _f:
+            _f.write("\n")
+
+        t.tar_files()
+
+        assert os.path.getmtime(t.filehash_cache) != mtime
+        assert (
+            _j["input_files"][t.main_file.name]
+            != HASH_METHOD(t.main_file.read_bytes()).hexdigest()
+        )
+        with open(t.filehash_cache, "r") as _c:
+            _j = json.load(_c)
+        assert (
+            _j["input_files"][t.main_file.name]
+            == HASH_METHOD(t.main_file.read_bytes()).hexdigest()
+        )
 
     def test_cache_force_recompile(self, datadir):
         """

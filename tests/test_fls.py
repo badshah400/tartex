@@ -89,5 +89,3 @@ class TestFlsNoCache:
         )
         t.tar_files()
         assert not t.filehash_cache.exists()
-
-
