@@ -21,15 +21,10 @@ def save_input_files_hash(
     packages: dict[str, set[str]],
 ) -> None:
     hash_dict: dict[str, str] = {}
-    wdir = cache_file.parent
     for p in files:
         try:
             with open(p, mode="rb") as f:
-                try:
-                    rel_path = p.relative_to(wdir)
-                except ValueError:
-                    rel_path = p.absolute()
-                hash_dict[str(rel_path)] = hashlib.sha256(f.read()).hexdigest()
+                hash_dict[str(p)] = hashlib.sha256(f.read()).hexdigest()
         except FileNotFoundError:
             continue
 

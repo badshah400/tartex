@@ -12,6 +12,15 @@ import time
 import pytest
 
 from tartex.tartex import TarTeX
+import tartex.utils.xdgdir_utils as _tartex_xdg_utils
+
+@pytest.fixture(autouse=True)
+def mock_cache_dir(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        _tartex_xdg_utils,
+        "XDG_CACHE_HOME",
+        tmp_path / "cache",
+    )
 
 
 @pytest.fixture

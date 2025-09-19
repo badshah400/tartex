@@ -29,6 +29,7 @@ import tartex.utils.msg_utils as _tartex_msg_utils
 import tartex.utils.tex_utils as _tartex_tex_utils
 import tartex.utils.tar_utils as _tartex_tar_utils
 import tartex.utils.hash_utils as _tartex_hash_utils
+import tartex.utils.xdgdir_utils as _tartex_xdg_utils
 from tartex._tar import Tarballer
 
 try:
@@ -201,7 +202,10 @@ class TarTeX:
             log.critical(f"Error: {err}")
             sys.exit(1)
 
-        self.filehash_cache = f".{self.main_file.stem}.{__appname__}.cache"
+        self.filehash_cache = (
+            _tartex_xdg_utils.app_cache_dir(self.main_file)
+            / f"{self.main_file.stem}.cache"
+        )
 
         if self.args.git_rev:
             try:
@@ -443,7 +447,10 @@ class TarTeX:
 
                 if cache_update:
                     _tartex_hash_utils.save_input_files_hash(
-                        Path(self.filehash_cache), _deps, tarf.streams(), _pkgs
+                        Path(self.filehash_cache),
+                        _deps,
+                        tarf.streams(),
+                        _pkgs
                     )
                 return _deps, _pkgs
 
@@ -453,7 +460,10 @@ class TarTeX:
         """Get input files from '.fls' in source dir"""
 
         if not silent:
-            log.info("Reading input files from '%s'", self.main_file.name)
+            log.info(
+                "Reading input files from project fls file: '%s'",
+                self.main_file.name
+            )
 
         _deps: set[Path] = set()
         _pkgs: dict[str, set[str]] = {}

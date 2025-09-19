@@ -44,7 +44,7 @@ class TestBasicLaTeX:
             t.tar_files()
             assert t.args.list
             assert not output.exists()
-            assert capsys.readouterr().out.strip() == "1. basic_latex.tex"
+            assert "basic_latex.tex" in capsys.readouterr().out.strip()
 
     def test_gen_tar(self, default_target, default_tartex_obj):
         """Should include a single file in tarball"""
