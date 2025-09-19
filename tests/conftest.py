@@ -15,6 +15,11 @@ from tartex.tartex import TarTeX
 import tartex.utils.xdgdir_utils as _tartex_xdg_utils
 
 @pytest.fixture(autouse=True)
+def mock_home(monkeypatch, tmp_path):
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+
+@pytest.fixture(autouse=True)
 def mock_cache_dir(monkeypatch, tmp_path):
     monkeypatch.setattr(
         _tartex_xdg_utils,
