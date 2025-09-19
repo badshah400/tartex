@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Added
+
+- Generate and use cache file to track changes to input dependencies, based on content hashes.
+- Do not use or update cache when using in-project '.fls' file as input or when forcing a recompile (`-F`).
+- Use `rich` as logging handler for better style and formatting of log messages.
+
+### Fixed
+
+- Do not raise error on miss supplementary files when using `-F`/`--force-recompile` as they will be regenerated anyway.
+- Fix duplicate info-log messages when adding bib file (and related styles).
+- Clearer, terser logs all around.
+
 ## [0.9.0] 2025-09-14
 
 ### Added
