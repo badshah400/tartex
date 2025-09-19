@@ -22,7 +22,6 @@ from tempfile import TemporaryDirectory
 from typing import Union
 
 from tartex import _latex
-from tartex.__about__ import __appname__
 from tartex._parse_args import parse_args
 from tartex._git_rev import GitRev, git_checkout
 import tartex.utils.msg_utils as _tartex_msg_utils
