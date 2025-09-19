@@ -305,24 +305,23 @@ class TarTeX:
             log.debug(
                 "Using `git ls-tree` to determine files to include in tarball"
             )
-            deps, pkgs = self.input_files_from_git(tarf, silent)
-
-        # When "main file" is ".tex" and either cache file is found missing or
-        # recompile has been forced by user option `--force-recompile`
-        elif (
-            not self.main_file.with_suffix(".fls").exists()
-            or self.args.force_recompile
-        ):
-            deps, pkgs = self.input_files_from_recompile(tarf, silent)
+            deps, pkgs = self.input_files_from_git(tarf, silent=silent)
 
         # If .fls is the user supplied "main file", this assumes that all INPUT
         # files recorded in it are also included in source dir and skips any
-        # missing ones
-        elif self.main_file.suffix == ".fls":
-            deps, pkgs = self.input_files_from_srcfls(tarf, silent)
+        # missing ones (unless force recompiling)
+        elif self.main_file.suffix == ".fls" and not self.args.force_recompile:
+            deps, pkgs = self.input_files_from_srcfls(tarf, silent=silent)
 
+        # When "main file" is ".tex" and recompile has been forced by user
+        # option `--force-recompile`
+        elif self.args.force_recompile:
+            deps, pkgs = self.input_files_from_recompile(tarf, silent=silent)
+
+        # Most typical case: main file is ".tex", no force recompile, try cache
+        # first, recompile if input files are missing or their hash don't match 
         else:
-            deps, pkgs = self.input_files_from_cache(tarf, silent)
+            deps, pkgs = self.input_files_from_cache(tarf, silent=silent)
 
         if self.args.bib:
             tarf.app_files(*self._add_bib(pkgs))
