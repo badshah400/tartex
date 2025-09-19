@@ -49,6 +49,23 @@ def test_fls_main_arg_noext(datadir, flsfile):
         assert len(f.getnames()) == 2
 
 
+def test_fls_no_cache(datadir, flsfile):
+    """
+    cache file must not be generated when using .fls directly
+    """
+    flsfile_noext = flsfile.removesuffix(".fls")
+    t = TarTeX(
+        [
+            str(datadir / flsfile_noext),
+            "-o",
+            str(datadir / "fls_no_cache"),
+            "-b"
+        ],
+    )
+    t.tar_files()
+    assert not t.filehash_cache.exists()
+
+
 def test_fls_missing_bbl(tartex_obj, flsfile):
     """
     Verify that missing .bbl file is omitted from tarball and the call to

@@ -5,6 +5,7 @@
 #
 """Tests for tarball generation from basic latex files"""
 
+import json
 import logging
 import os
 import tarfile as tar
@@ -106,6 +107,63 @@ class TestBasicLaTeX:
         t = TarTeX([(Path(datadir) / "basic_latex.tex").as_posix(), "-vv"])
         assert t.args.verbose == 2
 
+class TestCache:
+    """Tests involving cache generation, retrieval, and update"""
+
+    def test_cache_gen(self, datadir):
+        """
+        Test cache file is generated when tartex is first run
+        """
+        t = TarTeX(
+            [
+                str(datadir / "basic_latex.tex"),
+                "-v",
+                "-o",
+                str(datadir / "cache_gen.tar.gz"),
+            ]
+        )
+        t.tar_files()
+        assert t.tar_file_w_ext.exists()
+        assert t.filehash_cache.exists()
+        with open(t.filehash_cache, "r") as _c:
+            _j = json.load(_c)
+            assert "basic_latex.tex" in _j["input_files"]
+            assert not _j["streams"]  # _j["streams"] is empty list
+
+    def test_cache_retrieve(self, datadir):
+        """
+        Test cache file is generated when tartex is first run
+        """
+        t = TarTeX(
+            [
+                str(datadir / "basic_latex.tex"),
+                "-v",
+                "--overwrite",
+                "-o",
+                str(datadir / "cache_ret.tar.gz"),
+            ]
+        )
+        t.tar_files()
+        assert t.filehash_cache.exists()
+        mtime = int(os.path.getmtime(t.filehash_cache))
+        t.tar_files()  # run mustn't touch cache, as no input files changed
+        assert int(os.path.getmtime(t.filehash_cache)) == mtime
+
+    def test_cache_force_recompile(self, datadir):
+        """
+        Test cache file is untouched when tartex is run with `-F`
+        """
+        t = TarTeX(
+            [
+                str(datadir / "basic_latex.tex"),
+                "-v",
+                "-F",
+                "-o",
+                str(datadir / "cache_recompile.tar.gz"),
+            ]
+        )
+        t.tar_files()
+        assert not t.filehash_cache.exists()
 
 # These tests involve repeatedly compiling LaTeX files, thus can be slow
 @pytest.mark.slow
