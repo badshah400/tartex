@@ -29,58 +29,65 @@ def tartex_obj(datadir, flsfile):
     )
 
 
-def test_fls_main_arg(tartex_obj, flsfile):
-    """User passes a .fls filename as input"""
-    t = tartex_obj
-    assert t.tar_file_w_ext.stem == flsfile.replace(".fls", ".tar")
+class TestUseFls:
+    """Tests for using in-project fls file as main input file"""
+
+    def test_fls_main_arg(self, tartex_obj, flsfile):
+        """User passes a .fls filename as input"""
+        t = tartex_obj
+        assert t.tar_file_w_ext.stem == flsfile.replace(".fls", ".tar")
 
 
-def test_fls_main_arg_noext(datadir, flsfile):
-    """
-    User passes a file name with no extension but tartex should find .fls file
-    """
-    flsfile_noext = flsfile.removesuffix(".fls")
-    t = TarTeX(
-        [str(datadir / flsfile_noext), "-o", str(datadir), "-b"],
-    )
-    t.tar_files()
-    assert t.tar_file_w_ext.name == f"{flsfile_noext}.tar.{t.tar_ext}"
-    with tar.open(f"{t.tar_file_w_ext}") as f:
-        assert len(f.getnames()) == 2
+    def test_fls_main_arg_noext(self, datadir, flsfile):
+        """
+        User passes a file name with no extension but tartex should find .fls file
+        """
+        flsfile_noext = flsfile.removesuffix(".fls")
+        t = TarTeX(
+            [str(datadir / flsfile_noext), "-o", str(datadir), "-b"],
+        )
+        t.tar_files()
+        assert t.tar_file_w_ext.name == f"{flsfile_noext}.tar.{t.tar_ext}"
+        with tar.open(f"{t.tar_file_w_ext}") as f:
+            assert len(f.getnames()) == 2
 
 
-def test_fls_no_cache(datadir, flsfile):
-    """
-    cache file must not be generated when using .fls directly
-    """
-    flsfile_noext = flsfile.removesuffix(".fls")
-    t = TarTeX(
-        [
-            str(datadir / flsfile_noext),
-            "-o",
-            str(datadir / "fls_no_cache"),
-            "-b"
-        ],
-    )
-    t.tar_files()
-    assert not t.filehash_cache.exists()
+    def test_fls_missing_bbl(self, tartex_obj, flsfile):
+        """
+        Verify that missing .bbl file is omitted from tarball and the call to
+        tar_files() does not cause an exception
+        """
+        tartex_obj.tar_files()
+
+        with tar.open(f"{tartex_obj.tar_file_w_ext}") as f:
+            assert flsfile.replace(".fls", ".bbl") not in f.getnames()
 
 
-def test_fls_missing_bbl(tartex_obj, flsfile):
-    """
-    Verify that missing .bbl file is omitted from tarball and the call to
-    tar_files() does not cause an exception
-    """
-    tartex_obj.tar_files()
+    def test_fls_recompile(self, datadir, flsfile):
+        """Forcing a LaTeX recompile ensures .bbl is included"""
+        t = TarTeX([str(datadir / flsfile), "-o", str(datadir), "-b", "-F"])
+        t.tar_files()
 
-    with tar.open(f"{tartex_obj.tar_file_w_ext}") as f:
-        assert flsfile.replace(".fls", ".bbl") not in f.getnames()
+        with tar.open(f"{t.tar_file_w_ext}") as f:
+            assert flsfile.replace(".fls", ".bbl") in f.getnames()
+
+class TestFlsNoCache:
+    """Check that no cache is touched when using .fls file directly"""
+
+    def test_fls_no_cache(self, datadir, flsfile):
+        """
+        cache file must not be generated when using .fls directly
+        """
+        flsfile_noext = flsfile.removesuffix(".fls")
+        t = TarTeX(
+            [
+                str(datadir / flsfile_noext),
+                "-o",
+                str(datadir / "fls_no_cache"),
+                "-b"
+            ],
+        )
+        t.tar_files()
+        assert not t.filehash_cache.exists()
 
 
-def test_fls_recompile(datadir, flsfile):
-    """Forcing a LaTeX recompile ensures .bbl is included"""
-    t = TarTeX([str(datadir / flsfile), "-o", str(datadir), "-b", "-F"])
-    t.tar_files()
-
-    with tar.open(f"{t.tar_file_w_ext}") as f:
-        assert flsfile.replace(".fls", ".bbl") in f.getnames()
