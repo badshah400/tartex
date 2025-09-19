@@ -58,5 +58,5 @@ jobs:
         run: |
           # TEMPDIR is needed tor tex compilation based tests
           export TMPDIR=$(mktemp -d -p .)
-          hatch test -p
+          hatch test -v
           rm -fr ${TMPDIR}
