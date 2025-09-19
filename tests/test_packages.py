@@ -29,10 +29,10 @@ def test_float_pkg(datadir, tmpdir, capsys, join_linebreaks):
         ]
     )
     t.tar_files()
-    assert "2 files" in join_linebreaks(capsys.readouterr().out)
     with tar.open(
         f"{tmpdir!s}/packagelist.tar.{TAR_DEFAULT_COMP}", mode="r"
     ) as f:
+        assert 2 == len(f.getnames())
         assert "TeXPackages.json" in f.getnames()
 
     pkgjson = json.loads(t.pkglist)
