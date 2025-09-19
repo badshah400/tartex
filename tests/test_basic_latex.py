@@ -84,7 +84,7 @@ class TestBasicLaTeX:
         t.tar_files()
         assert t.tar_file_w_ext.exists()
 
-    def test_incl_pdf(self, tmpdir, datadir):
+    def test_incl_pdf(self, datadir):
         """
         Test option `--with-pdf` for inclusion of pdf in tarball
         """
