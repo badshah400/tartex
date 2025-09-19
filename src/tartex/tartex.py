@@ -101,7 +101,9 @@ def _check_err_missing(
                 "Files needed for compilation excluded from tarball: %s",
                 ", ".join([f.as_posix() for f in excluded]),
             )
-            richprint("[bold bright_red]Files needed for compilation not included:[/]")
+            richprint(
+                "[bold bright_red]Files needed for compilation not included:[/]"
+            )
             for f in excluded:
                 richprint(indicator, end=" ")
                 print(f"{f!s}")
@@ -319,7 +321,7 @@ class TarTeX:
             deps, pkgs = self.input_files_from_recompile(tarf, silent=silent)
 
         # Most typical case: main file is ".tex", no force recompile, try cache
-        # first, recompile if input files are missing or their hash don't match 
+        # first, recompile if input files are missing or their hash don't match
         else:
             deps, pkgs = self.input_files_from_cache(tarf, silent=silent)
 
@@ -354,6 +356,9 @@ class TarTeX:
         :returns: TODO
 
         """
+        if not silent:
+            log.info("Getting files from git-tree")
+
         _deps = self.GR.ls_tree_files()
         _pkgs: dict[str, set[str]] = {}
         # Process the --excl files
@@ -385,7 +390,7 @@ class TarTeX:
         tarf: Tarballer,
         minimal: bool = False,
         cache_update: bool = False,
-        silent: bool = False
+        silent: bool = False,
     ) -> tuple[set[Path], dict[str, set[str]]]:
         """
         Determines set of input files and list of LaTeX packages used by
@@ -447,6 +452,9 @@ class TarTeX:
         """
         Get input files from '.fls' in source dir
         """
+        if not silent:
+            log.info("Reading input files from '%s'", self.main_file.name)
+
         _deps: set[Path] = set()
         _pkgs: dict[str, set[str]] = {}
 
@@ -493,13 +501,17 @@ class TarTeX:
         Returns: tuple of input dependency files paths, dict corresponding to
         package list
         """
-        if (_cf := Path(self.filehash_cache)).is_file():
+        cache_path = Path(self.filehash_cache)
+        if not silent:
+            log.info("Getting input files from cache: '%s'", cache_path.name)
+
+        if cache_path.is_file():
             _deps: set[Path] = set()
             _pkgs: dict[str, set[str]] = {}
-            if _tartex_hash_utils.check_file_hash(_cf):
+            if _tartex_hash_utils.check_file_hash(cache_path):
                 if not silent:
                     log.info("No changes to input files, using cached data")
-                with open(_cf, "r") as cache:
+                with open(cache_path, "r") as cache:
                     _j = json.load(cache)
                     _deps.update([Path(f) for f in _j["input_files"].keys()])
                     _pkgs = _j["packages"]
@@ -571,9 +583,7 @@ class TarTeX:
             log.info("Add user specified file: %s", f_relpath)
         return _files
 
-    def _add_pdf_stream(
-            self, _file: Path, _t: Tarballer, silent: bool = False
-    ):
+    def _add_pdf_stream(self, _file: Path, _t: Tarballer, silent: bool = False):
         """Add pdf as stream to Tarballer object
 
         :_file: path to pdf file
@@ -590,7 +600,7 @@ class TarTeX:
             if not silent:
                 log.warning(
                     "Skipping pdf not found: %s",
-                    f"{_file.relative_to(self.main_file.parent)}"
+                    f"{_file.relative_to(self.main_file.parent)}",
                 )
             self.args.with_pdf = False
 
@@ -724,14 +734,18 @@ class TarTeX:
             "Files needed for compilation missing or excluded from tarball"
         )
 
-        missing_supp = set(
-            [
-                self.main_file.with_suffix(f".{e}").relative_to(
-                    self.main_file.parent
-                )
-                for e in _tartex_tex_utils.SUPP_REQ
-            ]
-        ) if self.args.force_recompile else set()
+        missing_supp = (
+            set(
+                [
+                    self.main_file.with_suffix(f".{e}").relative_to(
+                        self.main_file.parent
+                    )
+                    for e in _tartex_tex_utils.SUPP_REQ
+                ]
+            )
+            if self.args.force_recompile
+            else set()
+        )
         # make sure supplementary file is actually needed
         missing_supp.intersection_update(ref_tar.objects())
 
@@ -775,7 +789,7 @@ class TarTeX:
                 log.log(
                     log.INFO if self.args.force_recompile else log.WARNING,
                     "Missing supplementary file(s): %s",
-                    ", ".join([str(_s) for _s in missing_supp])
+                    ", ".join([str(_s) for _s in missing_supp]),
                 )
         else:
             richprint("[green4]Files needed for compilation to be included:[/]")
