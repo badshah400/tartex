@@ -161,3 +161,21 @@ class TestGitRev:
                 assert tex_data.decode("utf-8") == r1_tex_data.decode("utf-8")
                 tex_data_sha1 = hashlib.sha1(tex_data)
                 assert tex_data_sha1.hexdigest() == r1_texfile_sha.hexdigest()
+
+
+    def test_git_default_head(self, git_repo_clean, datadir, caplog):
+        """
+        Check that default git ref used is HEAD
+        """
+        git_repo, git, git_ref = git_repo_clean
+        tar_git = TarTeX(
+            [
+                (Path(datadir) / "git_rev").as_posix(),
+                "-vv",
+                "-s",
+                "-o",
+                Path(datadir).as_posix(),
+                "-g",
+            ]
+        )
+        assert f"git.{git_ref[:7]}" == tar_git.GR.id()
