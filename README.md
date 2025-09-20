@@ -62,7 +62,7 @@ pipx install ./dist/*.whl
 
 ## Usage
 
-Supported OS: Potentially any POSIX-like, tested _only_ on Linux.
+Supported OS: Potentially cross-platform, but tested _only_ on Linux for now.
 
 ```console
 usage: tartex [OPTIONS] FILENAME
