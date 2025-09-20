@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- When using `--git-rev`, do not attempt to checkout revision if repository is unclean; raise error early.
+- Restore original git tree when process raises error while working in repo checked out at specified revision.
+- Better logs when main input file is not found.
+
 ## [0.10.1] 2025-09-20
 
 ### Fixed
