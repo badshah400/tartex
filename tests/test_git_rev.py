@@ -179,3 +179,29 @@ class TestGitRev:
             ]
         )
         assert f"git.{git_ref[:7]}" == tar_git.GR.id()
+
+
+    def test_git_unclean_repo(self, git_repo_clean, datadir, caplog):
+        """
+        Check that default git ref used is HEAD
+        """
+        git_repo, git, git_ref = git_repo_clean
+
+        # Make an uncommitted change to source file
+        with open(Path(datadir / "git_rev.tex"), mode="a") as tex_f:
+            tex_f.write("\n")
+
+        tar_git = TarTeX(
+            [
+                (Path(datadir) / "git_rev").as_posix(),
+                "-v",
+                "-o",
+                Path(datadir).as_posix(),
+                "-g",
+            ]
+        )
+        with pytest.raises(SystemExit) as exc:
+            tar_git.tar_files()
+
+        assert exc.value.code == 1
+        assert "Git repository unclean" in caplog.text
