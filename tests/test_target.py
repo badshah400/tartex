@@ -57,24 +57,6 @@ class TestTarDir:
     main_file = "some_file.tex"
     tartex_args = [main_file, "-s", "-v", "-o"]
 
-    @pytest.mark.skip(reason="Needs to be re-worked after commit abd7033")
-    def test_root_dir(
-        self, monkeypatch_set_main_file, monkeypatch_mtime, caplog
-    ):
-        """
-        Test permission error when trying to write to '/'
-        """
-        monkeypatch_set_main_file(self.main_file)
-        monkeypatch_mtime(self.main_file)
-        t = TarTeX([*self.tartex_args, "/"])
-        with pytest.raises(SystemExit) as exc:
-            t.tar_files()
-
-        assert "critical" in caplog.text.lower()
-        assert "permission denied" in caplog.text.lower()
-        assert exc.value.code == 1
-        assert not t.tar_file_w_ext.exists()
-
     def test_output_dir(self, monkeypatch_set_main_file, monkeypatch_mtime):
         """Test tarball output when -o is existing dir"""
         monkeypatch_set_main_file(self.main_file)

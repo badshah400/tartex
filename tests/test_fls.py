@@ -62,6 +62,17 @@ class TestUseFls:
             assert flsfile.replace(".fls", ".bbl") not in f.getnames()
 
 
+    def test_no_permission(self, datadir, flsfile, caplog):
+        """Setting output to a dir without write perms will print appropriate msg"""
+        t = TarTeX([str(datadir / flsfile), "-o", "/test_no_perms.tar.bz2", "-v"])
+        with pytest.raises(SystemExit) as exc:
+            t.tar_files()
+
+        assert exc.value.code == 1
+        err_msg = caplog.text.lower()
+        assert "critical" in err_msg
+        assert "permission denied" in err_msg
+
     def test_fls_recompile(self, datadir, flsfile):
         """Forcing a LaTeX recompile ensures .bbl is included"""
         t = TarTeX([str(datadir / flsfile), "-o", str(datadir), "-b", "-F"])
