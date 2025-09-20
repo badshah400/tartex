@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## [0.10.2] 2025-09-21
 
 ### Fixes
