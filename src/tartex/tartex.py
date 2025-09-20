@@ -5,6 +5,7 @@
 #
 """tartex module"""
 
+import errno
 import fnmatch
 import json
 import logging as log
@@ -155,12 +156,16 @@ def _set_main_file(name: str) -> Union[Path, None]:
                 break
         else:
             raise FileNotFoundError(
-                f"File {main_file.name}[.tex|.fls] not found."
+                errno.ENOENT,
+                "Main input file not found",
+                main_file.with_suffix(".(tex|fls)").name
             )
     if main_file.is_file():
         return main_file
     else:
-        raise FileNotFoundError(f"File {main_file.name} not found.")
+        raise FileNotFoundError(
+            errno.ENOENT, "Main input file not found", main_file.name,
+        )
 
 
 ################
@@ -198,7 +203,7 @@ class TarTeX:
         try:
             self.main_file = _set_main_file(self.args.fname)
         except FileNotFoundError as err:
-            log.critical(f"Error: {err}")
+            log.critical(f"{err.strerror}: {err.filename}")
             sys.exit(1)
 
         self.filehash_cache = (

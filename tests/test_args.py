@@ -32,6 +32,14 @@ class TestArgs:
             == f"some_file.tar.{sample_texfile.tar_ext}"
         )
 
+    def test_no_main_file(self, caplog):
+        """Test error msg when specified main tex file is not found"""
+        with pytest.raises(SystemExit) as exc:
+            TarTeX(["foo", "-v"])
+
+        assert 1 == exc.value.code
+        assert f"Main input file not found: foo.(tex|fls)" in caplog.text
+
     def test_version(self, capsys, join_linebreaks):
         """Test version string against version from __about.py__"""
         # argparse will call SystemExit(0) for -h and -v, and print to stdout
