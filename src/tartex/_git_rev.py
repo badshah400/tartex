@@ -88,32 +88,20 @@ def git_checkout(git_bin: str, repo: str, rev: str):
                 log.critical("Git: %s", line)
             raise err
 
-        restore_ref = (
-            head_full_ref if head_abbrev_ref == "HEAD" else head_abbrev_ref
-        )
-        head_proc = subprocess.run(
-            [git_bin, "-C", repo, "checkout", "-f", restore_ref],
-            capture_output=True,
-            encoding="utf-8",
-            check=True,
-        )
-        log.info("Restoring git working tree to revision %s", head_short_ref)
-        for line in head_proc.stderr.splitlines():
-            log.debug("Git: %s", line)
+        finally:
+            restore_ref = (
+                head_full_ref if head_abbrev_ref == "HEAD" else head_abbrev_ref
+            )
+            head_proc = subprocess.run(
+                [git_bin, "-C", repo, "checkout", "-f", restore_ref],
+                capture_output=True,
+                encoding="utf-8",
+                check=True,
+            )
+            log.info("Restoring git working tree to revision %s", head_short_ref)
+            for line in head_proc.stderr.splitlines():
+                log.debug("Git: %s", line)
     else:
-        check_clean_git_tree = subprocess.run(
-            [
-                git_bin,
-                "-C",
-                repo,
-                "status",
-                "--porcelain",
-                "--untracked-files=no",
-            ],
-            capture_output=True,
-            encoding="utf-8",
-            check=False,
-        )
         log_msg_tree = (
             "(unclean)"
             if check_clean_git_tree.stdout
