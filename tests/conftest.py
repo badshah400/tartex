@@ -25,20 +25,31 @@ def setenv_term():
 
 @pytest.fixture(autouse=True)
 def mock_home(monkeypatch, tmp_path):
+    """
+    Mock `Path.home()` to return temporary path
+    """
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
 
 @pytest.fixture(autouse=True)
 def mock_cache_dir(monkeypatch, tmp_path):
+    """
+    Mock XDG_CACHE_HOME with a 'cache' dir inside `tmp_path` to avoid polluting
+    an actual user's XDG_CACHE_HOME dir.
+    """
     monkeypatch.setattr(
-        _tartex_xdg_utils,
-        "XDG_CACHE_HOME",
-        tmp_path / "cache",
+        _tartex_xdg_utils, "XDG_CACHE_HOME", tmp_path / "cache",
     )
 
 
 @pytest.fixture
 def monkeypatch_mtime(monkeypatch):
+    """
+    Mock `os.path.getmtime(foo)` to return current time.
+
+    Needed when we do not actually have a valid main tex/fls file to use for a
+    test, but want to simply test `TarTeX` class variables anyway
+    """
     return lambda _: monkeypatch.setattr(
         "os.path.getmtime", lambda _: time.time()
     )
@@ -46,6 +57,13 @@ def monkeypatch_mtime(monkeypatch):
 
 @pytest.fixture
 def monkeypatch_set_main_file(monkeypatch):
+    """
+    Mock `_set_main_file()` function to simply return the input path param
+    without any checks.
+
+    Needed when we do not actually have a valid main tex/fls file to use for a
+    test, but want to simply test `TarTeX` class variables anyway
+    """
     return lambda foo: monkeypatch.setattr(
         "tartex.tartex._set_main_file", lambda _: Path(foo)
     )
