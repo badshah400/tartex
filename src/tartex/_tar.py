@@ -155,7 +155,7 @@ class Tarballer:
                     _tar_add_bytesio(tar_obj, key, val)
         except PermissionError as e:
             log.critical(e)
-            sys.exit(1)
+            raise e
         except Exception as e:
             raise e
 
