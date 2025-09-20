@@ -14,7 +14,6 @@ import pytest
 
 from tartex.tartex import TarTeX
 
-
 @pytest.fixture
 def flsfile():
     """Default fls file name"""
@@ -70,6 +69,23 @@ class TestUseFls:
 
         with tar.open(f"{t.tar_file_w_ext}") as f:
             assert flsfile.replace(".fls", ".bbl") in f.getnames()
+
+    def test_fls_no_pdf(self, datadir, flsfile, caplog):
+        """Silently skip missing pdf when `--with-pdf is used`"""
+        t = TarTeX(
+            [
+                str(datadir / flsfile),
+                "-o",
+                str(datadir / "missing_pdf.tar.xz"),
+                "-v",
+                "--with-pdf"
+            ]
+        )
+        t.tar_files()
+        assert t.tar_file_w_ext.exists()
+        with tar.open(f"{t.tar_file_w_ext}") as f:
+            assert t.main_file.with_suffix(".pdf") not in f.getnames()
+        assert "Skipping pdf not found" in caplog.text
 
 class TestFlsNoCache:
     """Check that no cache is touched when using .fls file directly"""
