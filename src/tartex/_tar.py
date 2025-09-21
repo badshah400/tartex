@@ -1,3 +1,4 @@
+# vim:set et sw=4 ts=4 tw=80:
 # module _tar
 """
 Helper class TarFiles

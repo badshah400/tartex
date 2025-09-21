@@ -1,4 +1,4 @@
-# vim:set et sw=4 ts=4:
+# vim:set et sw=4 ts=4 tw=80:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
@@ -11,6 +11,7 @@ from pathlib import Path
 from tartex.__about__ import __appname__
 
 XDG_CACHE_HOME = Path(os.getenv("XDG_CACHE_HOME") or Path.home() / ".cache")
+
 
 def app_cache_dir(main_file: Path) -> Path:
     """
@@ -28,17 +29,13 @@ def app_cache_dir(main_file: Path) -> Path:
     # Use bottom two parent dirs and join them using "_"
     path_parts = prj_dir.parts
     if len(path_parts) >= 2:
-        dir_short_name = '_'.join(
-            str(prj_dir).split(os.sep)[-2:]
-        )
+        dir_short_name = "_".join(str(prj_dir).split(os.sep)[-2:])
     else:
         dir_short_name = prj_dir.name
     # Append a short dir hash making the dir name unique
     dir_short_hash = HASH_METHOD(
         str(main_file.resolve()).encode("utf-8")
     ).hexdigest()[:8]
-    prj_cache_dir = cache_dir / (
-        f"{dir_short_name}_{dir_short_hash}"
-    )
+    prj_cache_dir = cache_dir / (f"{dir_short_name}_{dir_short_hash}")
     prj_cache_dir.mkdir(parents=True, exist_ok=True)
     return prj_cache_dir

@@ -1,4 +1,4 @@
-# vim:set et sw=4 ts=4:
+# vim:set et sw=4 ts=4 tw=80:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
@@ -24,8 +24,8 @@ def summary_msg(
             tarname_rel = tarname
         finally:
             richprint(
-                f"[cyan]Summary: :package: [bold]{tarname_rel}[/] generated with"
-                f" {_num_tag(nfiles)}.[/]"
+                f"[cyan]Summary: :package: [bold]{tarname_rel}[/] generated "
+                f"with {_num_tag(nfiles)}.[/]"
             )
     else:
         richprint(

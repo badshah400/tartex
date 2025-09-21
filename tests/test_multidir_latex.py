@@ -1,4 +1,4 @@
-# vim:set et sw=4 ts=4:
+# vim:set et sw=4 ts=4 tw=80:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
@@ -58,7 +58,7 @@ class TestMultiDir:
         assert output.exists()
 
         with tar.open(output, "r") as rat:
-            # Check if files in tarball have the same dir structure as src_files
+            # Check if files in tarball have same dir structure as source dir
             assert src_files == sorted(rat.getnames())
 
     def test_list(self, datadir):
@@ -82,7 +82,7 @@ class TestMultiDir:
             [
                 (Path(datadir) / "main.tex").as_posix(),
                 "--only-check",
-                "-o", # unique output to avoid conflicts with other tests
+                "-o",  # unique output to avoid conflicts with other tests
                 (Path(datadir) / "multidir_check_ok.tar.gz").as_posix(),
             ]
         )
@@ -96,15 +96,17 @@ class TestMultiDir:
         assert "All files needed for compilation included in tarball" in out_msg
 
     def test_check_fail_excl(self, datadir, capsys):
-        """`--check` must fail when necessary image file is excluded from tarball"""
+        """
+        `--check` must fail when necessary image file is excluded from tarball
+        """
         t = TarTeX(
             [
                 (Path(datadir) / "main.tex").as_posix(),
-                "-o", # unique output to avoid conflicts with other tests
+                "-o",  # unique output to avoid conflicts with other tests
                 (Path(datadir) / "multidir_check_fail.tar.gz").as_posix(),
                 "--check",
                 "-x",
-                "*.png"
+                "*.png",
             ]
         )
         with pytest.raises(SystemExit) as exc:

@@ -1,4 +1,4 @@
-# vim:set et sw=4 ts=4:
+# vim:set et sw=4 ts=4 tw=80:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
@@ -13,6 +13,7 @@ import tarfile as tar
 import pytest
 
 from tartex.tartex import TarTeX
+
 
 @pytest.fixture
 def flsfile():
@@ -36,10 +37,10 @@ class TestUseFls:
         t = tartex_obj
         assert t.tar_file_w_ext.stem == flsfile.replace(".fls", ".tar")
 
-
     def test_fls_main_arg_noext(self, datadir, flsfile):
         """
-        User passes a file name with no extension but tartex should find .fls file
+        User passes a file name with no extension but tartex should find .fls
+        file
         """
         flsfile_noext = flsfile.removesuffix(".fls")
         t = TarTeX(
@@ -49,7 +50,6 @@ class TestUseFls:
         assert t.tar_file_w_ext.name == f"{flsfile_noext}.tar.{t.tar_ext}"
         with tar.open(f"{t.tar_file_w_ext}") as f:
             assert len(f.getnames()) == 2
-
 
     def test_fls_missing_bbl(self, tartex_obj, flsfile):
         """
@@ -61,10 +61,14 @@ class TestUseFls:
         with tar.open(f"{tartex_obj.tar_file_w_ext}") as f:
             assert flsfile.replace(".fls", ".bbl") not in f.getnames()
 
-
     def test_no_permission(self, datadir, flsfile, caplog):
-        """Setting output to a dir without write perms will print appropriate msg"""
-        t = TarTeX([str(datadir / flsfile), "-o", "/test_no_perms.tar.bz2", "-v"])
+        """
+        Setting output to a dir without write perms will print appropriate
+        msg
+        """
+        t = TarTeX(
+            [str(datadir / flsfile), "-o", "/test_no_perms.tar.bz2", "-v"]
+        )
         with pytest.raises(SystemExit) as exc:
             t.tar_files()
 
@@ -89,7 +93,7 @@ class TestUseFls:
                 "-o",
                 str(datadir / "missing_pdf.tar.xz"),
                 "-v",
-                "--with-pdf"
+                "--with-pdf",
             ]
         )
         t.tar_files()
@@ -97,6 +101,7 @@ class TestUseFls:
         with tar.open(f"{t.tar_file_w_ext}") as f:
             assert t.main_file.with_suffix(".pdf") not in f.getnames()
         assert "Skipping pdf not found" in caplog.text
+
 
 class TestFlsNoCache:
     """Check that no cache is touched when using .fls file directly"""
@@ -111,7 +116,7 @@ class TestFlsNoCache:
                 str(datadir / flsfile_noext),
                 "-o",
                 str(datadir / "fls_no_cache"),
-                "-b"
+                "-b",
             ],
         )
         t.tar_files()

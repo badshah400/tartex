@@ -1,4 +1,4 @@
-# vim: set ai et ts=4 sw=4 tw=100:
+# vim: set ai et ts=4 sw=4 tw=80:
 
 import hashlib
 import shutil
@@ -162,7 +162,6 @@ class TestGitRev:
                 tex_data_sha1 = hashlib.sha1(tex_data)
                 assert tex_data_sha1.hexdigest() == r1_texfile_sha.hexdigest()
 
-
     def test_git_default_head(self, git_repo_clean, datadir, caplog):
         """
         Check that default git ref used is HEAD
@@ -179,7 +178,6 @@ class TestGitRev:
             ]
         )
         assert f"git.{git_ref[:7]}" == tar_git.GR.id()
-
 
     def test_git_unclean_repo(self, git_repo_clean, datadir, caplog):
         """

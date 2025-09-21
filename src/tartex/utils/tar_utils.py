@@ -1,4 +1,4 @@
-# vim:set et sw=4 ts=4:
+# vim:set et sw=4 ts=4 tw=80:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
@@ -64,15 +64,18 @@ def tar_name_conflict(
     Resolves conflict in case output tarball file already exists by either of
     the following options offered to user:
 
-    * Overwriting existing file (automatically chosen if `overwrite` is `True`).
-    * Asking for new tarball name (if tarball with new name already exists, exit with error).
+    * Overwriting existing file (automatically chosen if `overwrite` is
+      `True`).
+    * Asking for new tarball name (if tarball with new name already exists,
+      exit with error).
     * Quit directly.
 
     :wdir: dir from which `tar_files()` is called (Path)
     :filename: main .tex/.fls file path (Path)
     :tpath: full filename of initial tarball (str)
     :overwrite: whether to overwrite existing tarball (optional; bool)
-    :git_tag: full tag to be appended to tarball filename when `git-rev` is used (optional; str)
+    :git_tag: full tag to be appended to tarball filename when `git-rev` is
+    used (optional; str)
 
     :returns: new_tar_file and new extension if any (otherwise "") (tuple)
     """

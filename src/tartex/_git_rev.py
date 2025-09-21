@@ -1,4 +1,4 @@
-# vim: set et ai ts=4 sw=4 tw=100:
+# vim: set et ai ts=4 sw=4 tw=80:
 
 import shutil
 import subprocess
@@ -7,20 +7,22 @@ from pathlib import Path
 from contextlib import contextmanager
 
 
-# This is a context manager that modifies the user's git working tree in place, i.e., it checks out
-# the specified revision (if valid) in a `--detached` mode, yields for work to be done on the
-# working tree in this detached checkout mode, and cleans up by restoring the branch HEAD.
+# This is a context manager that modifies the user's git working tree in place,
+# i.e., it checks out the specified revision (if valid) in a `--detached` mode,
+# yields for work to be done on the working tree in this detached checkout mode,
+# and cleans up by restoring the branch HEAD.
 #
-# While useful, this might lead to race effects if the user manages to change any files in the
-# repository while the context manager is active. Instead, consider switching to using pure git refs
-# from `ls-tree --long` and getting binary data from the refs using `git cat-file`. This approach
-# will avoid modifying anything in the user dir at all, rather than the current checkout-and-restore
-# approach.
+# While useful, this might lead to race effects if the user manages to change
+# any files in the repository while the context manager is active. Instead,
+# consider switching to using pure git refs from `ls-tree --long` and getting
+# binary data from the refs using `git cat-file`. This approach will avoid
+# modifying anything in the user dir at all, rather than the current
+# checkout-and-restore approach.
 @contextmanager
 def git_checkout(git_bin: str, repo: str, rev: str):
     """
-    A context manager for git checkout that checks out `rev` and restores previous working tree
-    afterwards
+    A context manager for git checkout that checks out `rev` and restores
+    previous working tree afterwards
     """
 
     # Raise exception right away if git tree is unclean
@@ -98,7 +100,9 @@ def git_checkout(git_bin: str, repo: str, rev: str):
                 encoding="utf-8",
                 check=True,
             )
-            log.info("Restoring git working tree to revision %s", head_short_ref)
+            log.info(
+                "Restoring git working tree to revision %s", head_short_ref
+            )
             for line in head_proc.stderr.splitlines():
                 log.debug("Git: %s", line)
     else:
@@ -153,8 +157,9 @@ class GitRev:
             raise err
 
     def id(self) -> str:
-        """Return either tag name, if commit corresponds to a valid tag, or commit short-id
-        otherwise
+        """
+        Return either tag name, if commit corresponds to a valid tag, or commit
+        short-id otherwise
 
         :returns: str
 
