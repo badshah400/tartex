@@ -6,7 +6,6 @@ Helper class TarFiles
 import logging as log
 import math
 import os
-import sys
 from io import BytesIO
 from pathlib import Path
 from rich import print as richprint
