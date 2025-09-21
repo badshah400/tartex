@@ -6,7 +6,6 @@
 
 """Tests for LaTeX project consisting of multiple dirs"""
 
-import fileinput
 import os
 import tarfile as tar
 from pathlib import Path
