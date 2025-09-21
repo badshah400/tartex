@@ -73,7 +73,9 @@ def bib_file(tex_fname: Path) -> list[Union[Path, None]]:
         bst_name = re.sub(r"^\\bibliographystyle\{", "", bst_name).rstrip("}")
         bst_name += ".bst" if bst_name.split(".")[-1] != ".bst" else ""
 
-    return [Path(f) for f in [bib_name, bst_name] if Path(f).is_file()]
+    return [
+        Path(f) for f in [bib_name, bst_name] if (f and Path(f).is_file())
+    ]
 
 
 class SetEncoder(json.JSONEncoder):
