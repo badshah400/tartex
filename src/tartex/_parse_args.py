@@ -1,4 +1,4 @@
-# vim:set et sw=4 ts=4:
+# vim:set et sw=4 ts=4 tw=80:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
@@ -259,14 +259,14 @@ def parse_args(args) -> argparse.Namespace:
         "-c",
         "--check",
         action="store_true",
-        help="Check if tarball has all files needed for compiling"
+        help="Check if tarball has all files needed for compiling",
     )
 
     general_opts.add_argument(
         "-C",
         "--only-check",
         action="store_true",
-        help="Only check and print detailed report; no tarball"
+        help="Only check and print detailed report; no tarball",
     )
 
     general_opts.add_argument(
@@ -336,7 +336,7 @@ def parse_args(args) -> argparse.Namespace:
     file_opts.add_argument(
         "-a",
         "--add",
-        metavar="\"PATTERNs\"",
+        metavar='"PATTERNs"',
         type=str,
         help=(
             "include additional files matching glob PATTERN;"
@@ -360,7 +360,7 @@ def parse_args(args) -> argparse.Namespace:
     file_opts.add_argument(
         "-x",
         "--excl",
-        metavar="\"PATTERNs\"",
+        metavar='"PATTERNs"',
         type=str,
         help="exclude file names matching PATTERNS",
     )
@@ -389,7 +389,8 @@ def parse_args(args) -> argparse.Namespace:
 
     # Tar recompress options
     tar_opts_grp = parser.add_argument_group(
-        "options for tar re-compression (mutually conflicting); over-rides .EXT in '-o'"
+        "options for tar re-compression (mutually conflicting); over-rides "
+        ".EXT in '-o'"
     )
     tar_opts = tar_opts_grp.add_mutually_exclusive_group()
 

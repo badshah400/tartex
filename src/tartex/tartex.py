@@ -1,4 +1,4 @@
-# vim:set et sw=4 ts=4:
+# vim:set et sw=4 ts=4 tw=80:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
@@ -91,7 +91,8 @@ def _check_err_missing(
                 ", ".join([f.as_posix() for f in non_exist_files]),
             )
             richprint(
-                "[bold bright_red]Files needed for compilation missing (deleted?):[/]"
+                "[bold bright_red]Files needed for compilation missing "
+                "(deleted?):[/]"
             )
             for f in non_exist_files:
                 richprint(indicator, end=" ")
@@ -103,7 +104,8 @@ def _check_err_missing(
                 ", ".join([f.as_posix() for f in excluded]),
             )
             richprint(
-                "[bold bright_red]Files needed for compilation not included:[/]"
+                "[bold bright_red]Files needed for compilation not included:"
+                "[/]"
             )
             for f in excluded:
                 richprint(indicator, end=" ")
@@ -158,13 +160,15 @@ def _set_main_file(name: str) -> Union[Path, None]:
             raise FileNotFoundError(
                 errno.ENOENT,
                 "Main input file not found",
-                main_file.with_suffix(".(tex|fls)").name
+                main_file.with_suffix(".(tex|fls)").name,
             )
     if main_file.is_file():
         return main_file
     else:
         raise FileNotFoundError(
-            errno.ENOENT, "Main input file not found", main_file.name,
+            errno.ENOENT,
+            "Main input file not found",
+            main_file.name,
         )
 
 
@@ -226,13 +230,14 @@ class TarTeX:
         # ..but use use specified output's TAR_EXT extension if any...
         self.tar_ext = ""
         if self.args.output:
-            self.args.output, self.tar_ext = _tartex_tar_utils.proc_output_path(
-                self.cwd,
-                self.main_file,
-                self.args.output,
-                self.tar_file_git_tag,
+            self.args.output, self.tar_ext = (
+                _tartex_tar_utils.proc_output_path(
+                    self.cwd,
+                    self.main_file,
+                    self.args.output,
+                    self.tar_file_git_tag,
+                )
             )
-
         self.tar_file_w_ext = self._tar_filename()
         self.tar_ext = self.tar_file_w_ext.suffix.lstrip(".")
         log.debug("Output tarball name: '%s'", self.tar_file_w_ext)
@@ -354,7 +359,7 @@ class TarTeX:
             tarf.app_stream(
                 self.pkglist_name,
                 self.pkglist,
-                comm=f"Adding list of used LaTeX packages: {self.pkglist_name}",
+                comm=f"Add list of LaTeX packages used: {self.pkglist_name}",
             )
 
     def input_files_from_git(
@@ -386,7 +391,8 @@ class TarTeX:
             except FileNotFoundError:
                 if not silent:
                     log.warning(
-                        "Missing .fls file in source dir; %s will not be saved",
+                        "Missing .fls file in source dir; %s will not be "
+                        "saved",
                         self.pkglist_name,
                     )
                 self.args.packages = False
@@ -419,7 +425,8 @@ class TarTeX:
         with TemporaryDirectory() as compile_dir:
             if not silent:
                 log.info(
-                    f"LaTeX recompile {'forced' if self.args.force_recompile else 'required'}"
+                    "LaTeX recompile "
+                    f"{'forced' if self.args.force_recompile else 'required'}"
                 )
                 log.info("LaTeX compile directory: %s", compile_dir)
             try:
@@ -447,14 +454,13 @@ class TarTeX:
                 self._add_supplement_streams(Path(compile_dir), _deps, tarf)
                 if not minimal:
                     if self.args.with_pdf:
-                        self._add_pdf_stream(fls_path.with_suffix(".pdf"), tarf)
+                        self._add_pdf_stream(
+                            fls_path.with_suffix(".pdf"), tarf
+                        )
 
                 if cache_update:
                     _tartex_hash_utils.save_input_files_hash(
-                        Path(self.filehash_cache),
-                        _deps,
-                        tarf.streams(),
-                        _pkgs
+                        Path(self.filehash_cache), _deps, tarf.streams(), _pkgs
                     )
                 return _deps, _pkgs
 
@@ -466,7 +472,7 @@ class TarTeX:
         if not silent:
             log.info(
                 "Reading input files from project fls file: '%s'",
-                self.main_file.name
+                self.main_file.name,
             )
 
         _deps: set[Path] = set()
@@ -486,7 +492,8 @@ class TarTeX:
             if self.args.packages:
                 if not silent:
                     log.warning(
-                        "Cannot generate list of packages due to missing %s file",
+                        "Cannot generate list of packages due to missing %s "
+                        "file",
                         fls_f,
                     )
                 self.args.packages = False
@@ -600,7 +607,9 @@ class TarTeX:
             log.info("Add user specified file: %s", f_relpath)
         return _files
 
-    def _add_pdf_stream(self, _file: Path, _t: Tarballer, silent: bool = False):
+    def _add_pdf_stream(
+        self, _file: Path, _t: Tarballer, silent: bool = False
+    ):
         """
         Add pdf as stream to Tarballer object
 
@@ -622,7 +631,9 @@ class TarTeX:
                 )
             self.args.with_pdf = False
 
-    def _add_supplement_streams(self, _p: Path, _dep: set[Path], _t: Tarballer):
+    def _add_supplement_streams(
+        self, _p: Path, _dep: set[Path], _t: Tarballer
+    ):
         """
         Add supplementary files as streams
 
@@ -683,7 +694,8 @@ class TarTeX:
                     _ = self.input_files(tarball)
                     if self.args.list:
                         log.debug(
-                            "Working in 'list' mode; no tarball will be produced"
+                            "Working in 'list' mode; no tarball will be "
+                            "produced"
                         )
                         tarball.print_list(self.args.summary)
                     else:
@@ -705,9 +717,12 @@ class TarTeX:
         """
 
         log.debug("Working in `check` mode; no tarball will be produced")
-        log.debug("Checking whether target tarball contents will recompile...")
+        log.debug(
+            "Checking whether target tarball contents will recompile..."
+        )
         richprint(
-            "[bright_black]Checking whether target tarball contents will recompile...[/]",
+            "[bright_black]Checking whether target tarball contents will "
+            "recompile...[/]",
         )
 
         # Rich print indicators for missing or superfluous file messages
@@ -743,7 +758,8 @@ class TarTeX:
             )
             if not silent:
                 richprint(
-                    f"{INDI['req-miss']} Files need for compilation missing (deleted?)"
+                    f"{INDI['req-miss']} Files need for compilation missing "
+                    "(deleted?)"
                 )
             raise CheckFailError from err
 
@@ -811,7 +827,9 @@ class TarTeX:
                     ", ".join([str(_s) for _s in missing_supp]),
                 )
         else:
-            richprint("[green4]Files needed for compilation to be included:[/]")
+            richprint(
+                "[green4]Files needed for compilation to be included:[/]"
+            )
             for f in ref_tar.objects().intersection(dummy_tar.objects()):
                 richprint(INDI["perfect"], end=" ")
                 print(f"{f!s}")
@@ -858,7 +876,9 @@ class TarTeX:
 
         """
         _tar_ext = (
-            self.tar_ext if self.tar_ext else _tartex_tar_utils.TAR_DEFAULT_COMP
+            self.tar_ext
+            if self.tar_ext
+            else _tartex_tar_utils.TAR_DEFAULT_COMP
         )
         # ...but overwrite TAR_EXT if a specific tar compression option passed
         if self.args.bzip2:
@@ -876,7 +896,8 @@ class TarTeX:
             ).with_suffix(".tar")
         )
 
-        # Note: if tar_file is already an abs path, 'foo/tar_file' simply returns 'tar_file'
+        # Note: if tar_file is already an abs path, 'foo/tar_file' simply
+        # returns 'tar_file'
         return self.cwd / tar_file.with_suffix(f".tar.{_tar_ext}")
 
 

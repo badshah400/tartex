@@ -1,4 +1,4 @@
-# vim:set et sw=4 ts=4:
+# vim:set et sw=4 ts=4 tw=80:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
@@ -38,7 +38,9 @@ def mock_cache_dir(monkeypatch, tmp_path):
     an actual user's XDG_CACHE_HOME dir.
     """
     monkeypatch.setattr(
-        _tartex_xdg_utils, "XDG_CACHE_HOME", tmp_path / "cache",
+        _tartex_xdg_utils,
+        "XDG_CACHE_HOME",
+        tmp_path / "cache",
     )
 
 

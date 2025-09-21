@@ -1,4 +1,4 @@
-# vim:set et sw=4 ts=4:
+# vim:set et sw=4 ts=4 tw=80:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
@@ -74,6 +74,7 @@ def bib_file(tex_fname: Path) -> list[Union[Path, None]]:
         bst_name += ".bst" if bst_name.split(".")[-1] != ".bst" else ""
 
     return [Path(f) for f in [bib_name, bst_name] if Path(f).is_file()]
+
 
 class SetEncoder(json.JSONEncoder):
     """A class to allow JSONEncoder to interpret a set as a list"""

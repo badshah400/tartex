@@ -1,4 +1,4 @@
-# vim:set et sw=4 ts=4:
+# vim:set et sw=4 ts=4 tw=80:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
@@ -39,7 +39,9 @@ class TestBasicLaTeX:
     """Tests checking tar file generation from a basic latex file"""
 
     def test_list_only(self, datadir, default_target, capsys):
-        """Test `--list` and `--dry-run` options which _do not_ produce tarballs"""
+        """
+        Test `--list` and `--dry-run` options which _do not_ produce tarballs
+        """
         output = default_target.with_suffix(".tar.gz")
         for opt in ["-l", "--list", "--dry-run"]:
             t = TarTeX([(Path(datadir) / "basic_latex.tex").as_posix(), opt])
@@ -107,6 +109,7 @@ class TestBasicLaTeX:
         """
         t = TarTeX([(Path(datadir) / "basic_latex.tex").as_posix(), "-vv"])
         assert t.args.verbose == 2
+
 
 class TestCache:
     """Tests involving cache generation, retrieval, and update"""
@@ -206,6 +209,7 @@ class TestCache:
         )
         t.tar_files()
         assert not t.filehash_cache.exists()
+
 
 # These tests involve repeatedly compiling LaTeX files, thus can be slow
 @pytest.mark.slow
@@ -368,6 +372,7 @@ class TestTarConflict:
         out_mess = caplog.text
         assert "overwriting existing" in out_mess.lower()
 
+
 class TestOnlyCheckBasic:
     def test_only_check_success(self, capsys, datadir):
         """Use `--only-check` to report successful inclusion of single file"""
@@ -381,7 +386,10 @@ class TestOnlyCheckBasic:
         )
         t.tar_files()
         assert not t.tar_file_w_ext.exists()
-        assert "All files needed for compilation included" in capsys.readouterr().out
+        assert (
+            "All files needed for compilation included"
+            in capsys.readouterr().out
+        )
 
     def test_check_warn_pdf(self, capsys, datadir):
         """Warn when `--only-check` finds unnecessary files to be included"""

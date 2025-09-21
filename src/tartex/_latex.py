@@ -1,4 +1,4 @@
-# vim:set et sw=4 ts=4:
+# vim:set et sw=4 ts=4 tw=80:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
@@ -25,9 +25,7 @@ INPUT_FONTS = re.compile(r"^INPUT\s.*.(pfb|tfm)")
 FONT_PUBLIC = re.compile(r"/public/.*/")
 
 
-def run_latexmk(
-    filename, mode, compdir, timeout=300, silent: bool = False
-):
+def run_latexmk(filename, mode, compdir, timeout=300, silent: bool = False):
     """Helper function to actually compile the latex file in a tmpdir"""
     latexmk_bin = shutil.which("latexmk")
     if not latexmk_bin:
@@ -58,7 +56,9 @@ def run_latexmk(
             )
     except subprocess.TimeoutExpired as e:
         log.critical(
-            "Error: %s process timed out after %s seconds", latexmk_bin, timeout
+            "Error: %s process timed out after %s seconds",
+            latexmk_bin,
+            timeout,
         )
         raise e
     except OSError as err:
@@ -76,7 +76,8 @@ def run_latexmk(
 
     if not silent:
         log.info(
-            "LaTeX project successfully compiled with: %s", " ".join(latexmk_cmd)
+            "LaTeX project successfully compiled with: %s",
+            " ".join(latexmk_cmd),
         )
     fls_path = Path(compdir) / f"{filename.stem}.fls"
     log.debug("%s generated", fls_path.as_posix())
@@ -90,10 +91,7 @@ def fls_input_files(fls_fileobj, skip_files, *, sty_files=False):
     for line in fls_fileobj:
         if INPUT_RE.match(line):
             p = Path(line.split()[-1])
-            if (
-                not p.is_absolute()
-                and (p.suffix not in skip_files)
-            ):
+            if not p.is_absolute() and (p.suffix not in skip_files):
                 deps.add(p)
 
         if sty_files:

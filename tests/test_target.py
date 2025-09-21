@@ -1,4 +1,4 @@
-# vim:set et sw=4 ts=4 tw=100:
+# vim:set et sw=4 ts=4 tw=80:
 # SPDX-FileCopyrightText: 2024-present Atri Bhattacharya <atrib@duck.com>
 #
 # SPDX-License-Identifier: MIT
