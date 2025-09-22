@@ -10,6 +10,7 @@ import os
 from io import BytesIO
 from pathlib import Path
 from rich import print as richprint
+from typing import Union
 from .utils.tar_utils import TAR_EXT
 from .utils.msg_utils import summary_msg
 import tarfile as tar
@@ -28,7 +29,7 @@ class Tarballer:
 
         # dict of objects to include whose contents are only available as BytesIO
         # key: name to use; val: object contents as BytesIO
-        self._streams: dict[str, BytesIO] = {}
+        self._streams: dict[str, Union[bytes, BytesIO]] = {}
 
         # dict of strings to use for logging when adding `key` object to tarball
         # key: file or stream object name; val: logging string
@@ -101,7 +102,9 @@ class Tarballer:
         """Return all files and streams to be added to tarball"""
         return self.files().union([Path(f) for f in self.streams()])
 
-    def app_stream(self, name: str, content: BytesIO, comm: str = ""):
+    def app_stream(
+            self, name: str, content: Union[BytesIO, bytes], comm: str = ""
+    ):
         """Append a single BytesIO content to list of streams
 
         :name: file name to use for stream (str)

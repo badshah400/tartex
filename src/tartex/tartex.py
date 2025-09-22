@@ -20,7 +20,7 @@ from rich import (
     highlighter,
 )
 from tempfile import TemporaryDirectory
-from typing import Union
+from typing import Any, Union
 
 from tartex import _latex
 from tartex._parse_args import parse_args
@@ -185,7 +185,7 @@ class TarTeX:
 
     pkglist_name = "TeXPackages.json"
 
-    def __init__(self, args):
+    def __init__(self, args: list[str]):
         self.args = parse_args(args)
         log_level = (
             (log.INFO // self.args.verbose)
@@ -204,6 +204,7 @@ class TarTeX:
             ],
         )
         self.cwd = Path.cwd()
+        self.main_file = self.cwd / self.args.fname  # dummy name before check
         try:
             self.main_file = _set_main_file(self.args.fname)
         except FileNotFoundError as err:
@@ -226,7 +227,7 @@ class TarTeX:
         else:
             self.tar_file_git_tag = ""
 
-        self.pdf_stream = None
+        self.pdf_stream: bytes
         # ..but use use specified output's TAR_EXT extension if any...
         self.tar_ext = ""
         if self.args.output:
@@ -242,7 +243,7 @@ class TarTeX:
         self.tar_ext = self.tar_file_w_ext.suffix.lstrip(".")
         log.debug("Output tarball name: '%s'", self.tar_file_w_ext)
 
-        self.req_supfiles = {}
+        self.req_supfiles: dict[Path, Any] = {}
         self.add_files = self.args.add.split(",") if self.args.add else []
         excludes = self.args.excl.split(",") if self.args.excl else []
         excl_lists = (self.main_file.parent.glob(f"**/{L}") for L in excludes)
@@ -284,7 +285,9 @@ class TarTeX:
                 ", ".join([Path(x).as_posix() for x in self.excl_files]),
             )
 
-        self.force_tex = False if self.args.git_rev else self.args.latexmk_tex
+        self.force_tex: str = (
+            "" if self.args.git_rev else self.args.latexmk_tex
+        )
         if not self.force_tex:
             # If force_tex is not set by user options,
             # set to ps if source dir contains ps/eps files
@@ -300,7 +303,7 @@ class TarTeX:
                 self.force_tex,
             )
 
-        self.pkglist = None
+        self.pkglist: Union[bytes, None] = None
 
     def input_files(self, tarf: Tarballer, silent: bool = False) -> None:
         """
@@ -853,23 +856,24 @@ class TarTeX:
     ## CLASS HELPER FUNCTIONS ##
     ############################
 
-    def _missing_supp(self, fpath, tmpdir, deps):
+    def _missing_supp(
+            self, fpath: Path, tmpdir: Path, deps: set[Path]
+    ) -> Union[bytes, None]:
         """Handle missing supplementary file from orig dir, if req"""
         if (
             fpath not in deps  # bbl file not in source dir
-            and (Path(tmpdir) / fpath.name).exists()  # Implies it's req
+            and (tmpdir / fpath.name).exists()  # Implies it's req
             and fpath not in self.excl_files  # Not explicitly excluded
         ):
             log.debug("Required file '%s' not in source dir", fpath.name)
             log.info(
-                "Add contents as BytesIO: %s",
-                Path(tmpdir) / fpath.name,
+                "Add contents as BytesIO: %s", Path(tmpdir) / fpath.name,
             )
-            return (Path(tmpdir) / fpath.name).read_bytes()
+            return (tmpdir / fpath.name).read_bytes()
 
         return None
 
-    def _tar_filename(self):
+    def _tar_filename(self) -> Path:
         """
         Set member variables for tar output
         :returns: full tarball file name

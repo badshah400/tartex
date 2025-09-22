@@ -115,7 +115,9 @@ def git_checkout(git_bin: str, repo: str, rev: str):
         yield rev_short_ref
 
 
-def _get_ref(git_bin, repo, rev, abbrev=False):
+def _get_ref(
+        git_bin: str, repo: str, rev: str, abbrev: bool = False
+) -> str:
     """Returns the full ref for a given git revision `rev` in a git `repo`"""
 
     cmd = [git_bin, "-C", repo, "rev-parse"]

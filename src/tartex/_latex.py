@@ -8,6 +8,7 @@
 Helper function to compile latex file in a temp dir
 """
 
+from io import TextIOWrapper
 import logging as log
 import re
 import shutil
@@ -25,7 +26,13 @@ INPUT_FONTS = re.compile(r"^INPUT\s.*.(pfb|tfm)")
 FONT_PUBLIC = re.compile(r"/public/.*/")
 
 
-def run_latexmk(filename, mode, compdir, timeout=300, silent: bool = False):
+def run_latexmk(
+        filename: Path,
+        mode: str,
+        compdir: str,
+        timeout: int = 300,
+        silent: bool = False
+) -> Path:
     """Helper function to actually compile the latex file in a tmpdir"""
     latexmk_bin = shutil.which("latexmk")
     if not latexmk_bin:
@@ -84,10 +91,15 @@ def run_latexmk(filename, mode, compdir, timeout=300, silent: bool = False):
     return fls_path
 
 
-def fls_input_files(fls_fileobj, skip_files, *, sty_files=False):
+def fls_input_files(
+        fls_fileobj: TextIOWrapper,
+        skip_files: list[str],
+        *,
+        sty_files: bool = False
+) -> tuple[set[Path], dict[str, set[str]]]:
     """Helper function to return list on files marked as 'INPUT' in fls file"""
-    deps = set()
-    pkgs = {"System": set(), "Local": set()}
+    deps: set = set()
+    pkgs: dict[str, set[str]] = {"System": set(), "Local": set()}
     for line in fls_fileobj:
         if INPUT_RE.match(line):
             p = Path(line.split()[-1])
