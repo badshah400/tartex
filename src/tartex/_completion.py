@@ -12,6 +12,7 @@ import contextlib
 import os
 from pathlib import Path
 from shutil import copy2
+from typing import Union
 
 from rich import print as richprint
 
@@ -27,7 +28,7 @@ COMPFILE = {
 class Completion:
     """Methods for helping users print or install shell completion"""
 
-    def __init__(self, shell_name, filename):
+    def __init__(self, shell_name: str, filename: str):
         """Initialise"""
         self.shell = shell_name
         self.completion_file = Path(__file__).parent.joinpath("data", filename)
@@ -40,7 +41,7 @@ class Completion:
         self.install_dir = install_root.joinpath(COMPFILE[self.shell]).parent
         self.install_filename = COMPFILE[self.shell].name
 
-    def install(self, install_dir=None):
+    def install(self, install_dir: Union[str, None] = None):
         """Install completion to path"""
         path = Path(install_dir or self.install_dir)
         with contextlib.suppress(FileExistsError):
