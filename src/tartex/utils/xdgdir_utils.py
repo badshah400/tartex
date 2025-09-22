@@ -35,7 +35,7 @@ def app_cache_dir(main_file: Path) -> Path:
     # Append a short dir hash making the dir name unique
     dir_short_hash = HASH_METHOD(
         str(main_file.resolve()).encode("utf-8")
-    ).hexdigest()[:8]
+    ).hexdigest()[:7]
     prj_cache_dir = cache_dir / (f"{dir_short_name}_{dir_short_hash}")
     prj_cache_dir.mkdir(parents=True, exist_ok=True)
     return prj_cache_dir
