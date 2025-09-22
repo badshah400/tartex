@@ -13,6 +13,7 @@ from .tex_utils import SetEncoder, SUPP_REQ
 
 HASH_METHOD = hashlib.sha256
 
+SHORT_HASH_LEN = 7
 
 def save_input_files_hash(
     cache_file: Path,

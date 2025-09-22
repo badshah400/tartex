@@ -5,6 +5,7 @@ import subprocess
 import logging as log
 from pathlib import Path
 from contextlib import contextmanager
+from .utils.hash_utils import SHORT_HASH_LEN
 
 
 # This is a context manager that modifies the user's git working tree in place,
@@ -48,14 +49,14 @@ def git_checkout(git_bin: str, repo: str, rev: str):
     if head_abbrev_ref == "HEAD":
         # This means we are in a detached working tree to begin with
         # and will require the full hash to restore tree at the end
-        head_short_ref = head_full_ref[:7]
+        head_short_ref = head_full_ref[:SHORT_HASH_LEN]
     else:
         # HEAD points to branch tip
         head_short_ref = head_abbrev_ref
 
     try:
         rev_full_ref = _get_ref(git_bin, repo, rev)
-        rev_short_ref = rev_full_ref[:7]
+        rev_short_ref = rev_full_ref[:SHORT_HASH_LEN]
     except subprocess.CalledProcessError as err:  # typically for invalid rev
         log.critical(
             "Failed to checkout revision %s; invalid git revision?", rev

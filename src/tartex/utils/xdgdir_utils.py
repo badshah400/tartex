@@ -5,7 +5,7 @@
 #
 "Helper module for XDG based cache dir discovery"
 
-from .hash_utils import HASH_METHOD
+from .hash_utils import HASH_METHOD, SHORT_HASH_LEN
 import os
 from pathlib import Path
 from tartex.__about__ import __appname__
@@ -35,7 +35,7 @@ def app_cache_dir(main_file: Path) -> Path:
     # Append a short dir hash making the dir name unique
     dir_short_hash = HASH_METHOD(
         str(main_file.resolve()).encode("utf-8")
-    ).hexdigest()[:7]
+    ).hexdigest()[:SHORT_HASH_LEN]
     prj_cache_dir = cache_dir / (f"{dir_short_name}_{dir_short_hash}")
     prj_cache_dir.mkdir(parents=True, exist_ok=True)
     return prj_cache_dir
