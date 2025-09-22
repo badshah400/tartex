@@ -11,7 +11,7 @@ from tartex.tartex import TarTeX
 
 
 @pytest.fixture
-def git_bin():
+def test_git_bin():
     """Returns the git executable available in PATH
     :returns: str pointing to git binary or None if `git` in not found in Path
 
@@ -20,9 +20,9 @@ def git_bin():
 
 
 @pytest.fixture
-def git_repo_clean(datadir, git_bin):
+def git_repo_clean(datadir, test_git_bin):
     """Set up a clean git repository"""
-    git_cmd_base = [git_bin, "-C", datadir]
+    git_cmd_base = [test_git_bin, "-C", datadir]
     run([*git_cmd_base, "init", "-b", "main"])
     run([*git_cmd_base, "add", "."])
     run([*git_cmd_base, "commit", "-m", "Initial commit."])
