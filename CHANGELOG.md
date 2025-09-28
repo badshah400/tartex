@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixes
+
+- Use 7-character short shasum ref for cache filename for consistency with default git short refs.
+- Reduce default volume of log messages when LaTeXmk compilation fails.
+
 ## [0.10.2] 2025-09-21
 
 ### Fixes
