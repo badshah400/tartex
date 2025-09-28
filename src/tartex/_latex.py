@@ -65,13 +65,14 @@ def run_latexmk(filename, mode, compdir, timeout=300, silent: bool = False):
         log.error("%s", err.strerror)
         raise err
     except subprocess.CalledProcessError as err:
-        log.error(
+        log.critical(f"{err.cmd[0]} failed to compile project.")
+        log.info(
             "Error: %s failed with the following output:\n%s\n%s",
             err.cmd[0],
             err.stdout,
             "===================================================",
         )
-        log.error("Latexmk command used was: `%s`", " ".join(latexmk_cmd))
+        log.info("Latexmk command used was: `%s`", " ".join(latexmk_cmd))
         raise err
 
     if not silent:
