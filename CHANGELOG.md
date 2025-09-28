@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.10.3] 2025-09-28
+
 ### Fixes
 
 - Use 7-character short shasum ref for cache filename for consistency with default git short refs.
