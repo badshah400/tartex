@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Ensure object is not `None` before using as `Path` param; fixes tar generation being aborted when `-b` option is used for non-bibtex projects.
+
 ## [0.10.3] 2025-09-28
 
 ### Fixes
