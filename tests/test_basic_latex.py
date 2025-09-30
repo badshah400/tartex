@@ -86,6 +86,22 @@ class TestBasicLaTeX:
         t.tar_files()
         assert t.tar_file_w_ext.exists()
 
+    def test_bug_bib_no_bibtex(self, datadir):
+        # Test fix for bug seen with version 0.10.3 where using the `-b` option
+        # when the `.tex` file does not use bibtex led to tarball creation being
+        # silently aborted. Fixed by commit 8ca48c0 [stable].
+        t = TarTeX(
+            [
+                (Path(datadir) / "basic_latex.tex").as_posix(),
+                "-b",
+                "-s",
+                "-o",
+                f"{Path(datadir) / 'no_bibtex.tar.xz'}",
+            ]
+        )
+        t.tar_files()
+        assert t.tar_file_w_ext.exists()
+
     def test_incl_pdf(self, datadir):
         """
         Test option `--with-pdf` for inclusion of pdf in tarball
