@@ -18,6 +18,7 @@ It aims to produce [arXiv](https://arxiv.org) and journal-ready bundles with zer
 - [Usage](#usage)
 - [Typical Workflows](#typical-workflows)
 - [License](#license)
+- [Related](#related)
 - [Similar utilities](#similar-utilities)
 
 ## Features
@@ -184,6 +185,13 @@ The table below highlights the key differences:
 ## License
 
 `tartex` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+
+## Related
+
+* [`nautilus-tartex`](https://github.com/badshah400/nautilus-tartex) is an
+  extension for the GNOME Files app
+  [nautilus](https://github.com/badshah400/nautilus-tartex) that adds a context
+  menu item for one-click archiving of LaTeX project files using TarTeX.
 
 ## Similar utilities
 
