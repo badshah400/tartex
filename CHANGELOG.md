@@ -2,22 +2,27 @@
 
 ## Unreleased
 
+### Fixed
+
+- Do not send empty lists computed for `--bib` or `--add` options to `TarBaller`.
+- Do not try to build exclusion list for `--excl` if the option is not used.
+
 ## [0.10.4] 2025-09-30
 
-### Fixes
+### Fixed
 
 - Ensure object is not `None` before using as `Path` param; fixes tar generation being aborted when `-b` option is used for non-bibtex projects.
 
 ## [0.10.3] 2025-09-28
 
-### Fixes
+### Fixed
 
 - Use 7-character short shasum ref for cache filename for consistency with default git short refs.
 - Reduce default volume of log messages when LaTeXmk compilation fails.
 
 ## [0.10.2] 2025-09-21
 
-### Fixes
+### Fixed
 
 - When using `--git-rev`, do not attempt to checkout revision if repository is unclean; raise error early.
 - Restore original git tree when process raises error while working in repo checked out at specified revision.
