@@ -19,6 +19,7 @@ from rich import (
     logging as richlog,
     highlighter,
 )
+from subprocess import CalledProcessError
 from tempfile import TemporaryDirectory
 from typing import Any, Union
 
@@ -446,6 +447,11 @@ class TarTeX:
                     compile_dir,
                     silent=silent,
                 )
+            except CalledProcessError as err:
+                _lines = err.stdout.splitlines()
+                err_log = self.cwd / "tartex_compile_error.log"
+                with open(err_log, mode="w") as _elog:
+                    _elog.writelines([f"{_l}\n" for _l in _lines])
             except Exception as e:
                 raise e
 
