@@ -230,6 +230,7 @@ class TarTeX:
         self.pdf_stream: bytes
         # ..but use use specified output's TAR_EXT extension if any...
         self.tar_ext = ""
+
         if self.args.output:
             self.args.output, self.tar_ext = (
                 _tartex_tar_utils.proc_output_path(
@@ -239,19 +240,19 @@ class TarTeX:
                     self.tar_file_git_tag,
                 )
             )
+
         self.tar_file_w_ext = self._tar_filename()
         self.tar_ext = self.tar_file_w_ext.suffix.lstrip(".")
         log.debug("Output tarball name: '%s'", self.tar_file_w_ext)
-
         self.req_supfiles: dict[Path, Any] = {}
         self.add_files = self.args.add.split(",") if self.args.add else []
         self.excl_files: set[Path] = set()
+
         if self.args.excl:
             excludes = self.args.excl.split(",") if self.args.excl else []
             excl_lists = (
                 self.main_file.parent.glob(f"**/{L}") for L in excludes
             )
-
             self.excl_files.update(
                 [
                     f.relative_to(self.main_file.parent)
@@ -300,6 +301,7 @@ class TarTeX:
                 for ext in ["eps", "ps"]
                 for p in self.main_file.parent.glob(f"**/*.{ext}")
             ]
+            log.debug("No ps/eps files found in project")
             self.force_tex = "ps" if src_ps else "pdf"
             log.info(
                 "Latexmk will use %slatex for processing, if needed",
