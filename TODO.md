@@ -4,6 +4,7 @@
 - A guided "wizard" `--interactive` mode.
 - A `--watch` mode (using `Watchdog`?) to generate tarballs automatically upon source changes, so output tar remains in sync with TeX project.
 - Handling very large working repositories: `git checkout` may be too slow in these cases.
+- Summarise common errors from overly verbose LaTeX error log when compilation fails; save full log file in calling dir. 
 
 ## Documentation and miscellaneous
 
