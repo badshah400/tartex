@@ -342,10 +342,12 @@ class TarTeX:
             deps, pkgs = self.input_files_from_cache(tarf, silent=silent)
 
         if self.args.bib:
-            tarf.app_files(*self._add_bib(pkgs))
+            if len(_l := self._add_bib(pkgs)):
+                tarf.app_files(*_l)
 
         if self.add_files:
-            tarf.app_files(*self._add_user_files())
+            if len(_l := self._add_user_files()):
+                tarf.app_files(*_l)
 
         if self.excl_files:  # Remove files in excl list
             tarf.drop_files(*self.excl_files)
