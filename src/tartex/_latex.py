@@ -13,7 +13,6 @@ import logging as log
 import re
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 from rich.live import Live
@@ -75,13 +74,14 @@ class LatexmkError(Exception):
 
 
 def run_latexmk(
-        filename: Path,
-        mode: str,
-        compdir: str,
-        timeout: int = 300,
-        silent: bool = False
+    filename: Path,
+    mode: str,
+    compdir: str,
+    timeout: int = 300,
+    silent: bool = False,
 ) -> Path:
     """Helper function to actually compile the latex file in a tmpdir"""
+
     latexmk_bin = shutil.which("latexmk")
     if not latexmk_bin:
         raise LatexmkError(1, "latexmk", "unable to find `latexmk` in PATH")
@@ -112,7 +112,7 @@ def run_latexmk(
         raise LatexmkError(
             1,
             " ".join(latexmk_cmd),
-            f"process timed out after {timeout} seconds"
+            f"process timed out after {timeout} seconds",
         )
     except OSError as err:
         raise LatexmkError(1, " ".join(latexmk_cmd), err.strerror or "")
@@ -121,7 +121,7 @@ def run_latexmk(
             1,
             " ".join(latexmk_cmd),
             f"{err.cmd[0]} failed to compile project.",
-            err.stdout  # detailed latexmk log is in stdout
+            err.stdout,  # detailed latexmk log is in stdout
         )
 
     if not silent:
@@ -135,12 +135,13 @@ def run_latexmk(
 
 
 def fls_input_files(
-        fls_fileobj: TextIOWrapper,
-        skip_files: list[str],
-        *,
-        sty_files: bool = False
+    fls_fileobj: TextIOWrapper,
+    skip_files: list[str],
+    *,
+    sty_files: bool = False,
 ) -> tuple[set[Path], dict[str, set[str]]]:
     """Helper function to return list on files marked as 'INPUT' in fls file"""
+
     deps: set = set()
     pkgs: dict[str, set[str]] = {"System": set(), "Local": set()}
     for line in fls_fileobj:
