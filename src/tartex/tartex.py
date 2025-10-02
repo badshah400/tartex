@@ -19,7 +19,6 @@ from rich import (
     logging as richlog,
     highlighter,
 )
-from subprocess import CalledProcessError
 from tempfile import TemporaryDirectory
 from typing import Any, Union
 
