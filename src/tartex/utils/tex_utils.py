@@ -117,7 +117,8 @@ def latexmk_summary(err_msg: str) -> tuple[set[str], set[str]]:
     )
     _mat = RE_PKG_WARN.finditer(err_msg)
     for _l in _mat:
-        if "Citation(s) may have changed" in _l.group():
+        if "citation(s) may have changed" in _l.group().lower():
+            # redundant warning
             continue
         warn_lines.add(
             RE_PKG_WARN.sub(r"\1 warning: \2", _l.group()).replace("\n", "")
