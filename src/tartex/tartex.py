@@ -447,11 +447,20 @@ class TarTeX:
                     compile_dir,
                     silent=silent,
                 )
-            except CalledProcessError as err:
-                _lines = err.stdout.splitlines()
-                err_log = self.cwd / "tartex_compile_error.log"
-                with open(err_log, mode="w") as _elog:
-                    _elog.writelines([f"{_l}\n" for _l in _lines])
+            except _latex.LatexmkError as err:
+                log.error(f"Error: {err.summary}")
+                log.info(f"Command used was: {err.cmd}")
+                if err.description != "":
+                    _lines = err.description.splitlines()
+                    err_log = self.cwd / "tartex_compile_error.log"
+                    with open(err_log, mode="w") as _elog:
+                        _elog.writelines([f"{_l}\n" for _l in _lines])
+                    richprint(
+                        f"📋 See {err_log.name} for full latexmk error"
+                        " log"
+                    )
+                raise err
+
             except Exception as e:
                 raise e
 

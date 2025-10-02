@@ -26,6 +26,54 @@ INPUT_FONTS = re.compile(r"^INPUT\s.*.(pfb|tfm)")
 FONT_PUBLIC = re.compile(r"/public/.*/")
 
 
+class LatexmkError(Exception):
+    """
+    class representing possible errors when using latexmk to compile
+    project
+    """
+
+    def __init__(
+        self, returncode: int, cmd: str, summ: str = "", desc: str = ""
+    ):
+        """Initialise LatexmkError class
+
+        :returncode: a return code associated with the error
+        :cmd: command used to run compilation
+        :stdout: output to stdout
+        :stderr: output to stderr
+
+        """
+        self._retcode = returncode
+        self._command = cmd
+        self._summary = summ
+        self._desc = desc
+
+    @property
+    def code(self) -> int:
+        """code from the command"""
+        return self._retcode
+
+    @property
+    def cmd(self) -> str:
+        """full command used for compilation"""
+        return self._command
+
+    @property
+    def summary(self) -> str:
+        """short summary of error from command"""
+        return self._summary
+
+    @property
+    def description(self) -> str:
+        """detailed error log from command"""
+        return self._desc
+
+    @property
+    def msg(self) -> tuple[str, str]:
+        """get a tuple of error summary, description"""
+        return (self._summary, self._desc)
+
+
 def run_latexmk(
         filename: Path,
         mode: str,
@@ -36,8 +84,7 @@ def run_latexmk(
     """Helper function to actually compile the latex file in a tmpdir"""
     latexmk_bin = shutil.which("latexmk")
     if not latexmk_bin:
-        log.critical("Unable to find `latexmk` in PATH.")
-        sys.exit(1)
+        raise LatexmkError(1, "latexmk", "unable to find `latexmk` in PATH")
 
     # Generate fls file from tex file by running latexmk
     latexmk_cmd = [
@@ -61,26 +108,21 @@ def run_latexmk(
                 check=True,
                 timeout=timeout,
             )
-    except subprocess.TimeoutExpired as e:
-        log.critical(
-            "Error: %s process timed out after %s seconds",
-            latexmk_bin,
-            timeout,
+    except subprocess.TimeoutExpired:
+        raise LatexmkError(
+            1,
+            " ".join(latexmk_cmd),
+            f"process timed out after {timeout} seconds"
         )
-        raise e
     except OSError as err:
-        log.error("%s", err.strerror)
-        raise err
+        raise LatexmkError(1, " ".join(latexmk_cmd), err.strerror or "")
     except subprocess.CalledProcessError as err:
-        log.critical(f"{err.cmd[0]} failed to compile project.")
-        log.info(
-            "Error: %s failed with the following output:\n%s\n%s",
-            err.cmd[0],
-            err.stdout,
-            "===================================================",
+        raise LatexmkError(
+            1,
+            " ".join(latexmk_cmd),
+            f"{err.cmd[0]} failed to compile project.",
+            err.stdout  # detailed latexmk log is in stdout
         )
-        log.info("Latexmk command used was: `%s`", " ".join(latexmk_cmd))
-        raise err
 
     if not silent:
         log.info(
