@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from tartex.tartex import TarTeX
+from tartex.tartex import TarTeX, chdir
 
 
 @pytest.fixture
@@ -35,33 +35,36 @@ class TestLaTeXmkFail:
 
     def test_cleanup(self, default_target, default_tartex_obj, capsys):
         """Should clean up tarball when latexmk fails"""
-        t = default_tartex_obj("error_latex.tex")
-        with pytest.raises(SystemExit) as exc:
-            t.tar_files()
+        with chdir(default_target.parent):
+            t = default_tartex_obj("error_latex.tex")
+            with pytest.raises(SystemExit) as exc:
+                t.tar_files()
 
-        assert exc.value.code == 1
-        assert not t.tar_file_w_ext.exists()
+            assert exc.value.code == 1
+            assert not t.tar_file_w_ext.exists()
 
     def test_err_msg(self, default_target, datadir, capsys, join_linebreaks):
         """Should print an error msg when latexmk fails"""
-        t = TarTeX(
-            [
-                (Path(datadir) / "error_latex.tex").as_posix(),
-                "-vv",
-                "-s",
-                "-o",
-                default_target.with_suffix(".xz").as_posix(),
-            ]
-        )
-        with pytest.raises(SystemExit) as exc:
-            t.tar_files()
-            assert (
-                "latexmk failed with the following output"
-                in join_linebreaks(capsys.readouterr().err)
+        with chdir(datadir):
+            t = TarTeX(
+                [
+                    (Path(datadir) / "error_latex.tex").as_posix(),
+                    "-vv",
+                    "-s",
+                    "-o",
+                    default_target.with_suffix(".xz").as_posix(),
+                ]
             )
-            assert "command used was:" in capsys.readouterr().err
-            assert "Cleaning up empty tarball" in join_linebreaks(
-                capsys.readouterr().err
-            )
+            with pytest.raises(SystemExit) as exc:
+                t.tar_files()
+                assert (
+                    "latexmk failed with the following output"
+                    in join_linebreaks(capsys.readouterr().err)
+                )
+                assert "command used was:" in capsys.readouterr().err
+                assert "Cleaning up empty tarball" in join_linebreaks(
+                    capsys.readouterr().err
+                )
 
-        assert exc.value.code == 1
+            assert exc.value.code == 1
+
