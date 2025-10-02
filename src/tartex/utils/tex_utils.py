@@ -78,6 +78,53 @@ def bib_file(tex_fname: Path) -> list[Union[Path, None]]:
     ]
 
 
+def latexmk_summary(err_msg: str) -> tuple[set[str], set[str]]:
+    """Pick out potential lines of interest from a full latexmk error msg
+
+    :err_msg: full latexmk error log as a string
+    :returns: list of str representing a summary of important points collected
+              from the full `err_msg`
+
+    """
+    err_lines: set[str] = set()
+
+    RE_NOT_FOUND = re.compile(
+        r"^! (Package.* Error: .* not found):", re.MULTILINE
+    )
+    _matches = RE_NOT_FOUND.finditer(err_msg)
+    for _l in _matches:
+        err_lines.add(RE_NOT_FOUND.sub(r"\1", _l.group()))
+
+    RE_UNDEF_CNTRL_SEQ = re.compile(
+        r"^! (Undefined control sequence).(?:\n|\r\n)(.*)$",
+        re.MULTILINE
+    )
+    _matches = RE_UNDEF_CNTRL_SEQ.finditer(err_msg)
+    for _l in _matches:
+        err_lines.add(RE_UNDEF_CNTRL_SEQ.sub(r"\1: \2", _l.group()))
+
+    warn_lines: set[str] = set()
+
+    RE_LATEX_WARN = re.compile(
+        r"^LaTeX Warning: (.*)\.$", re.MULTILINE
+    )
+    _mat = RE_LATEX_WARN.finditer(err_msg)
+    for _l in _mat:
+        warn_lines.add(RE_LATEX_WARN.sub(r"\1", _l.group()))
+
+    RE_PKG_WARN = re.compile(
+        r"^Package (.*) Warning: (.*(?:\n|\r\n)?.*\.)$", re.MULTILINE
+    )
+    _mat = RE_PKG_WARN.finditer(err_msg)
+    for _l in _mat:
+        if "Citation(s) may have changed" in _l.group():
+            continue
+        warn_lines.add(
+            RE_PKG_WARN.sub(r"\1 warning: \2", _l.group()).replace("\n", "")
+        )
+    return (err_lines, warn_lines)
+
+
 class SetEncoder(json.JSONEncoder):
     """A class to allow JSONEncoder to interpret a set as a list"""
 

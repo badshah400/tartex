@@ -452,12 +452,22 @@ class TarTeX:
                 log.error(err.summary)
                 log.info(f"Command used was: {err.cmd}")
                 if err.description != "":
+                    _tex_errs, _tex_warns = _tartex_tex_utils.latexmk_summary(
+                        err.description
+                    )
+                    for _w in _tex_warns:
+                        log.info(_w)
+
+                    for _e in _tex_errs:
+                        log.error(_e)
+
                     _lines = err.description.splitlines()
                     err_log = self.cwd / "tartex_compile_error.log"
                     with open(err_log, mode="w") as _elog:
                         _elog.writelines([f"{_l}\n" for _l in _lines])
                     richprint(
-                        f"📋 See [cyan]{err_log.name}[/] for the latexmk log"
+                        f"📋 See [cyan]{err_log.name}[/] for the complete "
+                        "latexmk log"
                     )
                 raise err
 
