@@ -120,7 +120,7 @@ def run_latexmk(
         raise LatexmkError(
             1,
             " ".join(latexmk_cmd),
-            f"{err.cmd[0]} failed to compile project.",
+            f"{err.cmd[0]} failed to compile project",
             err.stdout,  # detailed latexmk log is in stdout
         )
 

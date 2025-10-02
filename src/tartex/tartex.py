@@ -172,6 +172,7 @@ def _set_main_file(name: str) -> Union[Path, None]:
         )
 
 
+
 ################
 ## MAIN CLASS ##
 ################
@@ -446,8 +447,9 @@ class TarTeX:
                     compile_dir,
                     silent=silent,
                 )
+
             except _latex.LatexmkError as err:
-                log.error(f"Error: {err.summary}")
+                log.error(err.summary)
                 log.info(f"Command used was: {err.cmd}")
                 if err.description != "":
                     _lines = err.description.splitlines()
@@ -455,8 +457,7 @@ class TarTeX:
                     with open(err_log, mode="w") as _elog:
                         _elog.writelines([f"{_l}\n" for _l in _lines])
                     richprint(
-                        f"📋 See {err_log.name} for full latexmk error"
-                        " log"
+                        f"📋 See [cyan]{err_log.name}[/] for the latexmk log"
                     )
                 raise err
 
