@@ -91,12 +91,14 @@ def latexmk_summary(err_msg: str) -> tuple[set[str], set[str]]:
         # "search pattern"                             : "replacement" or None
         r"^! LaTeX Error: (File `.*' not found.)$"     : r"\1",
         r"^! (Package.* Error: .* not found):"         : r"\1",
-        rf"^! (Undefined control sequence).{LBR}(.*)$" : r"\1: \2",
-        rf"^! (Too many }}'s.){LBR}(.*)$"              : r"\1 \2",
-        rf"^! (Missing \$ inserted).{LBR}(.*){LBR}\s.*(.*)\${LBR}(.*)$"
-                                                       : r"\1: \3 \4",
+        rf"^! (Undefined control sequence).{LBR}(l\.\d+)\s*(.*)$"
+                                                       : r"\2 [\1]: \3",
+        rf"^! (Too many \{{?\}}?'s.){LBR}(l\.\d+)(.*)$": r"\2 [\1]: \3",
+        r"^! (Missing \}?\{?\$? inserted)."
+        rf"{LBR}(?:.*){LBR}(?:.*){LBR}(l\.\d+)\s(.*)$" : r"\2 [\1]: \3",
         r"^Runaway argument\?"                         : None,
-        rf"^! (Misplaced alignment .*)\.{LBR}(.*\&)$"  : r"\1: \2",
+        rf"^! (Misplaced alignment .*) \&\.{LBR}(l.\d+)\s*(.*\&)$"
+                                                       : r"\2 [\1]: \3",
     }
 
     err_lines = _get_filtered_lines(RE_ERRORS, err_msg)
@@ -127,13 +129,16 @@ def _get_filtered_lines(
     for key, val in filters.items():
         _mat = re.finditer(key, msg, re.MULTILINE)
         for _l in _mat:
+            _g = _l.group()
             if val:
-                _g = _l.group()
                 for _ig in ignore:
                     if _ig.lower() in _g.lower():  # even if matching partly
                         break
                 else:
                     lines.add(re.sub(key, val, _g).replace("\n", ""))
+
+            else:
+                lines.add(_g)
 
     return lines
 
