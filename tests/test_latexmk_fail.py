@@ -33,7 +33,7 @@ def default_tartex_obj(datadir, default_target):
 class TestLaTeXmkFail:
     """Tests checking error reporting and clean up when latexmk fails"""
 
-    def test_cleanup(self, default_target, default_tartex_obj, capsys):
+    def test_cleanup(self, default_target, default_tartex_obj):
         """Should clean up tarball when latexmk fails"""
         with chdir(default_target.parent):
             t = default_tartex_obj("error_latex.tex")
@@ -43,28 +43,26 @@ class TestLaTeXmkFail:
             assert exc.value.code == 1
             assert not t.tar_file_w_ext.exists()
 
-    def test_err_msg(self, default_target, datadir, capsys, join_linebreaks):
+    def test_err_msg(self, default_target, datadir, caplog):
         """Should print an error msg when latexmk fails"""
         with chdir(datadir):
             t = TarTeX(
                 [
-                    (Path(datadir) / "error_latex.tex").as_posix(),
+                    "error_latex.tex",
                     "-vv",
                     "-s",
                     "-o",
-                    default_target.with_suffix(".xz").as_posix(),
+                    "error_latex.tar.xz",
                 ]
             )
             with pytest.raises(SystemExit) as exc:
                 t.tar_files()
-                assert (
-                    "latexmk failed with the following output"
-                    in join_linebreaks(capsys.readouterr().err)
-                )
-                assert "command used was:" in capsys.readouterr().err
-                assert "Cleaning up empty tarball" in join_linebreaks(
-                    capsys.readouterr().err
-                )
 
+            logs = " ".join(caplog.messages)
+            assert (
+                "latexmk failed to compile project"
+                in logs
+            )
+            assert "l.7 [Undefined control sequence]" in logs
+            assert "See tartex_compile_error.log" in logs
             assert exc.value.code == 1
-
