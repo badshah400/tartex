@@ -455,8 +455,10 @@ class TarTeX:
                     _tex_errs, _tex_warns = _tartex_tex_utils.latexmk_summary(
                         err.description
                     )
-                    for _w in _tex_warns:
-                        log.info(_w)
+
+                    if self.args.verbose > 0:
+                        for _w in _tex_warns:
+                            log.warning(_w)
 
                     for _e in _tex_errs:
                         log.error(_e)
