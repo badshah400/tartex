@@ -96,6 +96,7 @@ def latexmk_summary(err_msg: str) -> tuple[set[str], set[str]]:
         rf"^! (Missing \$ inserted).{LBR}(.*){LBR}\s.*(.*)\${LBR}(.*)$"
                                                        : r"\1: \3 \4",
         r"^Runaway argument\?"                         : None,
+        rf"^! (Misplaced alignment .*)\.{LBR}(.*\&)$"  : r"\1: \2",
     }
 
     err_lines = _get_filtered_lines(RE_ERRORS, err_msg)
