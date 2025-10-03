@@ -794,12 +794,12 @@ class TarTeX:
             )
         except Exception as err:
             log.critical(
-                "Latexmk failed to compile; check if all source files exist"
+                "Latexmk failed to compile; check sources for LaTeX errors"
             )
             if not silent:
                 richprint(
-                    f"{INDI['req-miss']} Files need for compilation missing "
-                    "(deleted?)"
+                    f"{INDI['req-miss']} LaTeX compilation failed when trying "
+                    "to generate reference tarball; check your source files"
                 )
             raise CheckFailError from err
 
