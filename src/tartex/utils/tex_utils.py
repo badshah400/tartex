@@ -86,44 +86,55 @@ def latexmk_summary(err_msg: str) -> tuple[set[str], set[str]]:
               from the full `err_msg`
 
     """
-    err_lines: set[str] = set()
+    LBR = r"(?:\n|\r\n)"
+    RE_ERRORS: dict[str, Union[str, None]] = {
+        # "search pattern"                             : "replacement" or None
+        r"^! LaTeX Error: (File `.*' not found.)$"     : r"\1",
+        r"^! (Package.* Error: .* not found):"         : r"\1",
+        rf"^! (Undefined control sequence).{LBR}(.*)$" : r"\1: \2",
+        rf"^! (Too many }}'s.){LBR}(.*)$"              : r"\1 \2",
+        rf"^! (Missing \$ inserted).{LBR}(.*){LBR}\s.*(.*)\${LBR}(.*)$"
+                                                       : r"\1: \3 \4",
+        r"^Runaway argument\?"                         : None,
+    }
 
-    RE_NOT_FOUND = re.compile(
-        r"^! (Package.* Error: .* not found):", re.MULTILINE
+    err_lines = _get_filtered_lines(RE_ERRORS, err_msg)
+
+    RE_WARNS: dict[str, Union[str, None]] = {
+        r"^LaTeX Warning: (.*)\.$" : r"\1",
+        r"^Package (.*) Warning: (.*(?:\n|\r\n)?.*\.)$" : r"\1 warning: \2",
+    }
+    warn_lines: set[str] = _get_filtered_lines(
+        RE_WARNS,
+        err_msg,
+        ignore=[
+            "citation(s) may have changed",
+            "standard defaults will be used",
+            "There were undefined references",
+            "Rerun to get cross-references right",
+        ]
     )
-    _matches = RE_NOT_FOUND.finditer(err_msg)
-    for _l in _matches:
-        err_lines.add(RE_NOT_FOUND.sub(r"\1", _l.group()))
 
-    RE_UNDEF_CNTRL_SEQ = re.compile(
-        r"^! (Undefined control sequence).(?:\n|\r\n)(.*)$",
-        re.MULTILINE
-    )
-    _matches = RE_UNDEF_CNTRL_SEQ.finditer(err_msg)
-    for _l in _matches:
-        err_lines.add(RE_UNDEF_CNTRL_SEQ.sub(r"\1: \2", _l.group()))
-
-    warn_lines: set[str] = set()
-
-    RE_LATEX_WARN = re.compile(
-        r"^LaTeX Warning: (.*)\.$", re.MULTILINE
-    )
-    _mat = RE_LATEX_WARN.finditer(err_msg)
-    for _l in _mat:
-        warn_lines.add(RE_LATEX_WARN.sub(r"\1", _l.group()))
-
-    RE_PKG_WARN = re.compile(
-        r"^Package (.*) Warning: (.*(?:\n|\r\n)?.*\.)$", re.MULTILINE
-    )
-    _mat = RE_PKG_WARN.finditer(err_msg)
-    for _l in _mat:
-        if "citation(s) may have changed" in _l.group().lower():
-            # redundant warning
-            continue
-        warn_lines.add(
-            RE_PKG_WARN.sub(r"\1 warning: \2", _l.group()).replace("\n", "")
-        )
     return (err_lines, warn_lines)
+
+
+def _get_filtered_lines(
+    filters: dict[str, Union[str, None]], msg: str, ignore: list[str] = []
+) -> set[str]:
+    """Return a set of filtred lines from `msg` using the `filtres` dict"""
+    lines: set[str] = set()
+    for key, val in filters.items():
+        _mat = re.finditer(key, msg, re.MULTILINE)
+        for _l in _mat:
+            if val:
+                _g = _l.group()
+                for _ig in ignore:
+                    if _ig.lower() in _g.lower():  # even if matching partly
+                        break
+                else:
+                    lines.add(re.sub(key, val, _g).replace("\n", ""))
+
+    return lines
 
 
 class SetEncoder(json.JSONEncoder):
