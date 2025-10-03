@@ -463,14 +463,17 @@ class TarTeX:
                     for _e in _tex_errs:
                         log.error(_e)
 
+                    log.warning(
+                        "Showing *only* the most common latex errors (and "
+                        "warnings, when using `-v`)"
+                    )
                     _lines = err.description.splitlines()
                     err_log = self.cwd / "tartex_compile_error.log"
                     with open(err_log, mode="w") as _elog:
                         _elog.writelines([f"{_l}\n" for _l in _lines])
-                    richprint(
-                        f"📋 See [cyan]{err_log.name}[/] for the complete "
-                        "latexmk log"
-                    )
+
+                    log.warning(f"See {err_log.name} for complete latexmk log")
+
                 raise err
 
             except Exception as e:
