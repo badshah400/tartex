@@ -1,5 +1,6 @@
 ## App features
 
+- Basic support for zip archives?
 - Option to flatten sources when adding to tarball (e.g., for [arXiv.org](https://arxiv.org/) submissions).
 - A guided "wizard" `--interactive` mode.
 - A `--watch` mode (using `Watchdog`?) to generate tarballs automatically upon source changes, so output tar remains in sync with TeX project.
