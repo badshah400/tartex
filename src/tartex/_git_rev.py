@@ -57,12 +57,12 @@ def git_checkout(git_bin: str, repo: str, rev: str):
     try:
         rev_full_ref = _get_ref(git_bin, repo, rev)
         rev_short_ref = rev_full_ref[:SHORT_HASH_LEN]
-    except subprocess.CalledProcessError as err:  # typically for invalid rev
+    except GitError as err:  # typically for invalid rev
         log.critical(
             "Failed to checkout revision %s; invalid git revision?", rev
         )
         log.critical("Git: %s", err.stderr.strip())
-        raise GitError(err.returncode, err.cmd, err.stdout, err.stderr) from err
+        raise err
 
     if head_full_ref != rev_full_ref:
         log_tgt_rev = (
@@ -126,12 +126,17 @@ def _get_ref(
     cmd = [git_bin, "-C", repo, "rev-parse"]
     if abbrev:
         cmd += ["--abbrev-ref"]
-    return subprocess.run(
-        [*cmd, rev],
-        capture_output=True,
-        encoding="utf-8",
-        check=True,
-    ).stdout.splitlines()[0]
+    try:
+        return subprocess.run(
+            [*cmd, rev],
+            capture_output=True,
+            encoding="utf-8",
+            check=True,
+        ).stdout.splitlines()[0]
+    except subprocess.CalledProcessError as err:
+        raise GitError(
+            err.returncode, " ".join(err.cmd), err.stdout, err.stderr
+        ) from err
 
 
 class GitRev:
@@ -158,6 +163,8 @@ class GitRev:
                     ["show", "--no-patch", r"--format=%ct", self.rev],
                 )[0].strip()
             )
+        except GitError:
+            raise
         except Exception as err:
             raise err
 
@@ -184,12 +191,10 @@ class GitRev:
                 ]
             )[0]
 
-        except subprocess.CalledProcessError as err:
+        except GitError as err:
             for line in err.stderr.splitlines():
                 log.critical("Git: %s", line)
-            raise GitError(
-                err.returncode, err.cmd, err.stdout, err.stderr
-            ) from err
+            raise err
 
         self.tag_id: str | None
         try:
@@ -201,7 +206,7 @@ class GitRev:
                     self.rev,
                 ]
             )[0]
-        except subprocess.CalledProcessError as err:
+        except GitError as err:
             log.info("Git: No tag corresponding to ref: %s", self.rev)
             for line in err.stderr.splitlines():
                 log.debug("Git: %s", line)
@@ -225,7 +230,7 @@ class GitRev:
             )
             self.ls_tree_paths = set([Path(f) for f in _files])
 
-        except (OSError, subprocess.CalledProcessError):
+        except GitError:
             self.ls_tree_paths = set()
 
         return self.ls_tree_paths
@@ -235,7 +240,7 @@ class GitRev:
 
         :cmd: git command to run (list[str])
         :returns: list of lines from output (list[str])
-        :raises: OSError, subprocess.CalledProcessError
+        :raises: GitError
 
         """
 
@@ -243,8 +248,7 @@ class GitRev:
             self.git_bin if self.git_bin else "git",
             "-C",
             self.repo,
-            *cmd,
-        ]
+        ] + cmd
         try:
             out = subprocess.run(
                 git_comm, capture_output=True, encoding="utf-8", check=True
@@ -252,7 +256,7 @@ class GitRev:
         except subprocess.CalledProcessError as _proc_err:
             raise GitError(
                 _proc_err.returncode,
-                _proc_err.cmd,
+                " ".join(_proc_err.cmd),
                 _proc_err.stdout,
                 _proc_err.stderr,
             ) from _proc_err

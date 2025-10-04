@@ -93,7 +93,7 @@ def latexmk_summary(err_msg: str) -> tuple[set[str], set[str]]:
         r"^! LaTeX Error: (Environment .* undefined).$": r"\1",
         r"^! LaTeX Error: (Missing \begin\{document\}).$"
                                                        : r"\1",
-        rf"^(.*){LBR}! (Emergency stop).{LBR}(.*)$"    : r"\2: \1", 
+        rf"^(.*){LBR}! (Emergency stop).{LBR}(.*)$"    : r"\2: \1",
         r"^! LaTeX Error: (File `.*' not found.)$"     : r"\1",
         r"^! (Package.* Error: .* not found):"         : r"\1",
         rf"^! (Undefined control sequence).{LBR}(l\.\d+)\s*(.*)$"
