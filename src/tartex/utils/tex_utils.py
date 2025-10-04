@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MIT
 #
 
+from enum import IntEnum
 from pathlib import Path
 from typing import Union
 import json
@@ -141,6 +142,17 @@ def _get_filtered_lines(
                 lines.add(_g)
 
     return lines
+
+
+
+class ExitCode(IntEnum):
+    """Enums for TarTeX exit codes"""
+    SUCCESS      = 0
+    FAIL_GENERIC = 1
+    FAIL_CACHE   = 2
+    FAIL_GIT     = 3
+    FAIL_LATEXMK = 4
+    FAIL_TAR     = 5
 
 
 class SetEncoder(json.JSONEncoder):

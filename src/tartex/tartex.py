@@ -25,6 +25,7 @@ from typing import Any, Union
 from tartex import _latex
 from tartex._parse_args import parse_args
 from tartex._git_rev import GitRev, git_checkout
+from tartex.utils.tex_utils import ExitCode
 import tartex.utils.msg_utils as _tartex_msg_utils
 import tartex.utils.tex_utils as _tartex_tex_utils
 import tartex.utils.tar_utils as _tartex_tar_utils
@@ -708,7 +709,7 @@ class TarTeX:
             except Exception:
                 if not self.args.only_check:
                     log.critical("Check failed, no tarball will be generated")
-                sys.exit(1)
+                sys.exit(ExitCode.FAIL_GENERIC)
 
         if self.args.only_check:
             return
@@ -747,8 +748,10 @@ class TarTeX:
                                 self.cwd,
                             )
                     log.info("Switching back to working dir: %s", self.cwd)
+        except _latex.LatexmkError:
+            sys.exit(ExitCode.FAIL_LATEXMK)
         except Exception:
-            sys.exit(1)
+            sys.exit(ExitCode.FAIL_GENERIC)
 
     def check_files(self, silent: bool = False):
         """

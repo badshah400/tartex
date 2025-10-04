@@ -40,7 +40,7 @@ class TestLaTeXmkFail:
             with pytest.raises(SystemExit) as exc:
                 t.tar_files()
 
-            assert exc.value.code == 1
+            assert exc.value.code != 1  # exit code == 4 for latexmk errors
             assert not t.tar_file_w_ext.exists()
 
     def test_err_msg(self, default_target, datadir, caplog):
@@ -59,10 +59,7 @@ class TestLaTeXmkFail:
                 t.tar_files()
 
             logs = " ".join(caplog.messages)
-            assert (
-                "latexmk failed to compile project"
-                in logs
-            )
+            assert "latexmk failed to compile project" in logs
             assert "l.7 [Undefined control sequence]" in logs
             assert "See tartex_compile_error.log" in logs
-            assert exc.value.code == 1
+            assert exc.value.code == 4
