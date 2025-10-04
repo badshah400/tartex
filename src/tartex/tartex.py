@@ -31,7 +31,7 @@ import tartex.utils.tex_utils as _tartex_tex_utils
 import tartex.utils.tar_utils as _tartex_tar_utils
 import tartex.utils.hash_utils as _tartex_hash_utils
 import tartex.utils.xdgdir_utils as _tartex_xdg_utils
-from tartex._tar import Tarballer
+from tartex._tar import Tarballer, TarError
 
 try:
     from contextlib import chdir
@@ -754,7 +754,10 @@ class TarTeX:
             sys.exit(ExitCode.FAIL_LATEXMK)
         except GitError:
             sys.exit(ExitCode.FAIL_GIT)
-        except Exception:
+        except TarError:
+            sys.exit(ExitCode.FAIL_TAR)
+        except Exception as e:
+            log.error(e)
             sys.exit(ExitCode.FAIL_GENERIC)
 
     def check_files(self, silent: bool = False):

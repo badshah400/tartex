@@ -72,7 +72,7 @@ class TestUseFls:
         with pytest.raises(SystemExit) as exc:
             t.tar_files()
 
-        assert exc.value.code == 1
+        assert exc.value.code == 5
         err_msg = caplog.text.lower()
         assert "critical" in err_msg
         assert "permission denied" in err_msg

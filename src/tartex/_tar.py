@@ -128,7 +128,7 @@ class Tarballer:
             log.info("Add file: %s", file_name)
 
         def _tar_add_bytesio(tar_obj: tar.TarFile, file_name: str, obj):
-            # helper func to add `obj` as BytesIO with filename <file_name> to <tar_obj>
+            # helper func to add `obj` as BytesIO with <file_name> to <tar_obj>
             tinfo = tar_obj.tarinfo(file_name)
             tinfo.size = len(obj)
             tinfo.mtime = self._mtime
@@ -158,9 +158,9 @@ class Tarballer:
                     _tar_add_bytesio(tar_obj, key, val)
         except PermissionError as e:
             log.critical(e)
-            raise e
-        except Exception as e:
-            raise e
+            raise TarError(f"{e.strerror}: {e.filename}") from e
+        except Exception as _e:
+            raise TarError(_e) from _e
 
     def print_list(self, _summ: bool = False):
         """helper function to print list of files in a pretty format"""
@@ -180,3 +180,15 @@ class Tarballer:
             print(f"{r}")
         if _summ:
             summary_msg(total)
+
+class TarError(Exception):
+
+    """Errors from handling tarfile"""
+
+    def __init__(self, msg=""):
+        """intialise TarError object"""
+        self._err = msg
+
+    @property
+    def message(self):
+        return self._err
