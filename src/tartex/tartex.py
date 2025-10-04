@@ -24,7 +24,7 @@ from typing import Any, Union
 
 from tartex import _latex
 from tartex._parse_args import parse_args
-from tartex._git_rev import GitRev, git_checkout
+from tartex._git_rev import GitError, GitRev, git_checkout
 from tartex.utils.tex_utils import ExitCode
 import tartex.utils.msg_utils as _tartex_msg_utils
 import tartex.utils.tex_utils as _tartex_tex_utils
@@ -211,7 +211,7 @@ class TarTeX:
             self.main_file = _set_main_file(self.args.fname)
         except FileNotFoundError as err:
             log.critical(f"{err.strerror}: {err.filename}")
-            sys.exit(1)
+            sys.exit(ExitCode.FAIL_GENERIC)
 
         self.filehash_cache = (
             _tartex_xdg_utils.app_cache_dir(self.main_file)
@@ -224,8 +224,10 @@ class TarTeX:
                     self.main_file.parent, self.args.git_rev or "HEAD"
                 )
                 self.tar_file_git_tag = f"-{self.GR.id()}.tar"
+            except GitError:
+                sys.exit(ExitCode.FAIL_GIT)
             except Exception:
-                sys.exit(1)
+                sys.exit(ExitCode.FAIL_GENERIC)
         else:
             self.tar_file_git_tag = ""
 
@@ -750,6 +752,8 @@ class TarTeX:
                     log.info("Switching back to working dir: %s", self.cwd)
         except _latex.LatexmkError:
             sys.exit(ExitCode.FAIL_LATEXMK)
+        except GitError:
+            sys.exit(ExitCode.FAIL_GIT)
         except Exception:
             sys.exit(ExitCode.FAIL_GENERIC)
 

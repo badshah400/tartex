@@ -62,7 +62,7 @@ def git_checkout(git_bin: str, repo: str, rev: str):
             "Failed to checkout revision %s; invalid git revision?", rev
         )
         log.critical("Git: %s", err.stderr.strip())
-        raise err
+        raise GitError(err.returncode, err.cmd, err.stdout, err.stderr) from err
 
     if head_full_ref != rev_full_ref:
         log_tgt_rev = (
@@ -89,7 +89,9 @@ def git_checkout(git_bin: str, repo: str, rev: str):
             log.critical("Failed to checkout git revision %s", log_tgt_rev)
             for line in err.stderr.splitlines():
                 log.critical("Git: %s", line)
-            raise err
+            raise GitError(
+                err.returncode, err.cmd, err.stdout, err.stderr
+            ) from err
 
         finally:
             restore_ref = (
@@ -185,7 +187,9 @@ class GitRev:
         except subprocess.CalledProcessError as err:
             for line in err.stderr.splitlines():
                 log.critical("Git: %s", line)
-            raise err
+            raise GitError(
+                err.returncode, err.cmd, err.stdout, err.stderr
+            ) from err
 
         self.tag_id: str | None
         try:
@@ -239,11 +243,67 @@ class GitRev:
             self.git_bin if self.git_bin else "git",
             "-C",
             self.repo,
-        ] + cmd
+            *cmd,
+        ]
         try:
             out = subprocess.run(
                 git_comm, capture_output=True, encoding="utf-8", check=True
             )
-        except (OSError, subprocess.CalledProcessError) as err:
-            raise err
+        except subprocess.CalledProcessError as _proc_err:
+            raise GitError(
+                _proc_err.returncode,
+                _proc_err.cmd,
+                _proc_err.stdout,
+                _proc_err.stderr,
+            ) from _proc_err
+        except OSError as _os_err:
+            raise GitError(
+                _os_err.errno or 1,
+                " ".join(git_comm),
+                _os_err.strerror or f"git failed at: {' '.join(git_comm)}",
+            ) from _os_err
+        except Exception:
+            raise
         return out.stdout.splitlines()
+
+
+class GitError(Exception):
+
+    """Exception class to handle errors raised from git-rev issues"""
+
+    def __init__(
+            self, retcode: int, cmd: str, output: str = "", error: str = ""
+    ):
+        """
+        Initialise GitError exception class.
+
+        :retcode: return code
+        :cmd: command used
+        :output: messages from stdout
+        :error: messages from stderr
+
+        """
+        self._retcode = retcode
+        self._command = cmd
+        self._output = output
+        self._error = error
+
+    @property
+    def code(self) -> int:
+        """Exit code from cmdline process"""
+        return self._retcode
+
+    @property
+    def cmd(self) -> str:
+        """Git command used for process"""
+        return self._command
+
+    @property
+    def stdout(self) -> str:
+        """stdout output from git process"""
+        return self._output
+
+    @property
+    def stderr(self) -> str:
+        """stderr output from git process"""
+        return self._error
