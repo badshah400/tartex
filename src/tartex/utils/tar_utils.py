@@ -9,6 +9,7 @@ from pathlib import Path
 import logging as log
 from rich import print as richprint
 from rich.prompt import Prompt
+from .tex_utils import ExitCode
 
 # Allowed tar extensions
 TAR_EXT = ["bz2", "gz", "xz"]
@@ -101,7 +102,7 @@ def tar_name_conflict(
             "[bold]Not overwriting existing tar file[/bold]\nQuitting",
             file=sys.stderr,
         )
-        sys.exit(1)
+        sys.exit(ExitCode.FAIL_GENERIC)
     elif ocq.lower() == "c":
         new_name = Path(
             Prompt.ask("Enter [bold]new name[/bold] for tar file")
@@ -117,7 +118,7 @@ def tar_name_conflict(
                 " existing tar file name[/bold red]\nQuitting",
                 file=sys.stderr,
             )
-            sys.exit(1)
+            sys.exit(ExitCode.FAIL_GENERIC)
         elif new_path.exists():
             richprint(
                 "[bold red]Error: A tar file with the same name"
@@ -125,7 +126,7 @@ def tar_name_conflict(
                 " exists[/bold red]\nQuitting",
                 file=sys.stderr,
             )
-            sys.exit(1)
+            sys.exit(ExitCode.FAIL_GENERIC)
         else:
             log.info("Tar file %s will be generated", new_path.as_posix())
             return new_path, ext
@@ -137,4 +138,4 @@ def tar_name_conflict(
             "[bold red]Error: Invalid response[/]\nQuitting.",
             file=sys.stderr,
         )
-        sys.exit(1)
+        sys.exit(ExitCode.FAIL_GENERIC)
