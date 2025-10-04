@@ -201,5 +201,5 @@ class TestGitRev:
         with pytest.raises(SystemExit) as exc:
             tar_git.tar_files()
 
-        assert exc.value.code == 1
+        assert exc.value.code == 3
         assert "Git repository unclean" in caplog.text

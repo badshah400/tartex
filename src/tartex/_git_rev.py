@@ -27,22 +27,23 @@ def git_checkout(git_bin: str, repo: str, rev: str):
     """
 
     # Raise exception right away if git tree is unclean
+    cmd = [
+        git_bin, "-C", repo, "status", "--porcelain", "--untracked-files=no",
+    ]
     check_clean_git_tree = subprocess.run(
-        [
-            git_bin,
-            "-C",
-            repo,
-            "status",
-            "--porcelain",
-            "--untracked-files=no",
-        ],
+        cmd,
         capture_output=True,
         encoding="utf-8",
         check=False,
     )
     if check_clean_git_tree.stdout:
         log.critical("Git repository unclean; unable to checkout revisions")
-        raise RuntimeError("Unclean git repository")
+        raise GitError(
+            check_clean_git_tree.returncode,
+            " ".join(cmd),
+            check_clean_git_tree.stdout,
+            check_clean_git_tree.stderr
+        )
 
     head_abbrev_ref = _get_ref(git_bin, repo, "HEAD", abbrev=True)
     head_full_ref = _get_ref(git_bin, repo, "HEAD", abbrev=False)
