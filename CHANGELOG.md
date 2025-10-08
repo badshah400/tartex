@@ -2,10 +2,18 @@
 
 ## Unreleased
 
+### Added
+
+- Use different exit codes based on source of failure: latexmk compilation, git checkout, adding to tarball, or generic otherwise.
+- Filter out common LaTeX errors (and warning, when using `-v`) for output messages when latexmk fails to compile.
+- Save full log from latexmk in case compilation fails to a file in command directory.
+
 ### Fixed
 
 - Do not send empty lists computed for `--bib` or `--add` options to `TarBaller`.
 - Do not try to build exclusion list for `--excl` if the option is not used.
+- Fix output message during `--check(-only)` when reference tarball fails to compile; this may not exclusively be due to missing input files.
+- Log TeX warnings only when using verbose output (`-v...`).
 
 ## [0.10.4] 2025-09-30
 
