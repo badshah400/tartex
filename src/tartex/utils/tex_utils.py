@@ -91,34 +91,36 @@ def latexmk_summary(err_msg: str) -> tuple[set[str], set[str]]:
     RE_ERRORS: dict[str, Union[str, None]] = {
         # "search pattern"
         # : "replacement" or None
-        r"^! LaTeX Error: (Environment .* undefined).$"
-        : r"\1",
-        r"^! LaTeX Error: (Missing \begin\{document\}).$"
-        : r"\1",
-        rf"^(.*){LBR}! (Emergency stop).{LBR}(.*)$"
-        : r"\2: \1",
-        r"^! LaTeX Error: (File `.*' not found.)$"
-        : r"\1",
-        r"^! (Package.* Error: .* not found):"
-        : r"\1",
-        rf"^! (Undefined control sequence).{LBR}(l\.\d+)\s*(.*)$"
-        : r"\2 [\1]: \3",
-        rf"^! (Too many \{{?\}}?'s.){LBR}(l\.\d+)(.*)$"
-        : r"\2 [\1]: \3",
+        r"^! LaTeX Error: (Environment .* undefined).$":
+        r"\1",
+        r"^! LaTeX Error: (Missing \begin\{document\}).$":
+        r"\1",
+        rf"^(.*){LBR}! (Emergency stop).{LBR}(.*)$":
+        r"\2: \1",
+        r"^! LaTeX Error: (File `.*' not found.)$":
+        r"\1",
+        r"^! (Package.* Error: .* not found):":
+        r"\1",
+        rf"^! (Undefined control sequence).{LBR}(l\.\d+)\s*(.*)$":
+        r"\2 [\1]: \3",
+        rf"^! (Too many \{{?\}}?'s.){LBR}(l\.\d+)(.*)$":
+        r"\2 [\1]: \3",
         r"^! (Missing \}?\{?\$? inserted)."
-        rf"{LBR}(?:.*){LBR}(?:.*){LBR}(l\.\d+)\s(.*)$"
-        : r"\2 [\1]: \3",
-        r"^Runaway argument\?"
-        : None,
-        rf"^! (Misplaced alignment .*) \&\.{LBR}(l.\d+)\s*(.*\&)$"
-        : r"\2 [\1]: \3",
+        rf"{LBR}(?:.*){LBR}(?:.*){LBR}(l\.\d+)\s(.*)$":
+        r"\2 [\1]: \3",
+        r"^Runaway argument\?":
+        None,
+        rf"^! (Misplaced alignment .*) \&\.{LBR}(l.\d+)\s*(.*\&)$":
+        r"\2 [\1]: \3",
     }
 
     err_lines = _get_filtered_lines(RE_ERRORS, err_msg)
 
     RE_WARNS: dict[str, Union[str, None]] = {
-        r"^LaTeX Warning: (.*)\.$" : r"\1",
-        rf"^Package (.*) Warning: (.*{LBR}?.*\.)$" : r"\1 warning: \2",
+        r"^LaTeX Warning: (.*)\.$":
+        r"\1",
+        rf"^Package (.*) Warning: (.*){LBR}(\(.*\))\s*(.*)$":
+        r"\1 warning: \2 \3 \4",
     }
     warn_lines: set[str] = _get_filtered_lines(
         RE_WARNS,
