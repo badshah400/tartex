@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Strip unnecessary white-spaces from LaTeX warning messages when joining multiple lines.
+- Do not treat missing `latexmk` as latexmk error; the latter typically refers to LaTeX errors when compiling project using latexmk.
+
 ## 0.11.0 [2025-10-08]
 
 ### Added
