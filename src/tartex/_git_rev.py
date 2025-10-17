@@ -6,6 +6,7 @@ import logging as log
 from pathlib import Path
 from contextlib import contextmanager
 from .utils.hash_utils import SHORT_HASH_LEN
+from .utils.tex_utils import ExitCode
 
 
 # This is a context manager that modifies the user's git working tree in place,
@@ -263,7 +264,7 @@ class GitRev:
             ) from _proc_err
         except OSError as _os_err:
             raise GitError(
-                _os_err.errno or 1,
+                _os_err.errno or ExitCode.FAIL_GENERIC,
                 " ".join(git_comm),
                 _os_err.strerror or f"git failed at: {' '.join(git_comm)}",
             ) from _os_err

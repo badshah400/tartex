@@ -750,8 +750,8 @@ class TarTeX:
                                 self.cwd,
                             )
                     log.info("Switching back to working dir: %s", self.cwd)
-        except _latex.LatexmkError:
-            sys.exit(ExitCode.FAIL_LATEXMK)
+        except _latex.LatexmkError as err:
+            sys.exit(err.code)
         except GitError:
             sys.exit(ExitCode.FAIL_GIT)
         except TarError:

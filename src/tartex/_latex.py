@@ -14,6 +14,7 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+from .utils.tex_utils import ExitCode
 
 from rich.live import Live
 from rich.spinner import Spinner
@@ -110,15 +111,17 @@ def run_latexmk(
             )
     except subprocess.TimeoutExpired:
         raise LatexmkError(
-            1,
+            ExitCode.FAIL_LATEXMK,
             " ".join(latexmk_cmd),
             f"process timed out after {timeout} seconds",
         )
     except OSError as err:
-        raise LatexmkError(1, " ".join(latexmk_cmd), err.strerror or "")
+        raise LatexmkError(
+            ExitCode.FAIL_GENERIC, " ".join(latexmk_cmd), err.strerror or ""
+        )
     except subprocess.CalledProcessError as err:
         raise LatexmkError(
-            1,
+            ExitCode.FAIL_LATEXMK,
             " ".join(latexmk_cmd),
             f"{err.cmd[0]} failed to compile project",
             err.stdout,  # detailed latexmk log is in stdout
