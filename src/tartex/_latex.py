@@ -84,7 +84,7 @@ def run_latexmk(
 
     latexmk_bin = shutil.which("latexmk")
     if not latexmk_bin:
-        raise LatexmkError(1, "latexmk", "unable to find `latexmk` in PATH")
+        raise RuntimeError("unable to find `latexmk` in PATH")
 
     # Generate fls file from tex file by running latexmk
     latexmk_cmd = [
